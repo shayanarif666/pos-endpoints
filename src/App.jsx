@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { endpoints, tags } from "./data/endpoints.js"
 import { getByPath, loadSession, saveSession } from "./lib/storage.js"
 import { AuthorizeBar } from "./components/AuthorizeBar.jsx"
-import { EndpointCard } from "./components/EndpointCard.jsx"
+import { EndpointCard, ResourceEnums } from "./components/EndpointCard.jsx"
 import { Sidebar } from "./components/Sidebar.jsx"
 
 export default function App() {
@@ -95,6 +95,7 @@ export default function App() {
             <section key={tag.id} id={`tag-${tag.id}`}>
               <h2 className="text-xl font-semibold text-slate-800">{tag.name}</h2>
               <p className="mt-1 mb-3 text-sm text-slate-500">{tag.description}</p>
+              <ResourceEnums enums={tag.enums} className="mb-3" />
               <div className="space-y-3">
                 {filtered
                   .filter((item) => item.tag === tag.id)

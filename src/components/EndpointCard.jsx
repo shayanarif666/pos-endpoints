@@ -22,6 +22,32 @@ function pretty(value) {
   return JSON.stringify(value, null, 2)
 }
 
+export function ResourceEnums({ enums, className = "" }) {
+  if (!enums || !Object.keys(enums).length) return null
+  return (
+    <div className={`rounded border border-slate-200 bg-white p-3 ${className}`}>
+      <h3 className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Enums</h3>
+      <div className="mt-2 space-y-2">
+        {Object.entries(enums).map(([key, values]) => (
+          <div key={key}>
+            <div className="font-mono text-xs font-semibold text-slate-700">{key}</div>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {(Array.isArray(values) ? values : []).map((value) => (
+                <span
+                  key={value}
+                  className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700"
+                >
+                  {value}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBody }) {
   const [open, setOpen] = useState(false)
   const [pathParams, setPathParams] = useState(
@@ -154,6 +180,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
       {open ? (
         <div className="border-t border-black/10 bg-white/70 p-4">
           <p className="text-sm leading-6 text-slate-600">{endpoint.description}</p>
+          <ResourceEnums enums={endpoint.enums} className="mt-3" />
 
           {endpoint.pathParams.length ? (
             <ParamTable

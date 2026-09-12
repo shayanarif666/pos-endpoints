@@ -1,5 +1,124 @@
 const UUID = "00000000-0000-4000-8000-000000000001"
 
+export const RESOURCE_ENUMS = {
+  plans: {
+    type: ["monthly", "yearly"],
+  },
+  auth: {
+    role: ["superadmin", "store_admin", "manager", "cashier", "customer"],
+    channel: ["web", "pos"],
+  },
+  license: {
+    status: ["pending", "active", "expired", "revoked"],
+  },
+  devices: {},
+  store: {
+    business_type: ["grocery", "boutique", "retail", "pharmacy"],
+  },
+  shifts: {
+    status: ["clock_in", "clock_out"],
+  },
+  categories: {
+    tax_type: ["percentage", "fixed"],
+    discount_type: ["percentage", "fixed"],
+  },
+  products: {
+    unit: ["piece", "kg", "gram", "liter", "packet", "box"],
+    tax_type: ["percentage", "fixed"],
+    discount_type: ["percentage", "fixed"],
+  },
+  inventory: {
+    "movement_type": [
+      "stock_in",
+      "stock_out",
+      "adjustment",
+      "sale",
+      "refund",
+      "transfer_out",
+      "transfer_in",
+      "custom_sale",
+    ],
+    "POST movement_type": ["stock_in", "stock_out", "adjustment"],
+    reason: [
+      "purchase",
+      "opening_balance",
+      "return_to_supplier",
+      "customer_return",
+      "waste",
+      "damage",
+      "expiry",
+      "theft",
+      "count",
+      "sale",
+      "refund",
+      "sync",
+      "transfer",
+      "custom_sale",
+      "other",
+    ],
+    "POST reason": [
+      "purchase",
+      "opening_balance",
+      "return_to_supplier",
+      "customer_return",
+      "waste",
+      "damage",
+      "expiry",
+      "theft",
+      "count",
+      "sync",
+      "other",
+    ],
+  },
+  customers: {
+    entry_type: ["debit", "credit"],
+  },
+  staff: {
+    role: ["manager", "cashier"],
+  },
+  offers: {
+    type: ["flash_sale", "bulk_discount", "bogo", "promotional"],
+    apply_to: ["product", "category"],
+    discount_type: ["percentage", "fixed"],
+  },
+  orders: {
+    channel: ["web", "pos"],
+    order_status: ["pending", "completed", "voided", "cancelled", "refunded"],
+    payment_status: ["pending", "paid", "failed", "refunded"],
+    payment_method: ["cash", "card", "jazzcash", "easypaisa", "cod", "mixed"],
+  },
+  reports: {
+    period: ["daily", "weekly", "monthly", "yearly"],
+    channel: ["web", "pos"],
+  },
+  suppliers: {
+    entry_type: ["debit", "credit"],
+  },
+  audit: {
+    actor_type: ["user", "system"],
+    action: [
+      "create",
+      "update",
+      "delete",
+      "login",
+      "logout",
+      "clock_in",
+      "clock_out",
+      "sale",
+      "void",
+      "cancel",
+      "refund",
+      "pin_override",
+      "approve",
+      "reject",
+      "license_activate",
+      "backup",
+      "restore",
+    ],
+  },
+  data: {},
+}
+
 function ep({
   id,
   tag,
@@ -13,97 +132,130 @@ function ep({
   body = null,
   files = [],
   capture = null,
+  enums = null,
 }) {
-  return { id, tag, method, path, summary, description, auth, pathParams, query, body, files, capture }
+  return {
+    id,
+    tag,
+    method,
+    path,
+    summary,
+    description,
+    auth,
+    pathParams,
+    query,
+    body,
+    files,
+    capture,
+    enums: enums || RESOURCE_ENUMS[tag] || null,
+  }
 }
 
 export const tags = [
   {
     id: "plans",
     name: "Plans",
-    description: "Super Admin only. Create, list, update, and delete packages.",
+    description: "Super Admin only. Create, list, update, and delete packages. code is a free-form unique key (not limited to package_1–3).",
+    enums: RESOURCE_ENUMS.plans,
   },
   {
     id: "auth",
     name: "Authentication",
     description:
       "Register store (Super Admin), then POS login. get/update me as used on Settings.",
+    enums: RESOURCE_ENUMS.auth,
   },
   {
     id: "license",
     name: "License",
     description: "POS Activate page. license_key + device_uid binds this browser.",
+    enums: RESOURCE_ENUMS.license,
   },
   {
     id: "devices",
     name: "POS devices",
     description: "POS shell sends heartbeat after login.",
+    enums: RESOURCE_ENUMS.devices,
   },
   {
     id: "store",
     name: "Store & tax",
     description: "Settings, Tax manager, and cart default tax. GET/PATCH stores/me, tax-rates.",
+    enums: RESOURCE_ENUMS.store,
   },
   {
     id: "shifts",
     name: "Register sessions",
     description: "Register page + POS shell current session.",
+    enums: RESOURCE_ENUMS.shifts,
   },
   {
     id: "categories",
     name: "Categories",
     description: "POS catalog tabs and Categories page.",
+    enums: RESOURCE_ENUMS.categories,
   },
   {
     id: "products",
     name: "Products",
-    description: "Products page, POS grid, expiry and weight managers.",
+    description: "Products page, POS grid, expiry and weight managers. SKU is generated from title.",
+    enums: RESOURCE_ENUMS.products,
   },
   {
     id: "inventory",
     name: "Inventory",
-    description: "Inventory page and product opening/adjust qty via stock-movements.",
+    description:
+      "Inventory page and product opening/adjust qty via stock-movements. POST movement_type is stock_in, stock_out, or adjustment.",
+    enums: RESOURCE_ENUMS.inventory,
   },
   {
     id: "customers",
     name: "Customers",
     description: "Customers page and POS checkout dropdown.",
+    enums: RESOURCE_ENUMS.customers,
   },
   {
     id: "staff",
     name: "Staff",
     description: "Staff page. List and create cashier/manager.",
+    enums: RESOURCE_ENUMS.staff,
   },
   {
     id: "offers",
     name: "Offers",
     description: "Offers page plus live cards on the Point of Sale tab.",
+    enums: RESOURCE_ENUMS.offers,
   },
   {
     id: "orders",
     name: "Orders",
     description: "POS checkout, history, void, refund, receipts.",
+    enums: RESOURCE_ENUMS.orders,
   },
   {
     id: "reports",
     name: "Reports",
     description: "Reports breakdown and profit & loss pages.",
+    enums: RESOURCE_ENUMS.reports,
   },
   {
     id: "suppliers",
     name: "Suppliers",
     description: "Suppliers page add / edit / deactivate.",
+    enums: RESOURCE_ENUMS.suppliers,
   },
   {
     id: "audit",
     name: "Audit logs",
     description: "Audit page. Read-only.",
+    enums: RESOURCE_ENUMS.audit,
   },
   {
     id: "data",
     name: "Delete data",
     description:
       "Super Admin. Wipe the whole database (except SequelizeMeta), wipe one module, delete one row, or bulk-delete by ids.",
+    enums: RESOURCE_ENUMS.data,
   },
 ]
 
@@ -115,10 +267,11 @@ export const endpoints = [
     path: "/api/v1/plans",
     summary: "Create plan",
     description:
-      "Super Admin only. Upserts by code. features is a free-form string array you define (capability keys and/or display lines).",
+      "Super Admin only. Upserts by code. code is any unique slug (not limited to package_1–3). type is monthly or yearly. features is a free-form string array.",
     auth: "superadmin",
     body: {
-      code: "package_1",
+      code: "solo-pos",
+      type: "monthly",
       name: "Solo",
       price_pkr: 2500,
       max_devices: 1,
@@ -157,6 +310,7 @@ export const endpoints = [
     pathParams: [{ name: "id", default: UUID, required: true }],
     body: {
       name: "Solo",
+      type: "yearly",
       price_pkr: 2500,
       max_devices: 1,
       max_locations: 1,
@@ -576,11 +730,10 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug is generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId.",
+    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId.",
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
-      sku: "PEP-1L",
       barcode: "8964001234567",
       category_id: UUID,
       unit: "piece",
@@ -590,6 +743,7 @@ export const endpoints = [
       tax_value: 17,
       has_product_discount: false,
       is_pack_product: false,
+      pack_size: null,
       sell_loose: false,
       is_weight_based: false,
       has_bulk_discount: false,
@@ -606,12 +760,11 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files).",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title.",
     body: {
       items: [
         {
           title: "1 Litre Pepsi",
-          sku: "PEP-1L",
           barcode: "8964001234567",
           category_id: UUID,
           unit: "piece",
@@ -619,6 +772,8 @@ export const endpoints = [
           selling_price: 90,
           tax_type: "percentage",
           tax_value: 17,
+          is_pack_product: false,
+          pack_size: null,
           is_published: true,
           pos_visible: true,
           is_active: true,
@@ -637,11 +792,12 @@ export const endpoints = [
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
-      sku: "PEP-1L",
       category_id: UUID,
       selling_price: 90,
       tax_type: "percentage",
       tax_value: 17,
+      is_pack_product: false,
+      pack_size: null,
     },
   }),
   ep({
@@ -853,13 +1009,16 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers",
     summary: "Create offer",
-    description: "Offers page. type: promotional | flash_sale | bulk_discount | bogo.",
+    description: "Offers page. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty and get_qty are for bogo.",
     body: {
       name: "Weekend 10% off",
       type: "promotional",
       apply_to: "category",
       discount_type: "percentage",
       discount_value: 10,
+      min_qty: null,
+      buy_qty: null,
+      get_qty: null,
       start_at: "2026-09-01T00:00:00.000Z",
       end_at: "2026-12-31T23:59:59.000Z",
       is_active: true,
@@ -880,6 +1039,9 @@ export const endpoints = [
           apply_to: "category",
           discount_type: "percentage",
           discount_value: 10,
+          min_qty: null,
+          buy_qty: null,
+          get_qty: null,
           start_at: "2026-09-01T00:00:00.000Z",
           end_at: "2026-12-31T23:59:59.000Z",
           is_active: true,
