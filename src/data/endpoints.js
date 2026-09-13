@@ -1087,7 +1087,7 @@ export const endpoints = [
     path: "/api/v1/orders",
     summary: "POS checkout",
     description:
-      "POS checkout. Returns { order, items, payments, receipt } — cashier is on order (no extra cashier object). store_id / location_id come from JWT; send register_session_id and device_id. Catalog selling_price is used (posted unit_price is ignored). Best of product, category, or offer discount, then tax on the discounted amount.",
+      "POS checkout. Catalog selling_price is used. Response order.tax splits default store tax, product tax, category tax, payment-method GST (mixed is split per method), and FBR (same invoice GST when fbr_invoice_enabled). Each item includes product_tax_* and category_tax_*.",
     body: {
       channel: "pos",
       register_session_id: UUID,
@@ -1253,7 +1253,7 @@ export const endpoints = [
     path: "/api/v1/reports/breakdown",
     summary: "POS reports breakdown",
     description:
-      "Reports page (all tabs). Scope comes from JWT: admin = whole store, manager = location, cashier = own sales. Do not send location_id.",
+      "Reports page (all tabs). sales_summary.totals and tax_breakdown split tax_collection into product, category, default store, payment GST, and FBR. Scope comes from JWT.",
     query: [
       { name: "period", default: "daily", required: false },
       { name: "channel", default: "pos", required: false },
@@ -1265,7 +1265,8 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/reports/profit",
     summary: "Gross profit & loss",
-    description: "Profit & loss page. Returns period and totals only (no cost_source or monthly rows).",
+    description:
+      "Profit & loss. Totals include sales_collected, cost, discounts, refunds, tax_collection (product, category, default store, payment GST, FBR), and gross_profit.",
     query: [
       { name: "period", default: "monthly", required: false },
       { name: "channel", default: "pos", required: false },
