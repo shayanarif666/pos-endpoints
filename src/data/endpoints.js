@@ -21,11 +21,13 @@ export const RESOURCE_ENUMS = {
   categories: {
     tax_type: ["percentage", "fixed"],
     discount_type: ["percentage", "fixed"],
+    channel: ["web", "pos", "both"],
   },
   products: {
     unit: ["piece", "kg", "gram", "liter", "packet", "box"],
     tax_type: ["percentage", "fixed"],
     discount_type: ["percentage", "fixed"],
+    channel: ["web", "pos", "both"],
   },
   inventory: {
     "movement_type": [
@@ -69,9 +71,11 @@ export const RESOURCE_ENUMS = {
       "sync",
       "other",
     ],
+    channel: ["web", "pos", "both"],
   },
   customers: {
     entry_type: ["debit", "credit"],
+    channel: ["web", "pos", "both"],
   },
   staff: {
     role: ["manager", "cashier"],
@@ -83,6 +87,8 @@ export const RESOURCE_ENUMS = {
   },
   orders: {
     channel: ["web", "pos"],
+    is_pos_visible: ["true", "false"],
+    is_web_visible: ["true", "false"],
     order_status: ["pending", "completed", "voided", "cancelled", "refunded"],
     payment_status: ["pending", "paid", "failed", "refunded"],
     payment_method: ["cash", "card", "jazzcash", "easypaisa", "cod", "mixed"],
@@ -93,6 +99,7 @@ export const RESOURCE_ENUMS = {
   },
   suppliers: {
     entry_type: ["debit", "credit"],
+    channel: ["web", "pos", "both"],
   },
   audit: {
     actor_type: ["user", "system"],
@@ -661,7 +668,9 @@ export const endpoints = [
       discount_type: null,
       discount_value: null,
       is_active: true,
-      pos_visible: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -680,7 +689,9 @@ export const endpoints = [
           tax_type: "percentage",
           tax_value: 17,
           is_active: true,
-          pos_visible: true,
+          is_pos_visible: true,
+          is_web_visible: true,
+          channel: "both",
         },
       ],
     },
@@ -700,7 +711,9 @@ export const endpoints = [
       discount_type: null,
       discount_value: null,
       is_active: true,
-      pos_visible: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -749,8 +762,9 @@ export const endpoints = [
       has_bulk_discount: false,
       low_stock_threshold: 6,
       is_published: true,
-      pos_visible: true,
-      web_visible: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
       is_active: true,
     },
   }),
@@ -775,7 +789,9 @@ export const endpoints = [
           is_pack_product: false,
           pack_size: null,
           is_published: true,
-          pos_visible: true,
+          is_pos_visible: true,
+          is_web_visible: true,
+          channel: "both",
           is_active: true,
         },
       ],
@@ -798,6 +814,9 @@ export const endpoints = [
       tax_value: 17,
       is_pack_product: false,
       pack_size: null,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -829,6 +848,9 @@ export const endpoints = [
     body: {
       qty: 50,
       expiry_date: "2026-12-31",
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -863,6 +885,9 @@ export const endpoints = [
       reason: "purchase",
       qty: 24,
       expiry_date: "2026-12-31",
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -880,6 +905,9 @@ export const endpoints = [
           reason: "purchase",
           qty: 24,
           expiry_date: "2026-12-31",
+          is_pos_visible: true,
+          is_web_visible: true,
+          channel: "both",
         },
       ],
     },
@@ -907,6 +935,9 @@ export const endpoints = [
       remaining_debt: 500,
       total_debt: 1000,
       debt_notes: "Opening udhaar",
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -925,6 +956,9 @@ export const endpoints = [
           remaining_debt: 500,
           total_debt: 1000,
           debt_notes: "Opening udhaar",
+          is_pos_visible: true,
+          is_web_visible: true,
+          channel: "both",
         },
       ],
     },
@@ -945,6 +979,9 @@ export const endpoints = [
       total_debt: 1000,
       debt_notes: "Will pay Friday",
       is_active: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
 
@@ -1090,6 +1127,8 @@ export const endpoints = [
       "POS checkout. Catalog selling_price is used. Response order.tax splits default store tax, product tax, category tax, payment-method GST (mixed is split per method), and FBR (same invoice GST when fbr_invoice_enabled). Each item includes product_tax_* and category_tax_*.",
     body: {
       channel: "pos",
+      is_pos_visible: true,
+      is_web_visible: false,
       register_session_id: UUID,
       device_id: UUID,
       customer_id: null,
@@ -1117,6 +1156,8 @@ export const endpoints = [
       items: [
         {
           channel: "pos",
+          is_pos_visible: true,
+          is_web_visible: false,
           register_session_id: UUID,
           device_id: UUID,
           client_local_id: "pos-local-001",
@@ -1293,6 +1334,9 @@ export const endpoints = [
       address: "Industrial Area",
       payment_terms: "Net 15",
       is_active: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
@@ -1310,6 +1354,9 @@ export const endpoints = [
           email: "sales@distributor.local",
           address: "Industrial Area",
           payment_terms: "Net 15",
+          is_pos_visible: true,
+          is_web_visible: true,
+          channel: "both",
         },
       ],
     },
@@ -1328,6 +1375,9 @@ export const endpoints = [
       address: "Industrial Area",
       payment_terms: "Net 15",
       is_active: true,
+      is_pos_visible: true,
+      is_web_visible: true,
+      channel: "both",
     },
   }),
   ep({
