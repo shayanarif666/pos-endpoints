@@ -1,3 +1,5 @@
+import { bodyFieldsFor } from "./bodyFields.js"
+
 const UUID = "00000000-0000-4000-8000-000000000001"
 
 export const RESOURCE_ENUMS = {
@@ -12,8 +14,30 @@ export const RESOURCE_ENUMS = {
     status: ["pending", "active", "expired", "revoked"],
   },
   devices: {},
+  locations: {},
   store: {
-    business_type: ["grocery", "boutique", "retail", "pharmacy"],
+    business_type: [
+      "grocery",
+      "boutique",
+      "retail",
+      "pharmacy",
+      "restaurant",
+      "cafe",
+      "bakery",
+      "electronics",
+      "fashion",
+      "clothing",
+      "beauty",
+      "furniture",
+      "hardware",
+      "sports",
+      "books",
+      "jewelry",
+      "supermarket",
+      "convenience",
+      "wholesale",
+      "other",
+    ],
   },
   shifts: {
     status: ["clock_in", "clock_out"],
@@ -155,6 +179,7 @@ function ep({
     files,
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
+    fields: body == null ? null : bodyFieldsFor({ id, tag }),
   }
 }
 
@@ -183,6 +208,13 @@ export const tags = [
     name: "POS devices",
     description: "POS shell sends heartbeat after login.",
     enums: RESOURCE_ENUMS.devices,
+  },
+  {
+    id: "locations",
+    name: "Locations",
+    description:
+      "Branches of the store. Store admin sees and creates all locations (create needs the plan to allow another location). Manager sees and edits only their own location. Each location has its own manager account.",
+    enums: RESOURCE_ENUMS.locations,
   },
   {
     id: "store",
@@ -343,14 +375,12 @@ export const endpoints = [
     path: "/api/v1/admin/superadmins",
     summary: "Register Super Admin",
     description:
-      "Public. Creates a platform Super Admin and returns access_token + refresh_token. store_id and location_id are always null. Posted role is ignored.",
+      "Public only for the very first Super Admin (empty platform). After that it needs a Super Admin token, otherwise 403. Super Admin has no PIN and never signs in with one. Returns access_token + refresh_token.",
     auth: "public",
     body: {
       name: "Platform Super Admin",
       email: "superadmin@platform.local",
       password: "ChangeMeSuperAdmin1",
-      pin: "0000",
-      role: "superadmin",
     },
     capture: {
       accessToken: "data.access_token",
@@ -376,6 +406,7 @@ export const endpoints = [
       city: "Lahore",
       contact_email: "owner@demo-grocery.local",
       contact_phone: "03001234567",
+      custom_domain: "www.demo-grocery.com",
       location_name: "Main Counter",
       location_address: "Shop 12, Main Market",
       location_city: "Lahore",
@@ -408,13 +439,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/auth/login",
     summary: "POS login (email)",
-    description: "POS Login page. Email + password + channel=pos. User includes pin. License and devices are nested on location(s), not as extra top-level objects.",
+    description:
+      "POS Login page. Email + password + channel=pos + license_key + device_uid. device_uid must be a device already activated on this license (POST /licenses/validate) and still active, otherwise 403. Returns device_id and license_id; the POS token stops working when the license is revoked/expired or the device is deactivated. Access token lasts 1 hour; renew with /auth/refresh.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
       password: "ChangeMe123",
       channel: "pos",
       license_key: "FROM_AUTHORIZE",
+      device_uid: "front-counter-pc",
     },
     capture: {
       accessToken: "data.access_token",
@@ -428,12 +461,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
-    description: "POS Login PIN tab. pin + channel=pos. license_key is filled from Authorize. Super Admin can use pin alone. License and devices are nested on location(s).",
+    description:
+      "POS Login PIN tab. pin + channel=pos + license_key + device_uid. The PIN is looked up only inside the licensed store and only for store staff (store admin, manager, cashier). PIN login without a license_key is rejected.",
     auth: "public",
     body: {
       pin: "2222",
       channel: "pos",
       license_key: "FROM_AUTHORIZE",
+      device_uid: "front-counter-pc",
     },
     capture: {
       accessToken: "data.access_token",
@@ -447,7 +482,7 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/auth/me",
     summary: "Get auth me",
-    description: "POS Settings → My account. Includes pin. License and devices are nested on location(s).",
+    description: "POS Settings → My account. The plain PIN is not returned here (only on Staff screens). License and devices are nested on location(s).",
   }),
   ep({
     id: "auth-patch-me",
@@ -455,7 +490,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/auth/me",
     summary: "Update auth me",
-    description: "POS Settings. Name and phone.",
+    description: "POS Settings → My account. Name and phone; change password (with current_password) or POS PIN.",
     body: { name: "Ahmed Malik", phone: "03000000000" },
   }),
 
@@ -465,7 +500,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/licenses/validate",
     summary: "Activate license",
-    description: "POS Activate page. Required: license_key, device_uid. Optional name, platform, app_version. Response is success + message only (no data).",
+    description:
+      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403.",
     auth: "public",
     body: {
       license_key: "FROM_AUTHORIZE",
@@ -512,6 +548,73 @@ export const endpoints = [
   }),
 
   ep({
+    id: "location-list",
+    tag: "locations",
+    method: "GET",
+    path: "/api/v1/locations",
+    summary: "List locations",
+    description:
+      "Store admin: every branch of the store. Manager: only their own location. Each row includes location_number, is_default, is_active and its manager.",
+  }),
+  ep({
+    id: "location-create",
+    tag: "locations",
+    method: "POST",
+    path: "/api/v1/locations",
+    summary: "Create location",
+    description:
+      "Store admin only. Creates the branch and its manager account in one step. 409 when the plan location limit (max_locations) is reached.",
+    body: {
+      name: "Gulberg Branch",
+      address_line: "45 Main Boulevard, Gulberg",
+      city: "Lahore",
+      postal_code: "54660",
+      phone: "03005555555",
+      is_active: true,
+      is_default: false,
+      manager_name: "Branch Manager",
+      manager_email: "gulberg@demo-grocery.local",
+      manager_password: "ChangeMe123",
+      manager_pin: "4444",
+      manager_phone: "03005555556",
+    },
+  }),
+  ep({
+    id: "location-get",
+    tag: "locations",
+    method: "GET",
+    path: "/api/v1/locations/:id",
+    summary: "Get location",
+    description: "Store admin: any branch. Manager: only their own location (404 otherwise).",
+    pathParams: [{ name: "id", default: UUID, required: true }],
+  }),
+  ep({
+    id: "location-patch",
+    tag: "locations",
+    method: "PATCH",
+    path: "/api/v1/locations/:id",
+    summary: "Update location",
+    description:
+      "Rename, change address / phone, set default or active, and update the branch manager (manager_* fields). Send at least one field.",
+    pathParams: [{ name: "id", default: UUID, required: true }],
+    body: {
+      name: "Gulberg Branch",
+      address_line: "45 Main Boulevard, Gulberg",
+      city: "Lahore",
+      postal_code: "54660",
+      phone: "03005555555",
+      is_active: true,
+      is_default: false,
+      manager_name: "Branch Manager",
+      manager_email: "gulberg@demo-grocery.local",
+      manager_password: "",
+      manager_pin: "4444",
+      manager_phone: "03005555556",
+      manager_is_active: true,
+    },
+  }),
+
+  ep({
     id: "store-me",
     tag: "store",
     method: "GET",
@@ -525,14 +628,14 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stores/me",
     summary: "Update store",
-    description: "Settings and Tax manager. All patchable store fields. Optional logo and favicon files.",
+    description:
+      "Settings and Tax manager. Optional logo and favicon files. Suspension, go-live, slug, custom domain and account manager are Super Admin only (PATCH /admin/stores/:id) and are ignored here.",
     files: [
       { name: "logo", label: "Logo" },
       { name: "favicon", label: "Favicon" },
     ],
     body: {
       name: "Fatima Stationers",
-      slug: "fatima-stationers",
       legal_name: "Fatima Stationers Pvt Ltd",
       owner_name: "Fatima Khan",
       business_type: "retail",
@@ -554,11 +657,6 @@ export const endpoints = [
       receipt_footer: "Thank you for shopping",
       pos_enabled: true,
       web_enabled: true,
-      is_live: true,
-      is_active: true,
-      account_manager_name: "Ali",
-      account_manager_phone: "03001111111",
-      suspend_reason: null,
       default_location_id: UUID,
     },
   }),
@@ -1151,7 +1249,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/orders/bulk",
     summary: "Bulk create orders",
-    description: "POS sync. Send { items: [ ...order bodies ] } or a raw array.",
+    description:
+      "POS offline sync (Package 2/3). Send { items: [ ...order bodies ] } or a raw array. Each sale keeps its placed_at and is booked into the shift that was open at that time, even if that shift is closed now.",
     body: {
       items: [
         {
@@ -1161,6 +1260,7 @@ export const endpoints = [
           register_session_id: UUID,
           device_id: UUID,
           client_local_id: "pos-local-001",
+          placed_at: "2026-10-02T10:15:00.000Z",
           items: [{ product_id: UUID, quantity: 2 }],
           payments: [{ method: "cash", amount: 180 }],
           payment_method: "cash",

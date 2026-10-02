@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
 import { sendRequest } from "../lib/request.js"
+import { ruleOf } from "../data/bodyFields.js"
 
 const METHOD_CLASS = {
   GET: "method-get",
@@ -268,6 +269,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                 onChange={(e) => setBodyText(e.target.value)}
                 spellCheck={false}
               />
+              <BodyFields fields={endpoint.fields} body={endpoint.body} />
             </section>
           ) : (
             <p className="mt-4 text-xs text-slate-500">No request body.</p>
@@ -298,6 +300,55 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
         </div>
       ) : null}
     </article>
+  )
+}
+
+/** Example value at "a.b" / "items[].product_id" (first row of an array). */
+function exampleAt(body, path) {
+  let value = body
+  for (const part of path.split(".")) {
+    if (value == null) return undefined
+    const isRows = part.endsWith("[]")
+    value = value[isRows ? part.slice(0, -2) : part]
+    if (isRows) value = Array.isArray(value) ? value[0] : undefined
+  }
+  return value
+}
+
+function formatExample(value) {
+  if (value === undefined) return ""
+  if (Array.isArray(value)) return value.length && typeof value[0] === "object" ? "[ … ]" : JSON.stringify(value)
+  if (value && typeof value === "object") return "{ … }"
+  return JSON.stringify(value)
+}
+
+/** Required attributes are left blank; optional ones read "(optional)". */
+function BodyFields({ fields, body }) {
+  const rows = Object.entries(fields || {})
+  if (!rows.length) return null
+  return (
+    <div className="mt-3 overflow-hidden rounded border border-slate-200">
+      <div className="grid grid-cols-[minmax(160px,1.2fr)_minmax(110px,0.9fr)_110px_minmax(0,1.6fr)] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+        <span>Attribute</span>
+        <span>Example</span>
+        <span>Required</span>
+        <span>Notes</span>
+      </div>
+      {rows.map(([path, rule]) => {
+        const { required, note } = ruleOf(rule)
+        return (
+          <div
+            key={path}
+            className="grid grid-cols-[minmax(160px,1.2fr)_minmax(110px,0.9fr)_110px_minmax(0,1.6fr)] items-start gap-2 border-t border-slate-100 px-3 py-2 text-xs"
+          >
+            <code className="break-all font-mono font-semibold text-slate-800">{path}</code>
+            <code className="break-all font-mono text-slate-500">{formatExample(exampleAt(body, path))}</code>
+            <span className={required ? "" : "italic text-slate-500"}>{required ? "" : "(optional)"}</span>
+            <span className="text-slate-600">{note}</span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
