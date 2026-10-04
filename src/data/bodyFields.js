@@ -251,7 +251,6 @@ export const BODY_FIELDS = {
     license_key: R,
     device_uid: must("This PC's stable id. Leave it out only to just inspect the key"),
     name: O,
-    location_id: note("Defaults to the store's default location"),
     platform: O,
     app_version: O,
   },

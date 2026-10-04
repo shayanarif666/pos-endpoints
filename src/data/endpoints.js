@@ -497,7 +497,7 @@ export const endpoints = [
     path: "/api/v1/licenses/validate",
     summary: "Activate license",
     description:
-      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403.",
+      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location).",
     auth: "public",
     body: {
       license_key: "FROM_AUTHORIZE",
