@@ -438,16 +438,14 @@ export const endpoints = [
     tag: "auth",
     method: "POST",
     path: "/api/v1/auth/login",
-    summary: "POS login (email)",
+    summary: "Login (email)",
     description:
-      "POS Login page. Email + password + channel=pos + license_key + device_uid. device_uid must be a device already activated on this license (POST /licenses/validate) and still active, otherwise 403. Returns device_id and license_id; the POS token stops working when the license is revoked/expired or the device is deactivated. Access token lasts 1 hour; renew with /auth/refresh.",
+      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. Returns license_id; the POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
       password: "ChangeMe123",
       channel: "pos",
-      license_key: "FROM_AUTHORIZE",
-      device_uid: "front-counter-pc",
     },
     capture: {
       accessToken: "data.access_token",
@@ -462,13 +460,11 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel=pos + license_key + device_uid. The PIN is looked up only inside the licensed store and only for store staff (store admin, manager, cashier). PIN login without a license_key is rejected.",
+      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed.",
     auth: "public",
     body: {
       pin: "2222",
       channel: "pos",
-      license_key: "FROM_AUTHORIZE",
-      device_uid: "front-counter-pc",
     },
     capture: {
       accessToken: "data.access_token",
