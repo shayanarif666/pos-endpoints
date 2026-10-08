@@ -1358,7 +1358,28 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/orders/refunds",
     summary: "Refund list",
-    description: "Cancelled page.",
+    description: "History > Refund records. Store admin may filter by location_id; from / to filter by refund date.",
+    query: [
+      { name: "location_id", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "order-sales-by-location",
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/orders/summary/locations",
+    summary: "Sales by location",
+    description:
+      "Sales tabs summary per branch (store admin: every location or ?location_id=; manager: own branch). Each row: sales (completed totals), completed_orders, pending_orders + pending_amount, cancelled_orders (cancelled + voided), refunded_orders, refunds_count, refunds_amount, net_sales (sales minus partial refunds). Also totals. Filters: from, to (placed_at), channel, payment_method.",
+    query: [
+      { name: "location_id", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "channel", default: "", required: false },
+      { name: "payment_method", default: "", required: false },
+    ],
   }),
   ep({
     id: "order-refund-receipt",
@@ -1416,6 +1437,9 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/suppliers",
     summary: "List suppliers",
+    description:
+      "Each supplier has location_scope (all | selected), location_ids and locations. Store admin may filter with ?location_id= (suppliers that deliver to that branch, including all-location ones). A manager always gets only suppliers for their own branch.",
+    query: [{ name: "location_id", default: "", required: false }],
   }),
   ep({
     id: "sup-create",
@@ -1423,12 +1447,16 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/suppliers",
     summary: "Add supplier",
+    description:
+      "location_scope all = supplies every branch. selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager's supplier is always for their own branch. Ledger stock entries are rejected (409) at branches the supplier does not serve.",
     body: {
       name: "Nestle Distributor",
       phone: "03006666666",
       email: "sales@distributor.local",
       address: "Industrial Area",
       payment_terms: "Net 15",
+      location_scope: "selected",
+      location_ids: [UUID],
       is_active: true,
       is_pos_visible: true,
       is_web_visible: true,

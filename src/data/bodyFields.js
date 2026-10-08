@@ -159,6 +159,8 @@ const SUPPLIER_CREATE = {
   email: O,
   address: O,
   payment_terms: O,
+  location_scope: note("all (every branch, default) | selected (only location_ids)"),
+  location_ids: note("Required when selected: one branch or several. Managers: own branch only"),
   is_active: note("Default true"),
   ...VISIBILITY,
 }
