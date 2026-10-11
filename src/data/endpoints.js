@@ -164,7 +164,6 @@ function ep({
   files = [],
   capture = null,
   enums = null,
-  exampleResponse = null,
 }) {
   return {
     id,
@@ -181,60 +180,7 @@ function ep({
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
     fields: body == null ? null : bodyFieldsFor({ id, tag }),
-    exampleResponse,
   }
-}
-
-// Sanitized example: fake tokens, demo store/user data, but real field names/types/nesting
-// matching what POST /auth/login actually returns for channel=pos (email or PIN — same shape).
-const POS_LOGIN_EXAMPLE = {
-  success: true,
-  message: "Logged in",
-  data: {
-    access_token: "eyJhbGciOiJIUzI1NiIs... (JWT, 1h)",
-    refresh_token: "eyJhbGciOiJIUzI1NiIs... (JWT, 30d)",
-    expires_in: "1h",
-    user: {
-      id: "0c3bd0ff-2d8d-41e5-bee1-81ab3b907904",
-      name: "Store Admin",
-      email: "manager@demo-grocery.local",
-      phone: "03000000000",
-      role: "store_admin",
-      store_id: "5513fc62-c09d-4579-b26d-60493a9989c3",
-      store_number: 1,
-      location_id: null,
-      location_number: null,
-      is_verified: true,
-      is_active: true,
-      last_login_at: "2026-10-11T19:39:15.118Z",
-    },
-    device_id: null,
-    // License context, flattened directly onto data (no "license" wrapper) — replaces the
-    // dashboard/web login's heavier store-settings + locations-array shape for channel=pos.
-    id: "ba143f22-5e1e-471e-a104-ee6656a91d42",
-    store_id: 1,
-    plan_id: 1,
-    location_id: 1,
-    license_key: "LIC-819D-2F4B-52FB-0EB1",
-    status: "active",
-    starts_at: "2026-10-11T18:45:56.000Z",
-    expires_at: "2026-11-11T18:45:56.000Z",
-    revoked_at: null,
-    revoked_reason: null,
-    grace_days: 0,
-    suspended_at: null,
-    suspended_reason: null,
-    store: { id: 1, name: "Demo Grocery", slug: "demo-grocery" },
-    location: { id: 1, name: "Main Branch" },
-    plan: {
-      id: 1,
-      code: "solo-pos",
-      name: "Solo",
-      max_devices: 1,
-      max_locations: 1,
-      features: ["Single computer setup", "All 4 business types", "Unlimited sales & invoices"],
-    },
-  },
 }
 
 export const tags = [
@@ -506,7 +452,6 @@ export const endpoints = [
       refreshToken: "data.refresh_token",
       licenseKey: "data.license_key",
     },
-    exampleResponse: POS_LOGIN_EXAMPLE,
   }),
   ep({
     id: "auth-login-pin",
@@ -526,7 +471,6 @@ export const endpoints = [
       refreshToken: "data.refresh_token",
       licenseKey: "data.license_key",
     },
-    exampleResponse: POS_LOGIN_EXAMPLE,
   }),
   ep({
     id: "auth-me",

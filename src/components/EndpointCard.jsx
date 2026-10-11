@@ -295,17 +295,6 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
             <p className="mt-4 text-xs text-slate-500">No request body.</p>
           )}
 
-          {endpoint.exampleResponse != null ? (
-            <section className="mt-4">
-              <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Example response
-              </h4>
-              <pre className="mt-2 max-h-[420px] overflow-auto rounded border border-slate-200 bg-white p-3 font-mono text-xs leading-5 text-slate-800">
-                {pretty(endpoint.exampleResponse)}
-              </pre>
-            </section>
-          ) : null}
-
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               type="button"
