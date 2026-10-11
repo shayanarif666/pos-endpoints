@@ -66,6 +66,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     )
   )
   const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState(null)
   const [fileMap, setFileMap] = useState({})
@@ -155,6 +156,16 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     const next = endpoint.body == null ? "" : pretty(endpoint.body)
     setBodyText(next)
     onSaveBody(endpoint.id, next)
+  }
+
+  async function copyBody() {
+    try {
+      await navigator.clipboard.writeText(bodyText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context) — nothing to recover from here.
+    }
   }
 
   return (
@@ -255,13 +266,22 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                 <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Request body — application/json
                 </h4>
-                <button
-                  type="button"
-                  onClick={resetBody}
-                  className="text-xs font-semibold text-[#547f00] hover:underline"
-                >
-                  Reset defaults
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={copyBody}
+                    className="text-xs font-semibold text-slate-600 hover:underline"
+                  >
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetBody}
+                    className="text-xs font-semibold text-[#547f00] hover:underline"
+                  >
+                    Reset defaults
+                  </button>
+                </div>
               </div>
               <textarea
                 className="mt-2 min-h-[180px] w-full rounded border border-slate-300 bg-[#1b1b1b] p-3 font-mono text-xs leading-5 text-[#f5f5f5] outline-none focus:border-[#89bf04]"

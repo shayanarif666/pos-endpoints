@@ -440,7 +440,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. Returns license_id; the POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh.",
+      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. Returns license_id; the POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos also returns data.license: { id, store_id, plan_id, location_id, license_key, status, starts_at, expires_at, store{}, location{}, plan{} } — store_id/plan_id/location_id are the short sequential numbers (store_id_int / plan_number / location_id_int), not the internal UUIDs.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -450,7 +450,7 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.location.license.license_key",
+      licenseKey: "data.license.license_key",
     },
   }),
   ep({
@@ -460,7 +460,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed.",
+      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Also returns data.license (see POST /auth/login above for its shape).",
     auth: "public",
     body: {
       pin: "2222",
@@ -469,7 +469,7 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.location.license.license_key",
+      licenseKey: "data.license.license_key",
     },
   }),
   ep({
@@ -497,7 +497,7 @@ export const endpoints = [
     path: "/api/v1/licenses/validate",
     summary: "Activate license",
     description:
-      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location).",
+      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data is intentionally minimal — plan_number, status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid — with no store/plan/device detail; that richer detail now comes back on POST /auth/login's data.license instead.",
     auth: "public",
     body: {
       license_key: "FROM_AUTHORIZE",
