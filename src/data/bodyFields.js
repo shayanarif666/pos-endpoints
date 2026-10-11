@@ -307,7 +307,8 @@ export const BODY_FIELDS = {
   // Shifts
   "shift-clock-in": {
     opening_cash: R,
-    device_id: note("Defaults to the device in your POS token"),
+    device_id: note("pos_devices row id. Defaults to the device in your POS token"),
+    device_uid: note("Alternative to device_id — this PC's stable hardware id"),
     note: O,
   },
   "shift-clock-out": {
