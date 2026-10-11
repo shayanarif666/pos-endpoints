@@ -164,6 +164,7 @@ function ep({
   files = [],
   capture = null,
   enums = null,
+  exampleResponse = null,
 }) {
   return {
     id,
@@ -180,7 +181,60 @@ function ep({
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
     fields: body == null ? null : bodyFieldsFor({ id, tag }),
+    exampleResponse,
   }
+}
+
+// Sanitized example: fake tokens, demo store/user data, but real field names/types/nesting
+// matching what POST /auth/login actually returns for channel=pos (email or PIN — same shape).
+const POS_LOGIN_EXAMPLE = {
+  success: true,
+  message: "Logged in",
+  data: {
+    access_token: "eyJhbGciOiJIUzI1NiIs... (JWT, 1h)",
+    refresh_token: "eyJhbGciOiJIUzI1NiIs... (JWT, 30d)",
+    expires_in: "1h",
+    user: {
+      id: "0c3bd0ff-2d8d-41e5-bee1-81ab3b907904",
+      name: "Store Admin",
+      email: "manager@demo-grocery.local",
+      phone: "03000000000",
+      role: "store_admin",
+      store_id: "5513fc62-c09d-4579-b26d-60493a9989c3",
+      store_number: 1,
+      location_id: null,
+      location_number: null,
+      is_verified: true,
+      is_active: true,
+      last_login_at: "2026-10-11T19:39:15.118Z",
+    },
+    device_id: null,
+    // License context, flattened directly onto data (no "license" wrapper) — replaces the
+    // dashboard/web login's heavier store-settings + locations-array shape for channel=pos.
+    id: "ba143f22-5e1e-471e-a104-ee6656a91d42",
+    store_id: 1,
+    plan_id: 1,
+    location_id: 1,
+    license_key: "LIC-819D-2F4B-52FB-0EB1",
+    status: "active",
+    starts_at: "2026-10-11T18:45:56.000Z",
+    expires_at: "2026-11-11T18:45:56.000Z",
+    revoked_at: null,
+    revoked_reason: null,
+    grace_days: 0,
+    suspended_at: null,
+    suspended_reason: null,
+    store: { id: 1, name: "Demo Grocery", slug: "demo-grocery" },
+    location: { id: 1, name: "Main Branch" },
+    plan: {
+      id: 1,
+      code: "solo-pos",
+      name: "Solo",
+      max_devices: 1,
+      max_locations: 1,
+      features: ["Single computer setup", "All 4 business types", "Unlimited sales & invoices"],
+    },
+  },
 }
 
 export const tags = [
@@ -440,7 +494,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. Returns license_id; the POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos also returns data.license: { id, store_id, plan_id, location_id, license_key, status, starts_at, expires_at, revoked_at, revoked_reason, grace_days, suspended_at, suspended_reason, store{}, location{}, plan{} } — store_id/plan_id/location_id are the short sequential numbers (store_id_int / plan_number / location_id_int), not the internal UUIDs.",
+      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's license context is flattened directly onto data (no wrapper key) — id, store_id, plan_id, location_id, license_key, status, starts_at, expires_at, revoked_at, revoked_reason, grace_days, suspended_at, suspended_reason, store{}, location{}, plan{} — in place of channel=web's heavier store-settings + locations[] shape. store_id/plan_id/location_id are the short sequential numbers (store_id_int / plan_number / location_id_int), not the internal UUIDs.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -450,8 +504,9 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.license.license_key",
+      licenseKey: "data.license_key",
     },
+    exampleResponse: POS_LOGIN_EXAMPLE,
   }),
   ep({
     id: "auth-login-pin",
@@ -460,7 +515,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Also returns data.license (see POST /auth/login above for its shape).",
+      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same flattened license context as POST /auth/login above.",
     auth: "public",
     body: {
       pin: "2222",
@@ -469,8 +524,9 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.license.license_key",
+      licenseKey: "data.license_key",
     },
+    exampleResponse: POS_LOGIN_EXAMPLE,
   }),
   ep({
     id: "auth-me",
