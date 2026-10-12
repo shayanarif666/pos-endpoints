@@ -440,7 +440,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default), channel=pos for the POS app. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's license context is flattened directly onto data (no wrapper key) — id, store_id, location_id, license_key, status, starts_at, expires_at, revoked_at, revoked_reason, grace_days, suspended_at, suspended_reason, store{}, location{}, plan{} — in place of channel=web's heavier store-settings + locations[] shape. store_id/location_id are the short sequential numbers (store_id_int / location_id_int), not the internal UUIDs; the plan is only available nested under plan{} (no top-level plan_id).",
+      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default), channel=pos for the POS app. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's data carries only store{} and location{} — no license detail and no plan at all now; both come back from POST /licenses/validate instead, to keep the login payload small.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -451,7 +451,6 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.license_key",
     },
   }),
   ep({
@@ -461,7 +460,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same flattened license context as POST /auth/login above.",
+      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same store{}/location{} shape as POST /auth/login above.",
     auth: "public",
     body: {
       pin: "2222",
@@ -471,7 +470,6 @@ export const endpoints = [
     capture: {
       accessToken: "data.access_token",
       refreshToken: "data.refresh_token",
-      licenseKey: "data.license_key",
     },
   }),
   ep({
@@ -499,7 +497,7 @@ export const endpoints = [
     path: "/api/v1/licenses/validate",
     summary: "Activate license",
     description:
-      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data is intentionally minimal — plan_number, device_id (echoes back the device_uid you sent, or null if none was sent), status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid — with no store/plan/device detail beyond that; that richer detail now comes back on POST /auth/login's data.license instead.",
+      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data — license_key, plan_number, device_id (echoes back the device_uid you sent, or null if none was sent), status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid, plan{} (id, code, name, max_devices, max_locations, features) — is the only POS-facing response carrying the license_key and the plan; POST /auth/login dropped both to keep the login payload small.",
     auth: "public",
     body: {
       license_key: "FROM_AUTHORIZE",
@@ -508,6 +506,7 @@ export const endpoints = [
       platform: "Win32",
       app_version: "pos-web-1.0",
     },
+    capture: { licenseKey: "data.license_key" },
   }),
 
   ep({
