@@ -440,12 +440,13 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel only. channel=web for the dashboard (default), channel=pos for the POS app. Store, license and device are resolved on the server; license_key / device_uid are no longer sent. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's license context is flattened directly onto data (no wrapper key) — id, store_id, plan_id, location_id, license_key, status, starts_at, expires_at, revoked_at, revoked_reason, grace_days, suspended_at, suspended_reason, store{}, location{}, plan{} — in place of channel=web's heavier store-settings + locations[] shape. store_id/plan_id/location_id are the short sequential numbers (store_id_int / plan_number / location_id_int), not the internal UUIDs.",
+      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in). channel=web for the dashboard (default), channel=pos for the POS app. Store and license are resolved on the server; only the device is taken from the request, and an unknown/stale device hint doesn't fail the login — the till just signs in without data.device_id populated. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's response also carries data.device_id — the resolved device's device_uid (not its internal id), or null if no device hint was given/recognized. channel=pos's license context is flattened directly onto data (no wrapper key) — id, store_id, plan_id, location_id, license_key, status, starts_at, expires_at, revoked_at, revoked_reason, grace_days, suspended_at, suspended_reason, store{}, location{}, plan{} — in place of channel=web's heavier store-settings + locations[] shape. store_id/plan_id/location_id are the short sequential numbers (store_id_int / plan_number / location_id_int), not the internal UUIDs.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
       password: "ChangeMe123",
       channel: "pos",
+      device_uid: "",
     },
     capture: {
       accessToken: "data.access_token",
@@ -460,11 +461,12 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel only; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same flattened license context as POST /auth/login above.",
+      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same flattened license context (and data.device_id) as POST /auth/login above.",
     auth: "public",
     body: {
       pin: "2222",
       channel: "pos",
+      device_uid: "",
     },
     capture: {
       accessToken: "data.access_token",
@@ -497,7 +499,7 @@ export const endpoints = [
     path: "/api/v1/licenses/validate",
     summary: "Activate license",
     description:
-      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data is intentionally minimal — plan_number, status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid — with no store/plan/device detail; that richer detail now comes back on POST /auth/login's data.license instead.",
+      "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data is intentionally minimal — plan_number, device_id (echoes back the device_uid you sent, or null if none was sent), status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid — with no store/plan/device detail beyond that; that richer detail now comes back on POST /auth/login's data.license instead.",
     auth: "public",
     body: {
       license_key: "FROM_AUTHORIZE",
