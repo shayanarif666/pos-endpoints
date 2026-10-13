@@ -752,7 +752,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories",
     summary: "Create category",
-    description: "Categories page and Products quick-add. Optional category icon/image file.",
+    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is just {success, message} with data: null (\"Category Successfully Created\") instead of the created record.",
     files: [{ name: "icon", label: "Category icon" }],
     body: {
       name: "Drinks",
@@ -774,7 +774,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Categories Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -838,7 +838,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId.",
+    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. On channel=pos, the response is just {success, message} with data: null (\"Product Successfully Created\") instead of the created record.",
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
@@ -869,7 +869,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title.",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. On channel=pos, the response is just {success, message} with data: null (\"Products Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -973,7 +973,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements",
     summary: "Post movement",
-    description: "Inventory page and product create/edit qty. Location comes from JWT.",
+    description: "Inventory page and product create/edit qty. Location comes from JWT. On channel=pos, the response is just {success, message} with data: null (\"Stock Movement Successfully Created\") instead of the created record.",
     body: {
       product_id: UUID,
       movement_type: "stock_in",
@@ -991,7 +991,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk stock movements",
-    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Stock Movements Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -1022,7 +1022,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/customers",
     summary: "Add customer",
-    description: "Customers modal. total_debt and remaining_debt are independent (e.g. 1000 / 500).",
+    description: "Customers modal. total_debt and remaining_debt are independent (e.g. 1000 / 500). On channel=pos, the response is just {success, message} with data: null (\"Customer Successfully Created\") instead of the created record.",
     body: {
       name: "Ahmed Raza",
       phone: "03004444444",
@@ -1041,7 +1041,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/customers/bulk",
     summary: "Bulk create customers",
-    description: "POS sync. Send { items: [ ...create customer bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...create customer bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Customers Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -1094,7 +1094,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff",
     summary: "Create staff",
-    description: "Staff page. New cashier/manager is assigned the JWT location. Response includes the password you sent.",
+    description: "Staff page. New cashier/manager is assigned the JWT location. Response includes the password you sent — except on channel=pos, where the response is just {success, message} with data: null (\"Staff Member Successfully Created\").",
     body: {
       name: "Cashier One",
       email: "cashier@demo-grocery.local",
@@ -1109,7 +1109,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff/bulk",
     summary: "Bulk create staff",
-    description: "POS sync. Send { items: [ ...create staff bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...create staff bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Staff Members Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -1141,7 +1141,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers",
     summary: "Create offer",
-    description: "Offers page. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty and get_qty are for bogo.",
+    description: "Offers page. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty and get_qty are for bogo. On channel=pos, the response is just {success, message} with data: null (\"Offer Successfully Created\") instead of the created record.",
     body: {
       name: "Weekend 10% off",
       type: "promotional",
@@ -1162,7 +1162,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk create offers",
-    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Offers Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -1449,7 +1449,7 @@ export const endpoints = [
     path: "/api/v1/suppliers",
     summary: "Add supplier",
     description:
-      "location_scope all = supplies every branch. selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager's supplier is always for their own branch. Ledger stock entries are rejected (409) at branches the supplier does not serve.",
+      "location_scope all = supplies every branch. selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager's supplier is always for their own branch. Ledger stock entries are rejected (409) at branches the supplier does not serve. On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
     body: {
       name: "Nestle Distributor",
       phone: "03006666666",
@@ -1470,7 +1470,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/suppliers/bulk",
     summary: "Bulk create suppliers",
-    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array.",
+    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Suppliers Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
