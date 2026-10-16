@@ -61,15 +61,33 @@ export default function App() {
     )
   }, [query])
 
-  const visibleTags = useMemo(
-    () => tags.filter((tag) => filtered.some((item) => item.tag === tag.id)),
+  // Top-level grouping by method, in this fixed order; PUT and PATCH share one group.
+  const METHOD_GROUPS = [
+    { key: "post", label: "POST", test: (m) => m === "POST" },
+    { key: "put-patch", label: "PUT & PATCH", test: (m) => m === "PUT" || m === "PATCH" },
+    { key: "get", label: "GET", test: (m) => m === "GET" },
+    { key: "delete", label: "DELETE", test: (m) => m === "DELETE" },
+  ]
+
+  // For each group: which tags have at least one matching endpoint, each with its filtered list.
+  const groupedSections = useMemo(
+    () =>
+      METHOD_GROUPS.map((group) => ({
+        group,
+        tagSections: tags
+          .map((tag) => ({
+            tag,
+            items: filtered.filter((item) => item.tag === tag.id && group.test(item.method)),
+          }))
+          .filter((section) => section.items.length),
+      })).filter((g) => g.tagSections.length),
     [filtered]
   )
 
-  // Within each tag's section: POST, then PUT & PATCH together, then GET, then DELETE.
-  const METHOD_ORDER = { POST: 0, PUT: 1, PATCH: 1, GET: 2, DELETE: 3 }
-  function byMethodGroup(a, b) {
-    return (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99)
+  // The sidebar still navigates by resource (tag) — jump to that tag's first appearance, which
+  // is in whichever method group comes first for it (usually POST).
+  function scrollToTag(id) {
+    document.querySelector(`[data-tag="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   return (
@@ -80,7 +98,7 @@ export default function App() {
         activeTag={activeTag}
         onSelect={(id) => {
           setActiveTag(id)
-          document.getElementById(`tag-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+          scrollToTag(id)
         }}
         query={query}
         setQuery={setQuery}
@@ -113,31 +131,42 @@ export default function App() {
           setOpen={setAuthOpen}
         />
 
-        <main className="mx-auto max-w-5xl space-y-8 px-4 py-6">
-          {visibleTags.map((tag) => (
-            <section key={tag.id} id={`tag-${tag.id}`}>
-              <h2 className="text-xl font-semibold text-slate-800">{tag.name}</h2>
-              <p className="mt-1 mb-3 text-sm text-slate-500">{tag.description}</p>
-              <ResourceEnums enums={tag.enums} className="mb-3" />
-              <div className="space-y-3">
-                {filtered
-                  .filter((item) => item.tag === tag.id)
-                  .slice()
-                  .sort(byMethodGroup)
-                  .map((item) => (
-                    <EndpointCard
-                      key={item.id}
-                      endpoint={item}
-                      session={session}
-                      onCapture={onCapture}
-                      savedBody={session.bodies?.[item.id]}
-                      onSaveBody={onSaveBody}
-                    />
-                  ))}
-              </div>
-            </section>
-          ))}
-          {!visibleTags.length ? (
+        <main className="mx-auto max-w-5xl space-y-10 px-4 py-6">
+          {(() => {
+            // Render the ResourceEnums box only the first time a tag appears (its first group).
+            const enumsShown = new Set()
+            return groupedSections.map(({ group, tagSections }) => (
+              <section key={group.key} id={`method-${group.key}`}>
+                <h1 className="mb-4 text-2xl font-bold text-slate-900">{group.label}</h1>
+                <div className="space-y-8">
+                  {tagSections.map(({ tag, items }) => {
+                    const showEnums = !enumsShown.has(tag.id)
+                    enumsShown.add(tag.id)
+                    return (
+                      <div key={tag.id} data-tag={tag.id}>
+                        <h2 className="text-xl font-semibold text-slate-800">{tag.name}</h2>
+                        <p className="mt-1 mb-3 text-sm text-slate-500">{tag.description}</p>
+                        {showEnums ? <ResourceEnums enums={tag.enums} className="mb-3" /> : null}
+                        <div className="space-y-3">
+                          {items.map((item) => (
+                            <EndpointCard
+                              key={item.id}
+                              endpoint={item}
+                              session={session}
+                              onCapture={onCapture}
+                              savedBody={session.bodies?.[item.id]}
+                              onSaveBody={onSaveBody}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            ))
+          })()}
+          {!groupedSections.length ? (
             <p className="text-sm text-slate-500">No endpoints match that filter.</p>
           ) : null}
         </main>
