@@ -724,7 +724,7 @@ export const endpoints = [
     path: "/api/v1/register-sessions/:id/clock-out",
     summary: "Clock out",
     description: "Register page. :id accepts either the session's UUID id or its short session_number (e.g. 1) — use whichever the till has on hand. Response is intentionally minimal — just { session_number, closed_at, counted_cash } — not the full session record.",
-    pathParams: [{ name: "id", default: "1", required: true }],
+    pathParams: [{ name: "Session Number", default: "1", required: true }],
     body: {
       counted_cash: 16450,
     },
