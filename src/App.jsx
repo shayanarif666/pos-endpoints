@@ -66,6 +66,12 @@ export default function App() {
     [filtered]
   )
 
+  // Within each tag's section: POST, then PUT & PATCH together, then GET, then DELETE.
+  const METHOD_ORDER = { POST: 0, PUT: 1, PATCH: 1, GET: 2, DELETE: 3 }
+  function byMethodGroup(a, b) {
+    return (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99)
+  }
+
   return (
     <div className="flex min-h-screen">
       <Sidebar
@@ -116,6 +122,8 @@ export default function App() {
               <div className="space-y-3">
                 {filtered
                   .filter((item) => item.tag === tag.id)
+                  .slice()
+                  .sort(byMethodGroup)
                   .map((item) => (
                     <EndpointCard
                       key={item.id}
