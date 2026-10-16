@@ -440,7 +440,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default), channel=pos for the POS app. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. Access token lasts 1 hour; renew with /auth/refresh. channel=pos's data carries only store{} and location{} — no license detail and no plan at all now; both come back from POST /licenses/validate instead, to keep the login payload small.",
+      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default) returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{} and location{} — no license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -449,7 +449,7 @@ export const endpoints = [
       device_uid: "",
     },
     capture: {
-      accessToken: "data.access_token",
+      accessToken: ["data.token", "data.access_token"],
       refreshToken: "data.refresh_token",
     },
   }),
@@ -460,7 +460,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same store{}/location{} shape as POST /auth/login above.",
+      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same single-field token (10-year access_token, no refresh_token) and store{}/location{} shape as POST /auth/login above with channel=pos.",
     auth: "public",
     body: {
       pin: "2222",
@@ -468,8 +468,7 @@ export const endpoints = [
       device_uid: "",
     },
     capture: {
-      accessToken: "data.access_token",
-      refreshToken: "data.refresh_token",
+      accessToken: "data.token",
     },
   }),
   ep({

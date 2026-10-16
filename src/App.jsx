@@ -34,9 +34,17 @@ export default function App() {
 
   function onCapture(payload, map) {
     const patch = {}
-    for (const [key, path] of Object.entries(map)) {
-      const value = getByPath(payload, path)
-      if (typeof value === "string" && value) patch[key] = value
+    for (const [key, pathOrPaths] of Object.entries(map)) {
+      // A capture entry may list several paths (e.g. channel=web's data.access_token vs.
+      // channel=pos's data.token on the same login endpoint) — first one that resolves wins.
+      const paths = Array.isArray(pathOrPaths) ? pathOrPaths : [pathOrPaths]
+      for (const path of paths) {
+        const value = getByPath(payload, path)
+        if (typeof value === "string" && value) {
+          patch[key] = value
+          break
+        }
+      }
     }
     if (Object.keys(patch).length) updateSession(patch)
   }
