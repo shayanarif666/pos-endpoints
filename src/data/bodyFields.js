@@ -54,7 +54,7 @@ const CATEGORY_CREATE = {
 const PRODUCT_CREATE = {
   title: R,
   barcode: O,
-  category_id: R,
+  category_number: R,
   unit: note("Default piece"),
   cost_price: R,
   selling_price: R,
@@ -65,9 +65,9 @@ const PRODUCT_CREATE = {
   discount_value: O,
   is_pack_product: O,
   pack_size: note("Required (>= 2) when is_pack_product is true"),
-  sell_loose: O,
-  is_weight_based: O,
-  has_bulk_discount: O,
+  sell_loose: note("True if this pack product can also be sold as individual/loose units"),
+  is_weight_based: note("Sold by weight (kg) rather than piece. Can't be true together with is_pack_product"),
+  has_bulk_discount: note("Initial state only — PUT /products/:id/bulk-tiers overwrites this based on whether any tiers exist"),
   low_stock_threshold: note("Default 10"),
   is_published: note("Default false"),
   is_active: note("Default true"),
@@ -75,7 +75,7 @@ const PRODUCT_CREATE = {
 }
 
 const MOVEMENT_CREATE = {
-  product_id: R,
+  product_number: R,
   location_id: note("Store admin only; others use their JWT location"),
   movement_type: must("stock_in | stock_out | adjustment"),
   reason: R,
@@ -235,10 +235,14 @@ export const BODY_FIELDS = {
     email: R,
     password: R,
     channel: note("web (dashboard, default) | pos (POS app)"),
+    device_id: note("POS only. pos_devices row id OR this PC's stable hardware id — either works here. Not echoed back in the response"),
+    device_uid: note("POS only. Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
   },
   "auth-login-pin": {
     pin: must("4–6 digits, unique across all stores"),
     channel: note("Always pos (default pos)"),
+    device_id: note("pos_devices row id OR this PC's stable hardware id — either works here. Not echoed back in the response"),
+    device_uid: note("Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
   },
   "auth-patch-me": {
     name: O,
@@ -334,7 +338,10 @@ export const BODY_FIELDS = {
   // Products
   "prod-create": PRODUCT_CREATE,
   "prod-bulk": bulkOf(PRODUCT_CREATE),
-  "prod-patch": allOptional(PRODUCT_CREATE),
+  // Only create/bulk take category_number — patch still takes the internal category_id UUID.
+  "prod-patch": allOptional(
+    (({ category_number, ...rest }) => ({ ...rest, category_id: R }))(PRODUCT_CREATE)
+  ),
   "prod-weight-patch": { is_weight_based: R },
 
   // Inventory
@@ -437,4 +444,70 @@ export function missingBodyFields(endpoint) {
 export function ruleOf(rule) {
   if (Array.isArray(rule)) return { required: rule[0] === R, note: rule[1] }
   return { required: rule === R, note: "" }
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_PLACEHOLDER = "00000000-0000-4000-8000-000000000001"
+const NUMBER_SUFFIX_RE =
+  /_(number|int|count|qty|quantity|price|cash|amount|percent|value|values|days|threshold|size|total|pkr|rate)$/
+// Known booleans that don't follow the is_/has_ naming convention.
+const KNOWN_BOOLEAN_KEYS = new Set([
+  "sell_loose",
+  "pos_enabled",
+  "web_enabled",
+  "fbr_invoice_enabled",
+  "charge_tax_on_sales",
+  "tax_exempt",
+])
+
+/**
+ * Data type shown in the attributes table. Prefers the live example body's own value (most
+ * accurate, whatever a developer actually wired up); falls back to a heuristic over the
+ * attribute's name and note when that path isn't present in the body — this project's own
+ * naming convention is consistent enough (_id, _at, is_/has_, _number/_count/...) that the
+ * fallback is reliable without hand-annotating every field.
+ */
+export function typeOf(path, rule, bodyValue) {
+  const { note: noteText } = ruleOf(rule)
+  if (bodyValue !== undefined) {
+    if (typeof bodyValue === "boolean") return "boolean"
+    if (typeof bodyValue === "number") return "number"
+    if (Array.isArray(bodyValue)) return "array"
+    if (bodyValue && typeof bodyValue === "object") return "object"
+    if (typeof bodyValue === "string") {
+      if (UUID_RE.test(bodyValue)) return "UUID"
+      if (noteText && /\s\|\s/.test(noteText)) return "enum"
+      return "string"
+    }
+  }
+  const key = path.split(".").pop().replace(/\[\]$/, "")
+  if (noteText && /\s\|\s/.test(noteText)) return "enum"
+  if (/(^|_)id$/.test(key)) return "UUID"
+  if (/_at$/.test(key)) return "date-time"
+  if (/^(is_|has_)/.test(key) || KNOWN_BOOLEAN_KEYS.has(key)) return "boolean"
+  if (NUMBER_SUFFIX_RE.test(key)) return "number"
+  if (key === "items" || key === "features" || key === "targets" || key === "rates") return "array"
+  return "string"
+}
+
+/** A representative value for the Example column when the live body doesn't have one. */
+export function synthesizeExample(type, rule) {
+  const { note: noteText } = ruleOf(rule)
+  switch (type) {
+    case "UUID":
+      return UUID_PLACEHOLDER
+    case "boolean":
+      return true
+    case "number":
+      return 1
+    case "date-time":
+      return new Date().toISOString()
+    case "enum": {
+      const match = noteText && noteText.match(/([a-zA-Z0-9_]+)\s*\|/)
+      return match ? match[1] : undefined
+    }
+    default:
+      return undefined
+  }
 }

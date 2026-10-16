@@ -830,12 +830,12 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. On channel=pos, the response is just {success, message} with data: null (\"Product Successfully Created\") instead of the created record.",
+    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. category_number is the category's short number (not its UUID) — note this is create-only: PATCH still takes category_id. On channel=pos, the response is just {success, message} with data: null (\"Product Successfully Created\") instead of the created record.",
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
       barcode: "8964001234567",
-      category_id: UUID,
+      category_number: 1,
       unit: "piece",
       cost_price: 60,
       selling_price: 90,
@@ -867,7 +867,7 @@ export const endpoints = [
         {
           title: "1 Litre Pepsi",
           barcode: "8964001234567",
-          category_id: UUID,
+          category_number: 1,
           unit: "piece",
           cost_price: 60,
           selling_price: 90,
@@ -965,9 +965,9 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements",
     summary: "Post movement",
-    description: "Inventory page and product create/edit qty. Location comes from JWT. On channel=pos, the response is just {success, message} with data: null (\"Stock Movement Successfully Created\") instead of the created record.",
+    description: "Inventory page and product create/edit qty. Location comes from JWT. product_number is the product's short number (not its UUID). On channel=pos, the response is just {success, message} with data: null (\"Stock Movement Successfully Created\") instead of the created record.",
     body: {
-      product_id: UUID,
+      product_number: 1,
       movement_type: "stock_in",
       reason: "purchase",
       qty: 24,
@@ -983,11 +983,11 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk stock movements",
-    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Stock Movements Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. product_number is the product's short number (not its UUID). On channel=pos, the response is just {success, message} with data: null (\"Stock Movements Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
-          product_id: UUID,
+          product_number: 1,
           movement_type: "stock_in",
           reason: "purchase",
           qty: 24,

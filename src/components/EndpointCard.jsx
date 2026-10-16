@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
 import { sendRequest } from "../lib/request.js"
-import { ruleOf } from "../data/bodyFields.js"
+import { ruleOf, synthesizeExample, typeOf } from "../data/bodyFields.js"
 
 const METHOD_CLASS = {
   GET: "method-get",
@@ -342,27 +342,37 @@ function formatExample(value) {
   return JSON.stringify(value)
 }
 
+const BODY_FIELDS_GRID =
+  "grid-cols-[minmax(150px,1.1fr)_80px_minmax(100px,0.8fr)_90px_minmax(0,1.5fr)]"
+
 /** Required attributes are left blank; optional ones read "(optional)". */
 function BodyFields({ fields, body }) {
   const rows = Object.entries(fields || {})
   if (!rows.length) return null
   return (
     <div className="mt-3 overflow-hidden rounded border border-slate-200">
-      <div className="grid grid-cols-[minmax(160px,1.2fr)_minmax(110px,0.9fr)_110px_minmax(0,1.6fr)] bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+      <div
+        className={`grid ${BODY_FIELDS_GRID} bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500`}
+      >
         <span>Attribute</span>
+        <span>Data Type</span>
         <span>Example</span>
         <span>Required</span>
         <span>Notes</span>
       </div>
       {rows.map(([path, rule]) => {
         const { required, note } = ruleOf(rule)
+        const bodyValue = exampleAt(body, path)
+        const type = typeOf(path, rule, bodyValue)
+        const example = bodyValue !== undefined ? bodyValue : synthesizeExample(type, rule)
         return (
           <div
             key={path}
-            className="grid grid-cols-[minmax(160px,1.2fr)_minmax(110px,0.9fr)_110px_minmax(0,1.6fr)] items-start gap-2 border-t border-slate-100 px-3 py-2 text-xs"
+            className={`grid ${BODY_FIELDS_GRID} items-start gap-2 border-t border-slate-100 px-3 py-2 text-xs`}
           >
             <code className="break-all font-mono font-semibold text-slate-800">{path}</code>
-            <code className="break-all font-mono text-slate-500">{formatExample(exampleAt(body, path))}</code>
+            <span className="text-slate-500">{type}</span>
+            <code className="break-all font-mono text-slate-500">{formatExample(example)}</code>
             <span className={required ? "" : "italic text-slate-500"}>{required ? "" : "(optional)"}</span>
             <span className="text-slate-600">{note}</span>
           </div>
