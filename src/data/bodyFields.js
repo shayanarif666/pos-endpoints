@@ -310,6 +310,7 @@ export const BODY_FIELDS = {
     device_id: note("pos_devices row id OR this PC's stable hardware id — either works here. Defaults to the device in your POS token"),
     device_uid: note("Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
     note: O,
+    opened_at: note("Offline sync: when the shift actually opened, if earlier than now. Defaults to now"),
   },
   "shift-clock-out": {
     counted_cash: note("Leave out to total the note counts below"),
@@ -322,6 +323,7 @@ export const BODY_FIELDS = {
     note_50_count: O,
     note_20_count: O,
     note: O,
+    closed_at: note("Offline sync: when the shift actually closed (e.g. at day-end), if earlier than now. Defaults to now"),
   },
 
   // Categories
