@@ -711,7 +711,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/register-sessions",
     summary: "Clock in",
-    description: "Register page. Required before POS checkout. Location comes from JWT.",
+    description: "Register page. Required before POS checkout. Location comes from JWT. Response is intentionally minimal — just { session_number, opened_at } — not the full session record.",
     body: {
       opening_cash: 5000,
       device_id: UUID,
@@ -723,8 +723,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/register-sessions/:id/clock-out",
     summary: "Clock out",
-    description: "Register page.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
+    description: "Register page. :id accepts either the session's UUID id or its short session_number (e.g. 1) — use whichever the till has on hand. Response is intentionally minimal — just { session_number, closed_at, counted_cash } — not the full session record.",
+    pathParams: [{ name: "id", default: "1", required: true }],
     body: {
       counted_cash: 16450,
     },
