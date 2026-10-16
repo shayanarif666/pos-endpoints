@@ -727,13 +727,6 @@ export const endpoints = [
     pathParams: [{ name: "id", default: UUID, required: true }],
     body: {
       counted_cash: 16450,
-      coins_total: 50,
-      note_5000_count: 2,
-      note_1000_count: 10,
-      note_500_count: 4,
-      note_100_count: 8,
-      note_50_count: 2,
-      note_20_count: 0,
     },
   }),
 
