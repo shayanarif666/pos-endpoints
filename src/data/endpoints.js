@@ -48,7 +48,25 @@ export const RESOURCE_ENUMS = {
     channel: ["web", "pos", "both"],
   },
   products: {
-    unit: ["piece", "kg", "gram", "liter", "packet", "box"],
+    unit: [
+      "piece",
+      "kg",
+      "gram",
+      "liter",
+      "ml",
+      "packet",
+      "box",
+      "dozen",
+      "pair",
+      "meter",
+      "yard",
+      "roll",
+      "set",
+      "carton",
+      "bag",
+      "bottle",
+      "can",
+    ],
     tax_type: ["percentage", "fixed"],
     discount_type: ["percentage", "fixed"],
     channel: ["web", "pos", "both"],
@@ -823,7 +841,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Image upload is temporarily off here — use PATCH /products/:id to set an image for now. There is no expiry_date on the product itself — expiry is tracked per location via PUT /product-stocks/:productId, since the same product can have different expiry dates at different branches. pack_cost_price/pack_selling_price are the whole-pack cost/price, required when is_pack_product is true — not cost_price/selling_price × pack_size, since bulk rates differ from per-unit. has_product_discount/has_product_tax gate whether discount_type+discount_value / tax_type+tax_value have any effect — check the boxes below to add them to the body. The response also carries net_selling_price (selling_price after this product's own discount, computed by the database — never sent by you, just returned). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
+    description: "Products page. Slug and SKU are generated from title. Image upload is temporarily off here — use PATCH /products/:id to set an image for now. category_id accepts either the category's UUID or its short category_number under this same key (the example's \"1\" is a category_number — a real UUID also works). There is no expiry_date on the product itself — expiry is tracked per location via PUT /product-stocks/:productId, since the same product can have different expiry dates at different branches. pack_cost_price/pack_selling_price are the whole-pack cost/price, required when is_pack_product is true — not cost_price/selling_price × pack_size, since bulk rates differ from per-unit. has_product_discount/has_product_tax gate whether discount_type+discount_value / tax_type+tax_value have any effect — check the boxes below to add them to the body. The response also carries net_selling_price (selling_price after this product's own discount, computed by the database — never sent by you, just returned). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
     fieldToggles: [
       {
         key: "has_product_discount",
@@ -896,7 +914,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. Same pack_cost_price/pack_selling_price and has_product_discount/has_product_tax rules as single create (the checkboxes below edit items[0] in the example). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. Same category_id (UUID or category_number, same key), pack_cost_price/pack_selling_price, and has_product_discount/has_product_tax rules as single create (the checkboxes below edit items[0] in the example). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
     fieldToggles: [
       {
         key: "has_product_discount",

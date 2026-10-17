@@ -54,7 +54,7 @@ const CATEGORY_CREATE = {
 const PRODUCT_CREATE = {
   title: R,
   barcode: O,
-  category_id: R,
+  category_id: must("Create/bulk only: accepts either the category's UUID id or its short category_number under this same key. PATCH still takes the UUID only"),
   unit: note("Default piece"),
   cost_price: R,
   selling_price: R,
@@ -341,7 +341,8 @@ export const BODY_FIELDS = {
   // Products
   "prod-create": PRODUCT_CREATE,
   "prod-bulk": bulkOf(PRODUCT_CREATE),
-  "prod-patch": allOptional(PRODUCT_CREATE),
+  // category_id here is UUID-only, unlike create/bulk's flexible id-or-category_number.
+  "prod-patch": allOptional({ ...PRODUCT_CREATE, category_id: O }),
   "prod-weight-patch": { is_weight_based: R },
 
   // Inventory
