@@ -88,6 +88,25 @@ function productBuilder(bulk) {
   }
 }
 
+const MOVEMENT_ROW = [
+  ["product_id", 1],
+  ["movement_type", "stock_in"],
+  ["reason", "purchase"],
+  ["qty", 50],
+  ["expiry_date", "2026-12-31"],
+  ["is_pos_visible", true, "optional"],
+  ["is_web_visible", true, "optional"],
+  ["channel", "both", "optional"],
+]
+
+function movementBuilder(bulk) {
+  return {
+    bulk,
+    variants: [{ id: "default", label: "Movement", rows: [MOVEMENT_ROW] }],
+    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
+  }
+}
+
 export const RESOURCE_ENUMS = {
   plans: {
     type: ["monthly", "yearly"],
@@ -168,7 +187,6 @@ export const RESOURCE_ENUMS = {
       "transfer_in",
       "custom_sale",
     ],
-    "POST movement_type": ["stock_in", "stock_out", "adjustment"],
     reason: [
       "purchase",
       "opening_balance",
@@ -184,19 +202,6 @@ export const RESOURCE_ENUMS = {
       "sync",
       "transfer",
       "custom_sale",
-      "other",
-    ],
-    "POST reason": [
-      "purchase",
-      "opening_balance",
-      "return_to_supplier",
-      "customer_return",
-      "waste",
-      "damage",
-      "expiry",
-      "theft",
-      "count",
-      "sync",
       "other",
     ],
     channel: ["web", "pos", "both"],
@@ -355,7 +360,7 @@ export const tags = [
     id: "inventory",
     name: "Inventory",
     description:
-      "Inventory page and product opening/adjust qty via stock-movements. POST movement_type is stock_in, stock_out, or adjustment.",
+      "Inventory page and product opening/adjust qty via stock-movements. POST accepts movement_type stock_in, stock_out or adjustment; the other types are written by sales, refunds and transfers.",
     enums: RESOURCE_ENUMS.inventory,
   },
   {
@@ -1022,17 +1027,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements",
     summary: "Post movement",
-    description: "Inventory page and product create/edit qty. Location comes from JWT. product_number is the product's short number (not its UUID). On channel=pos, the response is just {success, message} with data: null (\"Stock Movement Successfully Created\") instead of the created record.",
-    body: {
-      product_number: 1,
-      movement_type: "stock_in",
-      reason: "purchase",
-      qty: 24,
-      expiry_date: "2026-12-31",
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
-    },
+    description: "Inventory page and product create/edit qty. The location comes from the token. product_id is the product's number (e.g. 1); its UUID also works. qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment (e.g. -12 for an adjustment with reason sale). Show Optional Fields adds the visibility fields. On channel=pos, the response is {success, message (\"Stock Successfully Created\"), data} where data is the product's stock at this location after the movement: { product_id, qty } for a loose item, or { product_id, pack_size, number_of_packs, qty } for a pack product (number_of_packs = full packs in qty, e.g. stock_in 50 with pack_size 10 → 5 packs; a sale of 12 then leaves qty 38 → 3 full packs).",
+    bodyBuilder: movementBuilder(false),
   }),
   ep({
     id: "movement-bulk",
@@ -1040,21 +1036,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk stock movements",
-    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. product_number is the product's short number (not its UUID). On channel=pos, the response is just {success, message} with data: null (\"Stock Movements Successfully Created\") instead of the per-item results.",
-    body: {
-      items: [
-        {
-          product_number: 1,
-          movement_type: "stock_in",
-          reason: "purchase",
-          qty: 24,
-          expiry_date: "2026-12-31",
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
-        },
-      ],
-    },
+    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. Same fields and rules as a single movement. On channel=pos, the response is {success, message (\"Stock Successfully Created\"), data: [ ... ]} with one stock entry per created movement, in order — { product_id, qty } for loose items, { product_id, pack_size, number_of_packs, qty } for pack products.",
+    bodyBuilder: movementBuilder(true),
   }),
 
   ep({

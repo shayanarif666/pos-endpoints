@@ -80,13 +80,11 @@ const PRODUCT_CREATE = {
 }
 
 const MOVEMENT_CREATE = {
-  product_number: R,
-  location_id: note("Store admin only; others use their JWT location"),
+  product_id: must("The product's number (e.g. 1) or its UUID"),
   movement_type: must("stock_in | stock_out | adjustment"),
-  reason: R,
-  qty: must("Non-zero. stock_in positive, stock_out negative"),
-  reason_note: O,
-  expiry_date: note("YYYY-MM-DD"),
+  reason: must("Any reason except refund, transfer, custom_sale"),
+  qty: must("Non-zero change. stock_in positive, stock_out negative"),
+  expiry_date: must("YYYY-MM-DD"),
   ...VISIBILITY,
 }
 
