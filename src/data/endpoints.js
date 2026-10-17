@@ -954,7 +954,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. Same fields and checkboxes as single create (the checkboxes apply to every item). On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
+    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. Same fields and rules as single create. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
     bodyBuilder: {
       bulk: true,
       variants: [
@@ -1024,7 +1024,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). Same fields, rules and checkboxes as single create (the checkboxes apply to every item). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: [ { id, title }, ... ]} (one entry per created product, in the same order) — id is the short product_number, not the UUID.",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). Same fields and rules as single create (a Pack Product item sends is_pack_product, pack_size, pack_cost, pack_price). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: [ { id, title }, ... ]} (one entry per created product, in the same order) — id is the short product_number, not the UUID.",
     bodyBuilder: productBuilder(true),
     computed: productTotals,
   }),

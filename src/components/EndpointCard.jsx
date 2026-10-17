@@ -292,7 +292,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
 
           {endpoint.body != null ? (
             <section className="mt-4">
-              {builder?.variants.length > 1 ? (
+              {builder && !builder.bulk && builder.variants.length > 1 ? (
                 <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
                   {builder.variants.map((variant) => (
                     <label
@@ -310,7 +310,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                   ))}
                 </div>
               ) : null}
-              {builder?.toggles.length ? (
+              {builder && !builder.bulk && builder.toggles.length ? (
                 <div className="mb-3 flex flex-wrap items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
                   {builder.toggles.map((toggle) => (
                     <label
