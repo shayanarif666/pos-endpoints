@@ -172,6 +172,40 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     onSaveBody(endpoint.id, next)
   }
 
+  // For an endpoint.fieldToggles entry: { key, onFields, offFields }. Targets items[0] when the
+  // body is a bulk { items: [...] } shape, otherwise the body itself.
+  function toggleTarget(obj) {
+    return Array.isArray(obj.items) && obj.items.length ? obj.items[0] : obj
+  }
+
+  function fieldToggleChecked(key) {
+    try {
+      return Boolean(toggleTarget(JSON.parse(bodyText || "{}"))[key])
+    } catch {
+      return false
+    }
+  }
+
+  function toggleField({ key, onFields, offFields }) {
+    let obj
+    try {
+      obj = JSON.parse(bodyText || "{}")
+    } catch {
+      return
+    }
+    const target = toggleTarget(obj)
+    const turningOn = !target[key]
+    target[key] = turningOn
+    if (turningOn) {
+      Object.assign(target, onFields)
+    } else {
+      for (const k of offFields) delete target[k]
+    }
+    const next = pretty(obj)
+    setBodyText(next)
+    onSaveBody(endpoint.id, next)
+  }
+
   async function copyBody() {
     try {
       await navigator.clipboard.writeText(bodyText)
@@ -290,6 +324,23 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                         onChange={() => selectVariant(variant.id)}
                       />
                       {variant.label}
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+              {endpoint.fieldToggles ? (
+                <div className="mb-3 flex flex-wrap items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
+                  {endpoint.fieldToggles.map((toggle) => (
+                    <label
+                      key={toggle.key}
+                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={fieldToggleChecked(toggle.key)}
+                        onChange={() => toggleField(toggle)}
+                      />
+                      {toggle.label}
                     </label>
                   ))}
                 </div>
