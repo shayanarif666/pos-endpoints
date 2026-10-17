@@ -54,8 +54,8 @@ const PRODUCT_LOOSE_ROW = [
   ["barcode", "78263672323325"],
   ["category_id", 1],
   ["unit", "bottle"],
-  ["cost_price", 50],
-  ["selling_price", 100],
+  ["cost", 50],
+  ["price", 100],
   ...PRODUCT_TAIL,
 ]
 
@@ -66,10 +66,54 @@ const PRODUCT_PACK_ROW = [
   ["unit", "bottle"],
   ["is_pack_product", true],
   ["pack_size", 10],
-  ["pack_cost_price", 50],
-  ["pack_selling_price", 100],
+  ["each_unit_cost", 50],
+  ["each_unit_price", 100],
+  ["pack_cost", 500],
+  ["pack_price", 1000],
   ...PRODUCT_TAIL,
 ]
+
+const round2 = (n) => Math.round(n * 100) / 100
+
+// Mirrors the products.total_price_each_unit / total_pack_price generated columns: the product's
+// own discount first, then its own tax on the discounted price. Fixed amounts are per unit.
+function priceAfterDiscountAndTax(item, base, units) {
+  const discountValue = Number(item.discount_value)
+  const taxValue = Number(item.tax_value)
+  let net = base
+  if (item.discount_type && item.discount_value != null && discountValue > 0) {
+    net -= Math.min(
+      base,
+      item.discount_type === "percentage" ? (base * discountValue) / 100 : discountValue * units
+    )
+  }
+  let tax = 0
+  if (item.tax_type && item.tax_value != null) {
+    tax = item.tax_type === "percentage" ? (net * taxValue) / 100 : taxValue * units
+  }
+  return round2(net + tax)
+}
+
+/** Totals the server computes for one product body, labelled per Loose Item / Pack Product. */
+function productTotals(item) {
+  const isPack = Boolean(item.is_pack_product)
+  const packSize = Number(item.pack_size)
+  const unitPrice =
+    item.each_unit_price ?? item.price ?? item.selling_price ??
+    (isPack && packSize ? round2(Number(item.pack_price ?? item.pack_selling_price) / packSize) : null)
+  const rows = []
+  if (unitPrice != null && !Number.isNaN(Number(unitPrice))) {
+    rows.push([
+      isPack ? "total_price_each_unit" : "total_price",
+      priceAfterDiscountAndTax(item, Number(unitPrice), 1),
+    ])
+  }
+  const packPrice = item.pack_price ?? item.pack_selling_price
+  if (isPack && packPrice != null && packSize) {
+    rows.push(["total_pack_price", priceAfterDiscountAndTax(item, Number(packPrice), packSize)])
+  }
+  return rows
+}
 
 const PRODUCT_TOGGLES = [
   { id: "discount", label: "Has Product Discount", default: true },
@@ -276,6 +320,8 @@ function ep({
   files = [],
   capture = null,
   enums = null,
+  // (item) => [[label, value], ...]: values the server computes from a body row, shown under it.
+  computed = null,
 }) {
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
@@ -292,6 +338,7 @@ function ep({
     query,
     body: effectiveBody,
     bodyBuilder,
+    computed,
     files,
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
@@ -934,8 +981,9 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Required: title, barcode (unique per store), category_id, and the prices — cost_price + selling_price for a Loose Item, or pack_cost_price + pack_selling_price (+ pack_size) for a Pack Product, whose per-unit cost/selling price are then derived as pack price ÷ pack_size. category_id is the category's number (e.g. 1); its UUID also works. image is a plain image URL saved as featured_image and images[0]; an empty string means no image. The Has Product Tax / Has Product Discount checkboxes only add or remove the tax_* / discount_* fields in this example — they are not fields themselves and nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields after image. Creating the same product again is fine as long as the barcode differs: slug and SKU get a -2, -3... suffix (a repeated barcode still returns 409). There is no expiry_date on the product — expiry is per location via PUT /product-stocks/:productId. The full response also carries net_selling_price (selling_price after this product's own discount, computed by the database). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { id, title }} — id is the short product_number, not the UUID.",
+    description: "Products page. Required: title, barcode (unique per store), category_id, and the prices — cost + price for a Loose Item; pack_size + pack_cost + pack_price for a Pack Product (each_unit_cost / each_unit_price are optional there and default to pack price ÷ pack_size). category_id is the category's number (e.g. 1); its UUID also works. image is a plain image URL saved as featured_image and images[0]; an empty string means no image. The Has Product Tax / Has Product Discount checkboxes only add or remove the tax_* / discount_* fields in this example — nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields after image. The server computes the price after this product's own discount and then its own tax on the discounted price (e.g. 100 → 5% off → 95 → +5% GST → 99.75): total_price for a Loose Item, or total_price_each_unit and total_pack_price for a Pack Product — shown under the body below. Category tax, offers and store tax are added at checkout, not in these totals. Creating the same product again is fine as long as the barcode differs: slug and SKU get a -2, -3... suffix (a repeated barcode returns 409). There is no expiry_date on the product — expiry is per location via stock movements. Responses use the stored column names (cost_price, selling_price, pack_cost_price, pack_selling_price, total_price_each_unit, total_pack_price). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { id, title }} — id is the short product_number, not the UUID.",
     bodyBuilder: productBuilder(false),
+    computed: productTotals,
   }),
   ep({
     id: "prod-bulk",
@@ -945,6 +993,7 @@ export const endpoints = [
     summary: "Bulk create products",
     description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). Same fields, rules and checkboxes as single create (the checkboxes apply to every item). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: [ { id, title }, ... ]} (one entry per created product, in the same order) — id is the short product_number, not the UUID.",
     bodyBuilder: productBuilder(true),
+    computed: productTotals,
   }),
   ep({
     id: "prod-patch",
@@ -952,13 +1001,13 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/:id",
     summary: "Update product",
-    description: "Products page edit. Optional product image file. Expiry is set on product-stocks (per location), not on the product — there is no expiry_date field here at all. pack_cost_price/pack_selling_price can be updated like any other field; clearing is_pack_product (setting it false) also clears pack_size, pack_cost_price and pack_selling_price.",
+    description: "Products page edit. Optional product image file. Expiry is set on product-stocks (per location), not on the product — there is no expiry_date field here at all. Prices use the same names as create (cost / price for a Loose Item; each_unit_cost, each_unit_price, pack_cost, pack_price for a Pack Product); clearing is_pack_product (setting it false) also clears pack_size and the pack prices. total_price / total_price_each_unit / total_pack_price are recomputed by the server.",
     pathParams: [{ name: "id", default: UUID, required: true }],
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
       category_id: UUID,
-      selling_price: 90,
+      price: 90,
       tax_type: "percentage",
       tax_value: 17,
       is_pack_product: false,

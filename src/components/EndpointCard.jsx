@@ -350,6 +350,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                 onChange={(e) => setBodyText(e.target.value)}
                 spellCheck={false}
               />
+              {endpoint.computed ? <ComputedTotals compute={endpoint.computed} bodyText={bodyText} /> : null}
               <BodyFields
                 fields={endpoint.fields}
                 body={builder ? buildBody(builder, variantId, allToggles(builder)) : activeBody}
@@ -408,6 +409,40 @@ function formatExample(value) {
 
 const BODY_FIELDS_GRID =
   "grid-cols-[minmax(150px,1.1fr)_80px_minmax(100px,0.8fr)_90px_minmax(0,1.5fr)]"
+
+/** Values the server derives from the body (not sent), recalculated as the body is edited. */
+function ComputedTotals({ compute, bodyText }) {
+  let items
+  try {
+    const body = JSON.parse(bodyText || "{}")
+    items = Array.isArray(body) ? body : Array.isArray(body.items) ? body.items : [body]
+  } catch {
+    return null
+  }
+  const rows = items
+    .map((item, index) => ({ index, totals: item && typeof item === "object" ? compute(item) : [] }))
+    .filter((row) => row.totals.length)
+  if (!rows.length) return null
+  return (
+    <div className="mt-3 rounded border border-[#89bf04]/40 bg-[#f6fbea] px-3 py-2 text-xs">
+      <div className="font-bold uppercase tracking-wide text-slate-500">
+        Calculated by the server (not sent)
+      </div>
+      {rows.map(({ index, totals }) => (
+        <div key={index} className="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+          {items.length > 1 ? <span className="text-slate-500">items[{index}]</span> : null}
+          {totals.map(([label, value]) => (
+            <span key={label}>
+              <code className="font-mono font-semibold text-slate-800">{label}</code>
+              <span className="text-slate-500">: </span>
+              <code className="font-mono text-slate-800">{value}</code>
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 /** Required attributes are left blank; optional ones read "(optional)". */
 function BodyFields({ fields, body }) {
