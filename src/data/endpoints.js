@@ -151,6 +151,37 @@ function movementBuilder(bulk) {
   }
 }
 
+function offerRow(applyTo) {
+  return [
+    ["name", "Weekend 10% off"],
+    ["type", "promotional"],
+    ["apply_to", applyTo],
+    ["discount_type", "percentage"],
+    ["discount_value", 10],
+    applyTo === "category" ? ["category_id", 1] : ["product_id", 1],
+    ["min_qty", null],
+    ["buy_qty", null],
+    ["get_qty", null],
+    ["start_at", "2026-09-01T00:00:00.000Z"],
+    ["end_at", "2026-12-31T23:59:59.000Z"],
+    ["is_active", true],
+    ["promo_price", null, "optional"],
+    ["free_product_id", null, "optional"],
+    ["location_id", null, "optional"],
+  ]
+}
+
+function offerBuilder(bulk) {
+  return {
+    bulk,
+    variants: [
+      { id: "category", label: "Apply To Category", rows: [offerRow("category")] },
+      { id: "product", label: "Apply To Product", rows: [offerRow("product")] },
+    ],
+    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
+  }
+}
+
 export const RESOURCE_ENUMS = {
   plans: {
     type: ["monthly", "yearly"],
@@ -1224,20 +1255,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers",
     summary: "Create offer",
-    description: "Offers page. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty and get_qty are for bogo. On channel=pos, the response is just {success, message} with data: null (\"Offer Successfully Created\") instead of the created record.",
-    body: {
-      name: "Weekend 10% off",
-      type: "promotional",
-      apply_to: "category",
-      discount_type: "percentage",
-      discount_value: 10,
-      min_qty: null,
-      buy_qty: null,
-      get_qty: null,
-      start_at: "2026-09-01T00:00:00.000Z",
-      end_at: "2026-12-31T23:59:59.000Z",
-      is_active: true,
-    },
+    description: "Offers page. One flat object creates the offer and its target together: the offer fields (name, type, apply_to, discount, quantities, dates) go to the offer, and category_id / product_id, promo_price and free_product_id go to its offer target. apply_to category needs category_id; apply_to product needs product_id — either as the short number (e.g. 1) or the UUID. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty + get_qty are for bogo (buy 2 get 1 → every 3 items, 1 is free); promo_price is a flash_sale fixed price; free_product_id is the bogo free item. Several targets at once: send targets: [{ category_id }, ...] instead. On channel=pos, the response is {success, message (\"Offer Successfully Created\"), data: { id, type, name, category_id | product_id }} — id is the short offer_number and category_id / product_id the short number.",
+    bodyBuilder: offerBuilder(false),
   }),
   ep({
     id: "offer-bulk",
@@ -1245,24 +1264,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk create offers",
-    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Offers Successfully Created\") instead of the per-item results.",
-    body: {
-      items: [
-        {
-          name: "Weekend 10% off",
-          type: "promotional",
-          apply_to: "category",
-          discount_type: "percentage",
-          discount_value: 10,
-          min_qty: null,
-          buy_qty: null,
-          get_qty: null,
-          start_at: "2026-09-01T00:00:00.000Z",
-          end_at: "2026-12-31T23:59:59.000Z",
-          is_active: true,
-        },
-      ],
-    },
+    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. Same flat fields and rules as single create. On channel=pos, the response is {success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category_id | product_id }, ... ]} (one per created offer, in order).",
+    bodyBuilder: offerBuilder(true),
   }),
   ep({
     id: "offer-targets-put",
@@ -1270,10 +1273,10 @@ export const endpoints = [
     method: "PUT",
     path: "/api/v1/offers/:id/targets",
     summary: "Set offer targets",
-    description: "Offers page after create.",
+    description: "Replaces all targets of an offer (create already adds the first one). product_id / category_id / free_product_id take the short number (e.g. 1) or the UUID.",
     pathParams: [{ name: "id", default: UUID, required: true }],
     body: {
-      targets: [{ category_id: UUID, product_id: null, free_product_id: null, promo_price: null }],
+      targets: [{ category_id: 1, product_id: null, free_product_id: null, promo_price: null }],
     },
   }),
   ep({

@@ -112,17 +112,21 @@ const STAFF_CREATE = {
 
 const OFFER_CREATE = {
   name: R,
-  type: R,
-  apply_to: R,
-  location_id: note("Null = all branches"),
-  discount_type: note("Required for promotional / flash_sale"),
-  discount_value: note("Required for promotional / flash_sale"),
-  min_qty: note("Required for bulk_discount"),
-  buy_qty: note("Required for bogo"),
-  get_qty: note("Required for bogo"),
+  type: must("promotional | flash_sale | bulk_discount | bogo"),
+  apply_to: must("category | product"),
+  discount_type: note("Required for promotional / bulk_discount; not used by bogo"),
+  discount_value: note("Required for promotional / bulk_discount; not used by bogo"),
+  category_id: note("Required when apply_to is category: the category's number (e.g. 1) or UUID. Saved on the offer target"),
+  product_id: note("Required when apply_to is product: the product's number (e.g. 1) or UUID. Saved on the offer target"),
+  min_qty: note("Required for bulk_discount: the discount starts at this quantity"),
+  buy_qty: note("Required for bogo: items paid for in each group"),
+  get_qty: note("Required for bogo: items free in each group"),
   start_at: O,
   end_at: O,
   is_active: note("Default true"),
+  promo_price: note("flash_sale: fixed sale price (used when below the selling price). Saved on the offer target"),
+  free_product_id: note("bogo: the free item, if not the same product. Number or UUID. Saved on the offer target"),
+  location_id: note("Null = all branches"),
 }
 
 const ORDER_ITEM = {
@@ -373,12 +377,19 @@ export const BODY_FIELDS = {
   "offer-bulk": bulkOf(OFFER_CREATE),
   "offer-targets-put": {
     targets: R,
-    "targets[].product_id": note("Send product_id or category_id (not both)"),
-    "targets[].category_id": note("Send product_id or category_id (not both)"),
-    "targets[].free_product_id": note("BOGO free item"),
+    "targets[].product_id": note("Send product_id or category_id (not both). Number or UUID"),
+    "targets[].category_id": note("Send product_id or category_id (not both). Number or UUID"),
+    "targets[].free_product_id": note("BOGO free item. Number or UUID"),
     "targets[].promo_price": note("Flash sale fixed price"),
   },
-  "offer-patch": allOptional(OFFER_CREATE),
+  // Targets change through PUT /offers/:id/targets, not PATCH.
+  "offer-patch": allOptional(
+    Object.fromEntries(
+      Object.entries(OFFER_CREATE).filter(
+        ([key]) => !["category_id", "product_id", "promo_price", "free_product_id"].includes(key)
+      )
+    )
+  ),
 
   // Orders
   "order-create": ORDER_CREATE,
