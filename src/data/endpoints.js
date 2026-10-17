@@ -748,16 +748,6 @@ export const endpoints = [
     files: [{ name: "icon", label: "Category icon" }],
     body: {
       name: "Drinks",
-      description: "",
-      parent_category_id: null,
-      tax_type: "percentage",
-      tax_value: 17,
-      discount_type: null,
-      discount_value: null,
-      is_active: true,
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
     },
   }),
   ep({
@@ -771,14 +761,6 @@ export const endpoints = [
       items: [
         {
           name: "Drinks",
-          description: "",
-          parent_category_id: null,
-          tax_type: "percentage",
-          tax_value: 17,
-          is_active: true,
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
         },
       ],
     },
