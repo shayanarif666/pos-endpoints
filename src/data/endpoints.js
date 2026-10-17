@@ -744,7 +744,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories",
     summary: "Create category",
-    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { category_number }} instead of the full created record.",
+    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { id, name }} instead of the full created record — id here is the short category_number, not the internal UUID (PATCH/DELETE /categories/:id still needs the real UUID).",
     files: [{ name: "icon", label: "Category icon" }],
     body: {
       name: "Drinks",
@@ -756,7 +756,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: { category_numbers: [...], failed: [...] }} instead of the full per-item results.",
+    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
     body: {
       items: [
         {
