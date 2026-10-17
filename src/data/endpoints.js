@@ -845,7 +845,7 @@ export const endpoints = [
         body: {
           title: "1 Litre Pepsi",
           barcode: "8964001234567",
-          category_id: UUID,
+          category_id: "1",
           unit: "piece",
           cost_price: 60,
           selling_price: 90,
@@ -868,7 +868,7 @@ export const endpoints = [
         body: {
           title: "Pepsi 1 Litre (Pack of 10)",
           barcode: "8964001234567",
-          category_id: UUID,
+          category_id: "1",
           unit: "piece",
           cost_price: 50,
           selling_price: 100,
@@ -920,7 +920,7 @@ export const endpoints = [
             {
               title: "1 Litre Pepsi",
               barcode: "8964001234567",
-              category_id: UUID,
+              category_id: "1",
               unit: "piece",
               cost_price: 60,
               selling_price: 90,
@@ -944,7 +944,7 @@ export const endpoints = [
             {
               title: "Pepsi 1 Litre (Pack of 10)",
               barcode: "8964001234567",
-              category_id: UUID,
+              category_id: "1",
               unit: "piece",
               cost_price: 50,
               selling_price: 100,
