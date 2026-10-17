@@ -65,6 +65,8 @@ const PRODUCT_CREATE = {
   discount_value: O,
   is_pack_product: O,
   pack_size: note("Required (>= 2) when is_pack_product is true"),
+  pack_cost_price: note("Whole-pack cost — not cost_price × pack_size (bulk purchase rate differs). Required when is_pack_product is true"),
+  pack_selling_price: note("Whole-pack selling price — not selling_price × pack_size (bulk discount incentive). Required when is_pack_product is true"),
   sell_loose: note("True if this pack product can also be sold as individual/loose units"),
   is_weight_based: note("Sold by weight (kg) rather than piece. Can't be true together with is_pack_product"),
   has_bulk_discount: note("Initial state only — PUT /products/:id/bulk-tiers overwrites this based on whether any tiers exist"),

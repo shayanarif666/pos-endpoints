@@ -812,7 +812,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. category_number is the category's short number (not its UUID) — note this is create-only: PATCH still takes category_id. On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
+    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). There is no expiry_date on the product itself — expiry is tracked per location via PUT /product-stocks/:productId, since the same product can have different expiry dates at different branches. category_number is the category's short number (not its UUID) — note this is create-only: PATCH still takes category_id. pack_cost_price/pack_selling_price are the whole-pack cost/price, required when is_pack_product is true — not cost_price/selling_price × pack_size, since bulk rates differ from per-unit. The response also carries net_selling_price (selling_price after this product's own discount, computed by the database — never sent by you, just returned). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
@@ -843,7 +843,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. Same pack_cost_price/pack_selling_price rule as single create — required per item when is_pack_product is true. On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
     body: {
       items: [
         {
@@ -872,7 +872,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/:id",
     summary: "Update product",
-    description: "Products page edit. Optional product image file. Set expiry_date on product-stocks, not on the product.",
+    description: "Products page edit. Optional product image file. Expiry is set on product-stocks (per location), not on the product — there is no expiry_date field here at all. pack_cost_price/pack_selling_price can be updated like any other field; clearing is_pack_product (setting it false) also clears pack_size, pack_cost_price and pack_selling_price.",
     pathParams: [{ name: "id", default: UUID, required: true }],
     files: [{ name: "image", label: "Product image" }],
     body: {
