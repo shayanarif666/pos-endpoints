@@ -911,6 +911,7 @@ export const endpoints = [
     body: {
       opening_cash: 5000,
       device_id: UUID,
+      opened_at: "2026-10-16T14:30:00.000Z",
     },
   }),
   ep({
@@ -923,6 +924,7 @@ export const endpoints = [
     pathParams: [{ name: "id", default: "1", required: true }],
     body: {
       counted_cash: 16450,
+      closed_at: "2026-10-16T16:30:00.000Z",
     },
   }),
 
