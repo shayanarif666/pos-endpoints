@@ -2,11 +2,17 @@ import { useMemo, useState } from "react"
 import { endpoints, tags } from "./data/endpoints.js"
 import { missingBodyFields } from "./data/bodyFields.js"
 
-// Dev guard: every attribute in an example body must be marked required or optional.
+// Dev guard: every attribute in an example body (including each bodyVariants entry) must be
+// marked required or optional.
 if (import.meta.env.DEV) {
   for (const endpoint of endpoints) {
-    const missing = missingBodyFields(endpoint)
-    if (missing.length) console.warn(`[docs] ${endpoint.id}: no required/optional rule for`, missing)
+    const bodies = endpoint.bodyVariants
+      ? endpoint.bodyVariants.map((v) => v.body)
+      : [endpoint.body]
+    for (const body of bodies) {
+      const missing = missingBodyFields({ ...endpoint, body })
+      if (missing.length) console.warn(`[docs] ${endpoint.id}: no required/optional rule for`, missing)
+    }
   }
 }
 import { getByPath, loadSession, saveSession } from "./lib/storage.js"

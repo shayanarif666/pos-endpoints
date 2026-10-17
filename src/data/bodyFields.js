@@ -54,7 +54,7 @@ const CATEGORY_CREATE = {
 const PRODUCT_CREATE = {
   title: R,
   barcode: O,
-  category_number: R,
+  category_id: R,
   unit: note("Default piece"),
   cost_price: R,
   selling_price: R,
@@ -340,10 +340,7 @@ export const BODY_FIELDS = {
   // Products
   "prod-create": PRODUCT_CREATE,
   "prod-bulk": bulkOf(PRODUCT_CREATE),
-  // Only create/bulk take category_number — patch still takes the internal category_id UUID.
-  "prod-patch": allOptional(
-    (({ category_number, ...rest }) => ({ ...rest, category_id: R }))(PRODUCT_CREATE)
-  ),
+  "prod-patch": allOptional(PRODUCT_CREATE),
   "prod-weight-patch": { is_weight_based: R },
 
   // Inventory

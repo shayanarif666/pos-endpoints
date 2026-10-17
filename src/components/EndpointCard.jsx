@@ -60,9 +60,15 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   const [headerMap, setHeaderMap] = useState(() =>
     defaultHeaders(endpoint.auth, endpoint.method, session)
   )
+  // When an endpoint declares bodyVariants (e.g. Pack Product vs Loose Item), this tracks which
+  // one is selected; its own `body` template is what the radio buttons switch between.
+  const [variantId, setVariantId] = useState(endpoint.bodyVariants?.[0]?.id ?? null)
+  const activeBody = endpoint.bodyVariants
+    ? endpoint.bodyVariants.find((v) => v.id === variantId)?.body ?? endpoint.body
+    : endpoint.body
   const [bodyText, setBodyText] = useState(() =>
     migrateLegacyPlanBody(
-      savedBody ?? (endpoint.body == null ? "" : pretty(endpoint.body))
+      savedBody ?? (activeBody == null ? "" : pretty(activeBody))
     )
   )
   const [busy, setBusy] = useState(false)
@@ -153,7 +159,15 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   }
 
   function resetBody() {
-    const next = endpoint.body == null ? "" : pretty(endpoint.body)
+    const next = activeBody == null ? "" : pretty(activeBody)
+    setBodyText(next)
+    onSaveBody(endpoint.id, next)
+  }
+
+  function selectVariant(id) {
+    setVariantId(id)
+    const template = endpoint.bodyVariants.find((v) => v.id === id)?.body
+    const next = template == null ? "" : pretty(template)
     setBodyText(next)
     onSaveBody(endpoint.id, next)
   }
@@ -262,6 +276,24 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
 
           {endpoint.body != null ? (
             <section className="mt-4">
+              {endpoint.bodyVariants ? (
+                <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
+                  {endpoint.bodyVariants.map((variant) => (
+                    <label
+                      key={variant.id}
+                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
+                    >
+                      <input
+                        type="radio"
+                        name={`${endpoint.id}-variant`}
+                        checked={variantId === variant.id}
+                        onChange={() => selectVariant(variant.id)}
+                      />
+                      {variant.label}
+                    </label>
+                  ))}
+                </div>
+              ) : null}
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
                   Request body — application/json
@@ -289,7 +321,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                 onChange={(e) => setBodyText(e.target.value)}
                 spellCheck={false}
               />
-              <BodyFields fields={endpoint.fields} body={endpoint.body} />
+              <BodyFields fields={endpoint.fields} body={activeBody} />
             </section>
           ) : (
             <p className="mt-4 text-xs text-slate-500">No request body.</p>
