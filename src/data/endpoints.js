@@ -744,7 +744,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories",
     summary: "Create category",
-    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is just {success, message} with data: null (\"Category Successfully Created\") instead of the created record.",
+    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { category_number }} instead of the full created record.",
     files: [{ name: "icon", label: "Category icon" }],
     body: {
       name: "Drinks",
@@ -766,7 +766,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Categories Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: { category_numbers: [...], failed: [...] }} instead of the full per-item results.",
     body: {
       items: [
         {
@@ -830,7 +830,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. category_number is the category's short number (not its UUID) — note this is create-only: PATCH still takes category_id. On channel=pos, the response is just {success, message} with data: null (\"Product Successfully Created\") instead of the created record.",
+    description: "Products page. Slug and SKU are generated from title. Optional product image file (multipart). Expiry is per location via PUT /product-stocks/:productId. category_number is the category's short number (not its UUID) — note this is create-only: PATCH still takes category_id. On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
     files: [{ name: "image", label: "Product image" }],
     body: {
       title: "1 Litre Pepsi",
@@ -861,7 +861,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. On channel=pos, the response is just {success, message} with data: null (\"Products Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
     body: {
       items: [
         {
