@@ -623,7 +623,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). PINs are unique across the whole platform, so the PIN alone finds the staff member (store admin, manager, cashier). The store must have POS enabled and an activated license. A PIN that older data still shares between two accounts returns 409 until one of them is changed. Returns the same single-field token (10-year access_token, no refresh_token) and store{}/location{} shape as POST /auth/login above with channel=pos.",
+      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, send device_uid (or device_id) of the till — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and store{}/location{} shape as POST /auth/login above with channel=pos.",
     auth: "public",
     body: {
       pin: "2222",
@@ -1175,7 +1175,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff",
     summary: "Create staff",
-    description: "Staff page. New cashier/manager is assigned the JWT location. Response includes the password you sent — except on channel=pos, where the response is just {success, message} with data: null (\"Staff Member Successfully Created\").",
+    description: "Staff page. A store admin or a manager can create a cashier or a manager; the new user gets the location from the token (no location_id needed). The PIN must be unique among the users of that location — the same PIN is fine at another location or store (PIN login then tells them apart by the till's device_uid). On channel=pos, the response is {success, message (\"Cashier Successfully Created\" / \"Manager Successfully Created\"), data: { id, name, role }} — id is the short user_number, not the UUID. Other channels get the full user, including the password you sent.",
     body: {
       name: "Cashier One",
       email: "cashier@demo-grocery.local",
@@ -1190,7 +1190,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff/bulk",
     summary: "Bulk create staff",
-    description: "POS sync. Send { items: [ ...create staff bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Staff Members Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...create staff bodies ] } or a raw array. Same fields and rules as single create. On channel=pos, the response is {success, message, data: [ { id, name, role }, ... ]} (one per created user, in order); the message is \"Cashiers Successfully Created\" / \"Managers Successfully Created\", or \"Staff Successfully Created\" when the batch mixes roles.",
     body: {
       items: [
         {

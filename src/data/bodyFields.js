@@ -105,10 +105,9 @@ const STAFF_CREATE = {
   name: R,
   email: R,
   password: must("Min 6 characters"),
-  pin: must("4–6 digits, unique across all stores"),
+  pin: must("4–6 digits. Must differ from every other user's PIN at this location (and from the store admin's); another location or store may reuse it"),
   role: must("manager | cashier"),
   phone: O,
-  location_id: note("Store admin only; manager's staff get the manager's location"),
 }
 
 const OFFER_CREATE = {
