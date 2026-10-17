@@ -15,6 +15,9 @@ const defaults = {
   accessToken: "",
   refreshToken: "",
   licenseKey: "",
+  // Captured from login. A store_admin can pick the location each request acts on.
+  role: "",
+  locationNumber: "",
   bodies: {},
 }
 
@@ -75,13 +78,21 @@ export function saveSession(next) {
   localStorage.setItem(KEY, JSON.stringify(next))
 }
 
-export function defaultHeaders(auth, method, { accessToken }, { multipart = false } = {}) {
+export function defaultHeaders(
+  auth,
+  method,
+  { accessToken, role, locationNumber },
+  { multipart = false } = {}
+) {
   const headers = { Accept: "application/json" }
   if (!multipart && method !== "GET" && method !== "DELETE") {
     headers["Content-Type"] = "application/json"
   }
   if (auth !== "public" && accessToken) {
     headers.Authorization = `Bearer ${accessToken}`
+  }
+  if (auth !== "public" && role === "store_admin" && locationNumber) {
+    headers["X-Location-Id"] = String(locationNumber)
   }
   return headers
 }

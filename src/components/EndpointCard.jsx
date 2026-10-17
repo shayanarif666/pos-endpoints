@@ -102,6 +102,10 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     } else if (endpoint.auth === "public") {
       delete merged.Authorization
     }
+    // The location picker (store admin only) owns this header, whatever was typed earlier.
+    delete merged["X-Location-Id"]
+    const chosen = defaultHeaders(endpoint.auth, endpoint.method, session)["X-Location-Id"]
+    if (chosen) merged["X-Location-Id"] = chosen
     return merged
   }, [headerMap, session.accessToken, endpoint.auth, endpoint.method, fileMap, fileFields, session])
 

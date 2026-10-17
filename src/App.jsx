@@ -37,7 +37,7 @@ export default function App() {
   }
 
   function clearTokens() {
-    updateSession({ accessToken: "", refreshToken: "", licenseKey: "" })
+    updateSession({ accessToken: "", refreshToken: "", licenseKey: "", role: "", locationNumber: "" })
   }
 
   function onCapture(payload, map) {
@@ -54,6 +54,8 @@ export default function App() {
         }
       }
     }
+    // A new login starts on the user's own location again.
+    if (patch.accessToken) patch.locationNumber = ""
     if (Object.keys(patch).length) updateSession(patch)
   }
 

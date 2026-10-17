@@ -603,7 +603,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default) returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{} and location{} — no license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
+      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default) returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs) — no license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -614,6 +614,7 @@ export const endpoints = [
     capture: {
       accessToken: ["data.token", "data.access_token"],
       refreshToken: "data.refresh_token",
+      role: "data.user.role",
     },
   }),
   ep({
@@ -632,6 +633,7 @@ export const endpoints = [
     },
     capture: {
       accessToken: "data.token",
+      role: "data.user.role",
     },
   }),
   ep({
