@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
 import { sendRequest } from "../lib/request.js"
 import { ruleOf, synthesizeExample, typeOf } from "../data/bodyFields.js"
+import { allToggles, buildBody, defaultToggles } from "../data/bodyBuilder.js"
 
 const METHOD_CLASS = {
   GET: "method-get",
@@ -60,15 +61,15 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   const [headerMap, setHeaderMap] = useState(() =>
     defaultHeaders(endpoint.auth, endpoint.method, session)
   )
-  // When an endpoint declares bodyVariants (e.g. Pack Product vs Loose Item), this tracks which
-  // one is selected; its own `body` template is what the radio buttons switch between.
-  const [variantId, setVariantId] = useState(endpoint.bodyVariants?.[0]?.id ?? null)
-  const activeBody = endpoint.bodyVariants
-    ? endpoint.bodyVariants.find((v) => v.id === variantId)?.body ?? endpoint.body
-    : endpoint.body
+  // A bodyBuilder endpoint (see data/bodyBuilder.js) regenerates its body from the selected
+  // radio variant and checkboxes, so a body saved from an older template is not restored.
+  const builder = endpoint.bodyBuilder
+  const [variantId, setVariantId] = useState(builder?.variants[0].id ?? null)
+  const [toggles, setToggles] = useState(() => (builder ? defaultToggles(builder) : {}))
+  const activeBody = builder ? buildBody(builder, variantId, toggles) : endpoint.body
   const [bodyText, setBodyText] = useState(() =>
     migrateLegacyPlanBody(
-      savedBody ?? (activeBody == null ? "" : pretty(activeBody))
+      (builder ? null : savedBody) ?? (activeBody == null ? "" : pretty(activeBody))
     )
   )
   const [busy, setBusy] = useState(false)
@@ -158,52 +159,29 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     }
   }
 
-  function resetBody() {
-    const next = activeBody == null ? "" : pretty(activeBody)
+  function showBody(body) {
+    const next = body == null ? "" : pretty(body)
     setBodyText(next)
     onSaveBody(endpoint.id, next)
+  }
+
+  function resetBody() {
+    if (!builder) return showBody(endpoint.body)
+    const defaults = defaultToggles(builder)
+    setVariantId(builder.variants[0].id)
+    setToggles(defaults)
+    showBody(buildBody(builder, builder.variants[0].id, defaults))
   }
 
   function selectVariant(id) {
     setVariantId(id)
-    const template = endpoint.bodyVariants.find((v) => v.id === id)?.body
-    const next = template == null ? "" : pretty(template)
-    setBodyText(next)
-    onSaveBody(endpoint.id, next)
+    showBody(buildBody(builder, id, toggles))
   }
 
-  // For an endpoint.fieldToggles entry: { key, onFields, offFields }. Targets items[0] when the
-  // body is a bulk { items: [...] } shape, otherwise the body itself.
-  function toggleTarget(obj) {
-    return Array.isArray(obj.items) && obj.items.length ? obj.items[0] : obj
-  }
-
-  function fieldToggleChecked(key) {
-    try {
-      return Boolean(toggleTarget(JSON.parse(bodyText || "{}"))[key])
-    } catch {
-      return false
-    }
-  }
-
-  function toggleField({ key, onFields, offFields }) {
-    let obj
-    try {
-      obj = JSON.parse(bodyText || "{}")
-    } catch {
-      return
-    }
-    const target = toggleTarget(obj)
-    const turningOn = !target[key]
-    target[key] = turningOn
-    if (turningOn) {
-      Object.assign(target, onFields)
-    } else {
-      for (const k of offFields) delete target[k]
-    }
-    const next = pretty(obj)
-    setBodyText(next)
-    onSaveBody(endpoint.id, next)
+  function flipToggle(id) {
+    const next = { ...toggles, [id]: !toggles[id] }
+    setToggles(next)
+    showBody(buildBody(builder, variantId, next))
   }
 
   async function copyBody() {
@@ -310,9 +288,9 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
 
           {endpoint.body != null ? (
             <section className="mt-4">
-              {endpoint.bodyVariants ? (
+              {builder?.variants.length > 1 ? (
                 <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
-                  {endpoint.bodyVariants.map((variant) => (
+                  {builder.variants.map((variant) => (
                     <label
                       key={variant.id}
                       className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
@@ -328,17 +306,17 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                   ))}
                 </div>
               ) : null}
-              {endpoint.fieldToggles ? (
+              {builder?.toggles.length ? (
                 <div className="mb-3 flex flex-wrap items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
-                  {endpoint.fieldToggles.map((toggle) => (
+                  {builder.toggles.map((toggle) => (
                     <label
-                      key={toggle.key}
+                      key={toggle.id}
                       className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
                     >
                       <input
                         type="checkbox"
-                        checked={fieldToggleChecked(toggle.key)}
-                        onChange={() => toggleField(toggle)}
+                        checked={Boolean(toggles[toggle.id])}
+                        onChange={() => flipToggle(toggle.id)}
                       />
                       {toggle.label}
                     </label>
@@ -372,7 +350,10 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                 onChange={(e) => setBodyText(e.target.value)}
                 spellCheck={false}
               />
-              <BodyFields fields={endpoint.fields} body={activeBody} />
+              <BodyFields
+                fields={endpoint.fields}
+                body={builder ? buildBody(builder, variantId, allToggles(builder)) : activeBody}
+              />
             </section>
           ) : (
             <p className="mt-4 text-xs text-slate-500">No request body.</p>

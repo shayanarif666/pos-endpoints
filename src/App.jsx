@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react"
 import { endpoints, tags } from "./data/endpoints.js"
 import { missingBodyFields } from "./data/bodyFields.js"
+import { allToggles, buildBody } from "./data/bodyBuilder.js"
 
-// Dev guard: every attribute in an example body (including each bodyVariants entry) must be
-// marked required or optional.
+// Dev guard: every attribute in an example body (each bodyBuilder variant with every checkbox
+// on) must be marked required or optional.
 if (import.meta.env.DEV) {
   for (const endpoint of endpoints) {
-    const bodies = endpoint.bodyVariants
-      ? endpoint.bodyVariants.map((v) => v.body)
+    const builder = endpoint.bodyBuilder
+    const bodies = builder
+      ? builder.variants.map((v) => buildBody(builder, v.id, allToggles(builder)))
       : [endpoint.body]
     for (const body of bodies) {
       const missing = missingBodyFields({ ...endpoint, body })

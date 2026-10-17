@@ -1,6 +1,92 @@
 import { bodyFieldsFor } from "./bodyFields.js"
+import { buildBody, defaultToggles } from "./bodyBuilder.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
+
+// Shared row pieces for the Category / Product builders (PDF spec, Oct 2026).
+const TAX = (name, type, value) => [
+  ["tax_name", name, "tax"],
+  ["tax_type", type, "tax"],
+  ["tax_value", value, "tax"],
+]
+const DISCOUNT = (name, type, value) => [
+  ["discount_name", name, "discount"],
+  ["discount_type", type, "discount"],
+  ["discount_value", value, "discount"],
+]
+const VISIBILITY_OPTIONAL = [
+  ["is_active", true, "optional"],
+  ["is_pos_visible", true, "optional"],
+  ["is_web_visible", true, "optional"],
+  ["channel", "both", "optional"],
+]
+
+function categoryRow(name, taxValue, discountValue) {
+  return [
+    ["name", name],
+    ...TAX("GST", "percentage", taxValue),
+    ...DISCOUNT("Eid Shopping", "percentage", discountValue),
+    ["description", "", "optional"],
+    ["parent_category_id", null, "optional"],
+    ...VISIBILITY_OPTIONAL,
+  ]
+}
+
+const CATEGORY_TOGGLES = [
+  { id: "discount", label: "Has Category Discount", default: true },
+  { id: "tax", label: "Has Category Tax", default: true },
+  { id: "optional", label: "Show Optional Fields", default: false },
+]
+
+const PRODUCT_TAIL = [
+  ...TAX("GST", "percentage", 5),
+  ...DISCOUNT("Eid Shopping", "percentage", 5),
+  ["low_stock_threshold", 10],
+  ["sell_loose", true],
+  ["image", ""],
+  ["is_weight_based", false, "optional"],
+  ["is_published", false, "optional"],
+  ...VISIBILITY_OPTIONAL,
+]
+
+const PRODUCT_LOOSE_ROW = [
+  ["title", "1 Litre Pepsi"],
+  ["barcode", "78263672323325"],
+  ["category_id", 1],
+  ["unit", "bottle"],
+  ["cost_price", 50],
+  ["selling_price", 100],
+  ...PRODUCT_TAIL,
+]
+
+const PRODUCT_PACK_ROW = [
+  ["title", "1 Litre Pepsi"],
+  ["barcode", "78263672323325"],
+  ["category_id", 1],
+  ["unit", "bottle"],
+  ["is_pack_product", true],
+  ["pack_size", 10],
+  ["pack_cost_price", 50],
+  ["pack_selling_price", 100],
+  ...PRODUCT_TAIL,
+]
+
+const PRODUCT_TOGGLES = [
+  { id: "discount", label: "Has Product Discount", default: true },
+  { id: "tax", label: "Has Product Tax", default: true },
+  { id: "optional", label: "Show Optional Fields", default: false },
+]
+
+function productBuilder(bulk) {
+  return {
+    bulk,
+    variants: [
+      { id: "loose", label: "Loose Item", rows: [PRODUCT_LOOSE_ROW] },
+      { id: "pack", label: "Pack Product", rows: [PRODUCT_PACK_ROW] },
+    ],
+    toggles: PRODUCT_TOGGLES,
+  }
+}
 
 export const RESOURCE_ENUMS = {
   plans: {
@@ -179,19 +265,16 @@ function ep({
   pathParams = [],
   query = [],
   body = null,
-  // Alternative to `body`: [{ id, label, body }, ...]. Renders as radio buttons above the
-  // request-body editor, switching which template loads. `body` is set to the first variant's
-  // template automatically when this is used.
-  bodyVariants = null,
-  // Checkboxes above the body editor: [{ key, label, onFields, offFields }, ...]. Checking one
-  // sets body[key] = true and merges onFields in; unchecking sets it false and deletes offFields.
-  // Targets items[0] automatically when the body is a bulk { items: [...] } shape.
-  fieldToggles = null,
+  // Alternative to `body`: a template with radio variants and checkbox toggles — see
+  // bodyBuilder.js. `body` becomes the template's default output.
+  bodyBuilder = null,
   files = [],
   capture = null,
   enums = null,
 }) {
-  const effectiveBody = bodyVariants ? bodyVariants[0].body : body
+  const effectiveBody = bodyBuilder
+    ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
+    : body
   return {
     id,
     tag,
@@ -203,8 +286,7 @@ function ep({
     pathParams,
     query,
     body: effectiveBody,
-    bodyVariants,
-    fieldToggles,
+    bodyBuilder,
     files,
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
@@ -773,10 +855,12 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories",
     summary: "Create category",
-    description: "Categories page and Products quick-add. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { id, name }} instead of the full created record — id here is the short category_number, not the internal UUID (PATCH/DELETE /categories/:id still needs the real UUID).",
+    description: "Categories page and Products quick-add. Only name is required. The Has Category Tax / Has Category Discount checkboxes only add or remove the tax_* / discount_* fields in this example — they are not fields themselves and nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields. Creating the same category again is fine: the slug gets a -2, -3... suffix instead of an error. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { id, name }} instead of the full created record — id here is the short category_number, not the internal UUID (PATCH/DELETE /categories/:id still needs the real UUID).",
     files: [{ name: "icon", label: "Category icon" }],
-    body: {
-      name: "Drinks",
+    bodyBuilder: {
+      bulk: false,
+      variants: [{ id: "default", label: null, rows: [categoryRow("Soap", 5, 5)] }],
+      toggles: CATEGORY_TOGGLES,
     },
   }),
   ep({
@@ -785,13 +869,17 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
-    body: {
-      items: [
+    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. Same fields and checkboxes as single create (the checkboxes apply to every item). On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
+    bodyBuilder: {
+      bulk: true,
+      variants: [
         {
-          name: "Drinks",
+          id: "default",
+          label: null,
+          rows: [categoryRow("Soap", 5, 5), categoryRow("Daal", 10, 0)],
         },
       ],
+      toggles: CATEGORY_TOGGLES,
     },
   }),
   ep({
@@ -841,72 +929,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products",
     summary: "Create product",
-    description: "Products page. Slug and SKU are generated from title. Image upload is temporarily off here — use PATCH /products/:id to set an image for now. category_id accepts either the category's UUID or its short category_number under this same key (the example's \"1\" is a category_number — a real UUID also works). There is no expiry_date on the product itself — expiry is tracked per location via PUT /product-stocks/:productId, since the same product can have different expiry dates at different branches. pack_cost_price/pack_selling_price are the whole-pack cost/price, required when is_pack_product is true — not cost_price/selling_price × pack_size, since bulk rates differ from per-unit. has_product_discount/has_product_tax gate whether discount_type+discount_value / tax_type+tax_value have any effect — check the boxes below to add them to the body. The response also carries net_selling_price (selling_price after this product's own discount, computed by the database — never sent by you, just returned). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { product_number }} instead of the full created record.",
-    fieldToggles: [
-      {
-        key: "has_product_discount",
-        label: "Has product discount",
-        onFields: { discount_type: "percentage", discount_value: 10 },
-        offFields: ["discount_type", "discount_value"],
-      },
-      {
-        key: "has_product_tax",
-        label: "Has product tax",
-        onFields: { tax_type: "percentage", tax_value: 17 },
-        offFields: ["tax_type", "tax_value"],
-      },
-    ],
-    bodyVariants: [
-      {
-        id: "loose",
-        label: "Loose Item",
-        body: {
-          title: "1 Litre Pepsi",
-          barcode: "8964001234567",
-          category_id: "1",
-          unit: "piece",
-          cost_price: 60,
-          selling_price: 90,
-          has_product_discount: false,
-          has_product_tax: false,
-          is_pack_product: false,
-          sell_loose: false,
-          is_weight_based: false,
-          low_stock_threshold: 6,
-          is_published: true,
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
-          is_active: true,
-        },
-      },
-      {
-        id: "pack",
-        label: "Pack Product",
-        body: {
-          title: "Pepsi 1 Litre (Pack of 10)",
-          barcode: "8964001234567",
-          category_id: "1",
-          unit: "piece",
-          cost_price: 50,
-          selling_price: 100,
-          has_product_discount: false,
-          has_product_tax: false,
-          is_pack_product: true,
-          pack_size: 10,
-          pack_cost_price: 450,
-          pack_selling_price: 900,
-          sell_loose: true,
-          is_weight_based: false,
-          low_stock_threshold: 6,
-          is_published: true,
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
-          is_active: true,
-        },
-      },
-    ],
+    description: "Products page. Required: title, barcode (unique per store), category_id, and the prices — cost_price + selling_price for a Loose Item, or pack_cost_price + pack_selling_price (+ pack_size) for a Pack Product, whose per-unit cost/selling price are then derived as pack price ÷ pack_size. category_id is the category's number (e.g. 1); its UUID also works. image is a plain image URL saved as featured_image and images[0]; an empty string means no image. The Has Product Tax / Has Product Discount checkboxes only add or remove the tax_* / discount_* fields in this example — they are not fields themselves and nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields after image. Creating the same product again is fine as long as the barcode differs: slug and SKU get a -2, -3... suffix (a repeated barcode still returns 409). There is no expiry_date on the product — expiry is per location via PUT /product-stocks/:productId. The full response also carries net_selling_price (selling_price after this product's own discount, computed by the database). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { id, title }} — id is the short product_number, not the UUID.",
+    bodyBuilder: productBuilder(false),
   }),
   ep({
     id: "prod-bulk",
@@ -914,75 +938,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). SKU is generated from title. Same category_id (UUID or category_number, same key), pack_cost_price/pack_selling_price, and has_product_discount/has_product_tax rules as single create (the checkboxes below edit items[0] in the example). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: { product_numbers: [...], failed: [...] }} instead of the full per-item results.",
-    fieldToggles: [
-      {
-        key: "has_product_discount",
-        label: "Has product discount",
-        onFields: { discount_type: "percentage", discount_value: 10 },
-        offFields: ["discount_type", "discount_value"],
-      },
-      {
-        key: "has_product_tax",
-        label: "Has product tax",
-        onFields: { tax_type: "percentage", tax_value: 17 },
-        offFields: ["tax_type", "tax_value"],
-      },
-    ],
-    bodyVariants: [
-      {
-        id: "loose",
-        label: "Loose Item",
-        body: {
-          items: [
-            {
-              title: "1 Litre Pepsi",
-              barcode: "8964001234567",
-              category_id: "1",
-              unit: "piece",
-              cost_price: 60,
-              selling_price: 90,
-              has_product_discount: false,
-              has_product_tax: false,
-              is_pack_product: false,
-              is_published: true,
-              is_pos_visible: true,
-              is_web_visible: true,
-              channel: "both",
-              is_active: true,
-            },
-          ],
-        },
-      },
-      {
-        id: "pack",
-        label: "Pack Product",
-        body: {
-          items: [
-            {
-              title: "Pepsi 1 Litre (Pack of 10)",
-              barcode: "8964001234567",
-              category_id: "1",
-              unit: "piece",
-              cost_price: 50,
-              selling_price: 100,
-              has_product_discount: false,
-              has_product_tax: false,
-              is_pack_product: true,
-              pack_size: 10,
-              pack_cost_price: 450,
-              pack_selling_price: 900,
-              sell_loose: true,
-              is_published: true,
-              is_pos_visible: true,
-              is_web_visible: true,
-              channel: "both",
-              is_active: true,
-            },
-          ],
-        },
-      },
-    ],
+    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). Same fields, rules and checkboxes as single create (the checkboxes apply to every item). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: [ { id, title }, ... ]} (one entry per created product, in the same order) — id is the short product_number, not the UUID.",
+    bodyBuilder: productBuilder(true),
   }),
   ep({
     id: "prod-patch",
