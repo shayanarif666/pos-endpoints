@@ -240,15 +240,11 @@ export const BODY_FIELDS = {
   "auth-login": {
     email: R,
     password: R,
-    channel: note("web (dashboard, default) | pos (POS app)"),
-    device_id: note("POS only. pos_devices row id OR this PC's stable hardware id — either works here. Not echoed back in the response"),
-    device_uid: note("POS only. Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
+    channel: note("pos (POS app, default) | web (dashboard)"),
   },
   "auth-login-pin": {
-    pin: must("4–6 digits, unique across all stores"),
+    pin: must("4–6 digits, unique within one location"),
     channel: note("Always pos (default pos)"),
-    device_id: note("pos_devices row id OR this PC's stable hardware id — either works here. Not echoed back in the response"),
-    device_uid: note("Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
   },
   "auth-patch-me": {
     name: O,

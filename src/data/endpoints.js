@@ -635,13 +635,12 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Email + password + channel, plus an optional device hint on POS (device_id or device_uid — either identifies the till that's signing in, used only to tag the session/token server-side; it isn't echoed back in the response). channel=web for the dashboard (default) returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs) — no license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
+      "Body is only email + password + channel. channel defaults to pos (POS app); send channel=web for the dashboard. The POS till may identify itself with the optional X-Device-Uid header (its stable hardware id from POST /licenses/validate) — it tags the session with the till and is not part of the body. channel=web returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs). Every store-staff login (email or PIN, POS or web) sets the user's status to clock_in; POST /auth/logout and closing their register session (POST /register-sessions/:id/clock-out) set it to clock_out — user.status shows it. It also lists locations[] ({ id, name }) and users[] ({ id, name, role, pin, location_id, status }) so the till can switch staff by PIN — ids are the store-level numbers (location number / user number). Store admin: every active location and every active manager + cashier of the store. Manager: only their own location, with its cashiers and the other managers there (not the manager who signed in). Cashier: only their own location and themself. No license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
       password: "ChangeMe123",
       channel: "pos",
-      device_uid: "",
     },
     capture: {
       accessToken: ["data.token", "data.access_token"],
@@ -656,17 +655,25 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. pin + channel, plus the same optional device_id / device_uid hint as POST /auth/login above; channel is always pos (PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, send device_uid (or device_id) of the till — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and store{}/location{} shape as POST /auth/login above with channel=pos.",
+      "POS Login PIN tab. Body is only pin + channel; channel is always pos (default pos — PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, the till must send the X-Device-Uid header (its hardware id from POST /licenses/validate) — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and the same store{}/location{}/locations[]/users[] shape as POST /auth/login above with channel=pos (store admin: all locations + all managers and cashiers; manager: own location with its cashiers and other managers, not themself; cashier: only themself).",
     auth: "public",
     body: {
       pin: "2222",
       channel: "pos",
-      device_uid: "",
     },
     capture: {
       accessToken: "data.token",
       role: "data.user.role",
     },
+  }),
+  ep({
+    id: "auth-logout",
+    tag: "auth",
+    method: "POST",
+    path: "/api/v1/auth/logout",
+    summary: "Logout",
+    description:
+      "Signs out the device that sends it (dashboard tab or POS till): that session ends, so its token (POS token or web access_token / refresh_token) stops working; the same user stays signed in on other devices. A store admin, manager or cashier is set to status clock_out (login sets clock_in). No body — just the Bearer token. Still allowed when the store license is expired or suspended, so a blocked user can always sign out. Response data: { id, status } — id is the user number (same id as the login response), status is now clock_out, e.g. { success: true, message: \"Logged out\", data: { id: 1, status: \"clock_out\" } }.",
   }),
   ep({
     id: "auth-me",
