@@ -1535,7 +1535,7 @@ export const endpoints = [
     path: "/api/v1/suppliers",
     summary: "List suppliers",
     description:
-      "Each supplier has location_scope (all | selected), location_ids and locations. Store admin may filter with ?location_id= (suppliers that deliver to that branch, including all-location ones). A manager always gets only suppliers for their own branch.",
+      "Each supplier: name, phone, email, address, payment_terms, location_scope (all | selected), location_ids and locations. Store admin sees every supplier and may filter with ?location_id= (suppliers that deliver to that branch, including all-location ones). A manager or cashier gets only the suppliers of their own location (from the token).",
     query: [{ name: "location_id", default: "", required: false }],
   }),
   ep({
@@ -1545,7 +1545,7 @@ export const endpoints = [
     path: "/api/v1/suppliers",
     summary: "Add supplier",
     description:
-      "location_scope all = supplies every branch. selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager's supplier is always for their own branch. Ledger stock entries are rejected (409) at branches the supplier does not serve. On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
+      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
     body: {
       name: "Nestle Distributor",
       phone: "03006666666",
@@ -1554,10 +1554,6 @@ export const endpoints = [
       payment_terms: "Net 15",
       location_scope: "selected",
       location_ids: [UUID],
-      is_active: true,
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
     },
   }),
   ep({
@@ -1566,7 +1562,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/suppliers/bulk",
     summary: "Bulk create suppliers",
-    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Suppliers Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. Same location rule as Add supplier: a manager or cashier's suppliers go to their own location. On channel=pos, the response is just {success, message} with data: null (\"Suppliers Successfully Created\") instead of the per-item results.",
     body: {
       items: [
         {
@@ -1575,9 +1571,6 @@ export const endpoints = [
           email: "sales@distributor.local",
           address: "Industrial Area",
           payment_terms: "Net 15",
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
         },
       ],
     },
@@ -1588,17 +1581,16 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/suppliers/:id",
     summary: "Update supplier",
+    description:
+      "Send only the fields to change. A store admin may also change location_scope / location_ids; a manager or cashier can edit only suppliers of their own location and cannot move them.",
     pathParams: [{ name: "id", default: UUID, required: true }],
     body: {
       name: "Nestle Distributor",
       phone: "03006666666",
       email: "sales@distributor.local",
       address: "Industrial Area",
-      payment_terms: "Net 15",
+      payment_terms: "Net 30",
       is_active: true,
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
     },
   }),
   ep({

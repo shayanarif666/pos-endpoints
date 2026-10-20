@@ -165,10 +165,8 @@ const SUPPLIER_CREATE = {
   email: O,
   address: O,
   payment_terms: O,
-  location_scope: note("all (every branch, default) | selected (only location_ids)"),
-  location_ids: note("Required when selected: one branch or several. Managers: own branch only"),
-  is_active: note("Default true"),
-  ...VISIBILITY,
+  location_scope: note("Store admin only: all (every branch, default) | selected (only location_ids). Ignored for manager / cashier"),
+  location_ids: note("Store admin only, required when selected: one branch or several. Manager / cashier: token location is used"),
 }
 
 const LOCATION_CREATE = {
@@ -410,7 +408,7 @@ export const BODY_FIELDS = {
   // Suppliers
   "sup-create": SUPPLIER_CREATE,
   "sup-bulk": bulkOf(SUPPLIER_CREATE),
-  "sup-patch": allOptional(SUPPLIER_CREATE),
+  "sup-patch": allOptional(SUPPLIER_CREATE, { is_active: note("false = deactivate") }),
 
   // Locations
   "location-create": LOCATION_CREATE,
