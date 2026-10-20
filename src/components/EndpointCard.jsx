@@ -199,7 +199,8 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   }
 
   function showBody(body) {
-    const next = body == null ? "" : pretty(body)
+    const shown = bodyForRole(body, adminOnly, session.role)
+    const next = shown == null ? "" : pretty(shown)
     setBodyText(next)
     onSaveBody(endpoint.id, next)
   }
@@ -207,13 +208,13 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   // Signing in as another role shows / hides the store-admin-only fields right away.
   const [shownRole, setShownRole] = useState(session.role)
   useEffect(() => {
-    if (!adminOnly.length || builder || shownRole === session.role) return
+    if (!adminOnly.length || shownRole === session.role) return
     setShownRole(session.role)
-    showBody(bodyForRole(endpoint.body, adminOnly, session.role))
+    showBody(builder ? buildBody(builder, variantId, toggles) : endpoint.body)
   }, [session.role])
 
   function resetBody() {
-    if (!builder) return showBody(bodyForRole(endpoint.body, adminOnly, session.role))
+    if (!builder) return showBody(endpoint.body)
     const defaults = defaultToggles(builder)
     setVariantId(builder.variants[0].id)
     setToggles(defaults)
@@ -335,7 +336,10 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
 
           {endpoint.body != null ? (
             <section className="mt-4">
-              {builder && !builder.bulk && builder.variants.length > 1 ? (
+              {builder &&
+              !builder.bulk &&
+              builder.variants.length > 1 &&
+              (!builder.adminOnlyVariants || session.role === "store_admin") ? (
                 <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
                   {builder.variants.map((variant) => (
                     <label

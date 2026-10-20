@@ -183,6 +183,32 @@ function offerBuilder(bulk) {
   }
 }
 
+const SUPPLIER_ROW = [
+  ["name", "Nestle Distributor"],
+  ["phone", "03006666666"],
+  ["email", "sales@distributor.local"],
+  ["address", "Industrial Area"],
+  ["payment_terms", "Net 15"],
+]
+
+// Store admin picks where the supplier delivers; managers / cashiers see no radios and send no
+// location (the adminOnly keys are stripped for them).
+function supplierBuilder() {
+  return {
+    bulk: false,
+    adminOnlyVariants: true,
+    variants: [
+      { id: "all", label: "All Locations", rows: [[...SUPPLIER_ROW, ["location_scope", "all"]]] },
+      {
+        id: "selected",
+        label: "Selected Locations",
+        rows: [[...SUPPLIER_ROW, ["location_scope", "selected"], ["location_ids", [1]]]],
+      },
+    ],
+    toggles: [],
+  }
+}
+
 export const RESOURCE_ENUMS = {
   plans: {
     type: ["monthly", "yearly"],
@@ -307,6 +333,7 @@ export const RESOURCE_ENUMS = {
     channel: ["web", "pos"],
   },
   suppliers: {
+    location_scope: ["all", "selected"],
     entry_type: ["debit", "credit"],
     channel: ["web", "pos", "both"],
   },
@@ -1548,16 +1575,8 @@ export const endpoints = [
     path: "/api/v1/suppliers",
     summary: "Add supplier",
     description:
-      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. location_ids holds location numbers (1, 2, 3 — the location id the POS uses; UUIDs also work). A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
-    body: {
-      name: "Nestle Distributor",
-      phone: "03006666666",
-      email: "sales@distributor.local",
-      address: "Industrial Area",
-      payment_terms: "Net 15",
-      location_scope: "selected",
-      location_ids: [1],
-    },
+      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. location_ids holds location numbers (1, 2, 3 — the location id the POS uses; UUIDs also work). A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). The All / Selected radio buttons (store admin only) switch between location_scope all and selected + location_ids. On channel=pos, the response is {success, message (\"Supplier Successfully Created\"), data: { id }} — id is the short supplier_number, not the UUID.",
+    bodyBuilder: supplierBuilder(),
     adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
@@ -1566,7 +1585,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/suppliers/bulk",
     summary: "Bulk create suppliers",
-    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. Same location rule as Add supplier: a manager or cashier's suppliers go to their own location. On channel=pos, the response is just {success, message} with data: null (\"Suppliers Successfully Created\") instead of the per-item results.",
+    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. Same location rule as Add supplier: a manager or cashier's suppliers go to their own location. On channel=pos, the response is {success, message (\"Suppliers Successfully Created\"), data: [ { id }, ... ]} — one supplier_number per created supplier, in order.",
     body: {
       items: [
         {
