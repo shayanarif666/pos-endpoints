@@ -354,6 +354,8 @@ function ep({
   enums = null,
   // (item) => [[label, value], ...]: values the server computes from a body row, shown under it.
   computed = null,
+  // Body keys only a store admin may send (shown only when the signed-in role is store_admin).
+  adminOnly = [],
 }) {
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
@@ -371,6 +373,7 @@ function ep({
     body: effectiveBody,
     bodyBuilder,
     computed,
+    adminOnly,
     files,
     capture,
     enums: enums || RESOURCE_ENUMS[tag] || null,
@@ -1545,7 +1548,7 @@ export const endpoints = [
     path: "/api/v1/suppliers",
     summary: "Add supplier",
     description:
-      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
+      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. location_ids holds location numbers (1, 2, 3 — the location id the POS uses; UUIDs also work). A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). On channel=pos, the response is just {success, message} with data: null (\"Supplier Successfully Created\") instead of the created record.",
     body: {
       name: "Nestle Distributor",
       phone: "03006666666",
@@ -1553,8 +1556,9 @@ export const endpoints = [
       address: "Industrial Area",
       payment_terms: "Net 15",
       location_scope: "selected",
-      location_ids: [UUID],
+      location_ids: [1],
     },
+    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "sup-bulk",
@@ -1571,9 +1575,12 @@ export const endpoints = [
           email: "sales@distributor.local",
           address: "Industrial Area",
           payment_terms: "Net 15",
+          location_scope: "selected",
+          location_ids: [1],
         },
       ],
     },
+    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "sup-patch",
@@ -1591,7 +1598,10 @@ export const endpoints = [
       address: "Industrial Area",
       payment_terms: "Net 30",
       is_active: true,
+      location_scope: "selected",
+      location_ids: [1],
     },
+    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "sup-delete",

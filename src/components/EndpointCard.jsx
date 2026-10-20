@@ -50,6 +50,35 @@ export function ResourceEnums({ enums, className = "" }) {
   )
 }
 
+// Drops the endpoint's store-admin-only keys (top level and inside items[] rows) for any other role.
+function bodyForRole(body, adminOnly, role) {
+  if (body == null || !adminOnly?.length || role === "store_admin") return body
+  const strip = (value) => {
+    if (Array.isArray(value)) return value.map(strip)
+    if (!value || typeof value !== "object") return value
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key]) => !adminOnly.includes(key))
+        .map(([key, inner]) => [key, key === "items" ? strip(inner) : inner])
+    )
+  }
+  return strip(body)
+}
+
+function fieldsForRole(fields, adminOnly, role) {
+  if (!fields || !adminOnly?.length || role === "store_admin") return fields
+  return Object.fromEntries(Object.entries(fields).filter(([key]) => !adminOnly.includes(key)))
+}
+
+function savedBodyForRole(text, adminOnly, role) {
+  if (!text || !adminOnly?.length || role === "store_admin") return text
+  try {
+    return pretty(bodyForRole(JSON.parse(text), adminOnly, role))
+  } catch {
+    return text
+  }
+}
+
 export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBody }) {
   const [open, setOpen] = useState(false)
   const [pathParams, setPathParams] = useState(
@@ -66,10 +95,16 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   const builder = endpoint.bodyBuilder
   const [variantId, setVariantId] = useState(builder?.variants[0].id ?? null)
   const [toggles, setToggles] = useState(() => (builder ? defaultToggles(builder) : {}))
-  const activeBody = builder ? buildBody(builder, variantId, toggles) : endpoint.body
+  const adminOnly = endpoint.adminOnly || []
+  const activeBody = bodyForRole(
+    builder ? buildBody(builder, variantId, toggles) : endpoint.body,
+    adminOnly,
+    session.role
+  )
   const [bodyText, setBodyText] = useState(() =>
     migrateLegacyPlanBody(
-      (builder ? null : savedBody) ?? (activeBody == null ? "" : pretty(activeBody))
+      (builder ? null : savedBodyForRole(savedBody, adminOnly, session.role)) ??
+        (activeBody == null ? "" : pretty(activeBody))
     )
   )
   const [busy, setBusy] = useState(false)
@@ -169,8 +204,16 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     onSaveBody(endpoint.id, next)
   }
 
+  // Signing in as another role shows / hides the store-admin-only fields right away.
+  const [shownRole, setShownRole] = useState(session.role)
+  useEffect(() => {
+    if (!adminOnly.length || builder || shownRole === session.role) return
+    setShownRole(session.role)
+    showBody(bodyForRole(endpoint.body, adminOnly, session.role))
+  }, [session.role])
+
   function resetBody() {
-    if (!builder) return showBody(endpoint.body)
+    if (!builder) return showBody(bodyForRole(endpoint.body, adminOnly, session.role))
     const defaults = defaultToggles(builder)
     setVariantId(builder.variants[0].id)
     setToggles(defaults)
@@ -356,7 +399,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
               />
               {endpoint.computed ? <ComputedTotals compute={endpoint.computed} bodyText={bodyText} /> : null}
               <BodyFields
-                fields={endpoint.fields}
+                fields={fieldsForRole(endpoint.fields, adminOnly, session.role)}
                 body={builder ? buildBody(builder, variantId, allToggles(builder)) : activeBody}
               />
             </section>

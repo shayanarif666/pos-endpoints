@@ -166,7 +166,7 @@ const SUPPLIER_CREATE = {
   address: O,
   payment_terms: O,
   location_scope: note("Store admin only: all (every branch, default) | selected (only location_ids). Ignored for manager / cashier"),
-  location_ids: note("Store admin only, required when selected: one branch or several. Manager / cashier: token location is used"),
+  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2, 3] (UUIDs also work). Manager / cashier: token location is used"),
 }
 
 const LOCATION_CREATE = {
