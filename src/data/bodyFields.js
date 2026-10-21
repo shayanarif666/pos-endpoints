@@ -73,7 +73,7 @@ const PRODUCT_CREATE = {
   sell_loose: note("True if units can also be sold individually"),
   low_stock_threshold: note("Default 10"),
   image: note("Image URL, saved as featured_image and images[0]. Empty string = no image"),
-  is_weight_based: note("Sold by weight (kg). Can't be true together with is_pack_product"),
+  is_weight_based: note("Sold by weight (kg). Can be combined with is_pack_product"),
   is_published: note("Default false"),
   is_active: note("Default true"),
   ...VISIBILITY,
@@ -124,7 +124,8 @@ const OFFER_CREATE = {
   is_active: note("Default true"),
   promo_price: note("flash_sale: fixed sale price (used when below the selling price). Saved on the offer target"),
   free_product_id: note("bogo: the free item, if not the same product. Number or UUID. Saved on the offer target"),
-  location_id: note("Null = all branches"),
+  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). Ignored for manager / cashier"),
+  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2, 3, 4] (UUIDs also work). Manager / cashier: token location is used"),
 }
 
 const ORDER_ITEM = {
@@ -256,9 +257,6 @@ export const BODY_FIELDS = {
   "license-validate": {
     license_key: R,
     device_uid: must("This PC's stable id. Leave it out only to just inspect the key"),
-    name: O,
-    platform: O,
-    app_version: O,
   },
 
   // Devices

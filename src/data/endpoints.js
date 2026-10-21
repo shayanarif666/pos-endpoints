@@ -168,7 +168,6 @@ function offerRow(applyTo) {
     ["is_active", true],
     ["promo_price", null, "optional"],
     ["free_product_id", null, "optional"],
-    ["location_id", null, "optional"],
   ]
 }
 
@@ -180,6 +179,19 @@ function offerBuilder(bulk) {
       { id: "product", label: "Apply To Product", rows: [offerRow("product")] },
     ],
     toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
+    // Store admin only (radios hidden and keys stripped for a manager / cashier, whose offer is
+    // always for their own location).
+    scopes: [
+      { id: "all", label: "All Locations", rows: [["location_scope", "all"]] },
+      {
+        id: "selected",
+        label: "Selected Locations",
+        rows: [
+          ["location_scope", "selected"],
+          ["location_ids", [1, 2]],
+        ],
+      },
+    ],
   }
 }
 
@@ -665,7 +677,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login (email)",
     description:
-      "Body is only email + password + channel. channel defaults to pos (POS app); send channel=web for the dashboard. The POS till may identify itself with the optional X-Device-Uid header (its stable hardware id from POST /licenses/validate) — it tags the session with the till and is not part of the body. channel=web returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs). Every store-staff login (email or PIN, POS or web) sets the user's status to clock_in; POST /auth/logout and closing their register session (POST /register-sessions/:id/clock-out) set it to clock_out — user.status shows it. It also lists locations[] ({ id, name }) and users[] ({ id, name, role, pin, location_id, status }) so the till can switch staff by PIN — ids are the store-level numbers (location number / user number). Store admin: every active location and every active manager + cashier of the store. Manager: only their own location, with its cashiers and the other managers there (not the manager who signed in). Cashier: only their own location and themself. No license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
+      "Body is only email + password + channel. channel defaults to pos (POS app); send channel=web for the dashboard. The POS till may identify itself with the optional X-Device-Uid header (its stable hardware id from POST /licenses/validate) — it tags the session with the till and is not part of the body. channel=web returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs). Every store-staff login (email or PIN, POS or web) sets the user's status to clock_in; POST /auth/logout and closing their register session (POST /register-sessions/:id/clock-out) set it to clock_out — user.status shows it. It also lists users[] ({ id, name, role, pin, location_id, status }) so the till can switch staff by PIN, and — for a store admin only — locations[] ({ id, name }) instead of location{} — ids are the store-level numbers (location number / user number). Store admin: locations[] with every active location, and every active manager + cashier of the store. Manager: location{} (their own), with its cashiers and the other managers there (not the manager who signed in). Cashier: location{} (their own) and only themself. No license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
     auth: "public",
     body: {
       email: "manager@demo-grocery.local",
@@ -685,7 +697,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "POS login (PIN)",
     description:
-      "POS Login PIN tab. Body is only pin + channel; channel is always pos (default pos — PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, the till must send the X-Device-Uid header (its hardware id from POST /licenses/validate) — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and the same store{}/location{}/locations[]/users[] shape as POST /auth/login above with channel=pos (store admin: all locations + all managers and cashiers; manager: own location with its cashiers and other managers, not themself; cashier: only themself).",
+      "POS Login PIN tab. Body is only pin + channel; channel is always pos (default pos — PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, the till must send the X-Device-Uid header (its hardware id from POST /licenses/validate) — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and the same store{} + users[] shape, with location{} for a manager / cashier or locations[] for a store admin, as POST /auth/login above with channel=pos (store admin: all locations + all managers and cashiers; manager: own location with its cashiers and other managers, not themself; cashier: only themself).",
     auth: "public",
     body: {
       pin: "2222",
@@ -735,9 +747,6 @@ export const endpoints = [
     body: {
       license_key: "FROM_AUTHORIZE",
       device_uid: "",
-      name: "Front Counter PC",
-      platform: "Win32",
-      app_version: "pos-web-1.0",
     },
     capture: { licenseKey: "data.license_key" },
   }),
@@ -1295,8 +1304,9 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers",
     summary: "Create offer",
-    description: "Offers page. One flat object creates the offer and its target together: the offer fields (name, type, apply_to, discount, quantities, dates) go to the offer, and category_id / product_id, promo_price and free_product_id go to its offer target. apply_to category needs category_id; apply_to product needs product_id — either as the short number (e.g. 1) or the UUID. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty + get_qty are for bogo (buy 2 get 1 → every 3 items, 1 is free); promo_price is a flash_sale fixed price; free_product_id is the bogo free item. Several targets at once: send targets: [{ category_id }, ...] instead. On channel=pos, the response is {success, message (\"Offer Successfully Created\"), data: { id, type, name, category_id | product_id }} — id is the short offer_number and category_id / product_id the short number.",
+    description: "Store admin, manager or cashier. Where the offer runs: only a store admin chooses — All Locations (location_scope all) or Selected Locations (location_scope selected + location_ids: [1] for one location, [1, 2, 3, 4] for several; location numbers, UUIDs also work). A manager or cashier sends no location — the offer is saved for the store and location in their token (location_scope / location_ids in their body are ignored). Offers page. One flat object creates the offer and its target together: the offer fields (name, type, apply_to, discount, quantities, dates) go to the offer, and category_id / product_id, promo_price and free_product_id go to its offer target. apply_to category needs category_id; apply_to product needs product_id — either as the short number (e.g. 1) or the UUID. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty + get_qty are for bogo (buy 2 get 1 → every 3 items, 1 is free); promo_price is a flash_sale fixed price; free_product_id is the bogo free item. Several targets at once: send targets: [{ category_id }, ...] instead. On channel=pos, the response is {success, message (\"Offer Successfully Created\"), data: { id, type, name, category_id | product_id }} — id is the short offer_number and category_id / product_id the short number.",
     bodyBuilder: offerBuilder(false),
+    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "offer-bulk",
@@ -1304,8 +1314,9 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk create offers",
-    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. Same flat fields and rules as single create. On channel=pos, the response is {success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category_id | product_id }, ... ]} (one per created offer, in order).",
+    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. Same flat fields and rules as single create, including the location rule (store admin: location_scope / location_ids; manager or cashier: their own location). On channel=pos, the response is {success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category_id | product_id }, ... ]} (one per created offer, in order).",
     bodyBuilder: offerBuilder(true),
+    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "offer-targets-put",

@@ -94,10 +94,11 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   // radio variant and checkboxes, so a body saved from an older template is not restored.
   const builder = endpoint.bodyBuilder
   const [variantId, setVariantId] = useState(builder?.variants[0].id ?? null)
+  const [scopeId, setScopeId] = useState(builder?.scopes?.[0].id ?? null)
   const [toggles, setToggles] = useState(() => (builder ? defaultToggles(builder) : {}))
   const adminOnly = endpoint.adminOnly || []
   const activeBody = bodyForRole(
-    builder ? buildBody(builder, variantId, toggles) : endpoint.body,
+    builder ? buildBody(builder, variantId, toggles, scopeId) : endpoint.body,
     adminOnly,
     session.role
   )
@@ -210,7 +211,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
   useEffect(() => {
     if (!adminOnly.length || shownRole === session.role) return
     setShownRole(session.role)
-    showBody(builder ? buildBody(builder, variantId, toggles) : endpoint.body)
+    showBody(builder ? buildBody(builder, variantId, toggles, scopeId) : endpoint.body)
   }, [session.role])
 
   function resetBody() {
@@ -218,18 +219,24 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     const defaults = defaultToggles(builder)
     setVariantId(builder.variants[0].id)
     setToggles(defaults)
-    showBody(buildBody(builder, builder.variants[0].id, defaults))
+    setScopeId(builder.scopes?.[0].id ?? null)
+    showBody(buildBody(builder, builder.variants[0].id, defaults, builder.scopes?.[0].id))
   }
 
   function selectVariant(id) {
     setVariantId(id)
-    showBody(buildBody(builder, id, toggles))
+    showBody(buildBody(builder, id, toggles, scopeId))
+  }
+
+  function selectScope(id) {
+    setScopeId(id)
+    showBody(buildBody(builder, variantId, toggles, id))
   }
 
   function flipToggle(id) {
     const next = { ...toggles, [id]: !toggles[id] }
     setToggles(next)
-    showBody(buildBody(builder, variantId, next))
+    showBody(buildBody(builder, variantId, next, scopeId))
   }
 
   async function copyBody() {
@@ -357,6 +364,25 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
                   ))}
                 </div>
               ) : null}
+              {/* Where it applies (e.g. offers): only the store admin chooses; others use their location. */}
+              {builder && !builder.bulk && builder.scopes?.length && session.role === "store_admin" ? (
+                <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
+                  {builder.scopes.map((scope) => (
+                    <label
+                      key={scope.id}
+                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
+                    >
+                      <input
+                        type="radio"
+                        name={`${endpoint.id}-scope`}
+                        checked={scopeId === scope.id}
+                        onChange={() => selectScope(scope.id)}
+                      />
+                      {scope.label}
+                    </label>
+                  ))}
+                </div>
+              ) : null}
               {builder && !builder.bulk && builder.toggles.length ? (
                 <div className="mb-3 flex flex-wrap items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
                   {builder.toggles.map((toggle) => (
@@ -404,7 +430,7 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
               {endpoint.computed ? <ComputedTotals compute={endpoint.computed} bodyText={bodyText} /> : null}
               <BodyFields
                 fields={fieldsForRole(endpoint.fields, adminOnly, session.role)}
-                body={builder ? buildBody(builder, variantId, allToggles(builder)) : activeBody}
+                body={builder ? buildBody(builder, variantId, allToggles(builder), scopeId) : activeBody}
               />
             </section>
           ) : (
