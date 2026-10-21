@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
-import { sendRequest } from "../lib/request.js"
+import { buildUrl, sendRequest } from "../lib/request.js"
 import { ruleOf, synthesizeExample, typeOf } from "../data/bodyFields.js"
 import { allToggles, buildBody, defaultToggles } from "../data/bodyBuilder.js"
+import { JsonEditor, JsonView, Modal, ViewButton } from "./DocUi.jsx"
 
 const METHOD_CLASS = {
   GET: "method-get",
@@ -24,28 +25,39 @@ function pretty(value) {
   return JSON.stringify(value, null, 2)
 }
 
-export function ResourceEnums({ enums, className = "" }) {
+/** `bare` drops the box and heading and uses larger text (the Enums modal). */
+export function ResourceEnums({ enums, className = "", bare = false }) {
   if (!enums || !Object.keys(enums).length) return null
+  const list = (
+    <div className={bare ? "space-y-4" : "mt-2 space-y-2"}>
+      {Object.entries(enums).map(([key, values]) => (
+        <div key={key}>
+          <div
+            className={`font-mono font-semibold text-slate-700 ${bare ? "text-sm" : "text-xs"}`}
+          >
+            {key}
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {(Array.isArray(values) ? values : []).map((value) => (
+              <span
+                key={value}
+                className={`rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700 ${
+                  bare ? "text-xs" : "text-[11px]"
+                }`}
+              >
+                {value}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+  if (bare) return list
   return (
     <div className={`rounded border border-slate-200 bg-white p-3 ${className}`}>
       <h3 className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Enums</h3>
-      <div className="mt-2 space-y-2">
-        {Object.entries(enums).map(([key, values]) => (
-          <div key={key}>
-            <div className="font-mono text-xs font-semibold text-slate-700">{key}</div>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {(Array.isArray(values) ? values : []).map((value) => (
-                <span
-                  key={value}
-                  className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700"
-                >
-                  {value}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      {list}
     </div>
   )
 }
@@ -79,8 +91,17 @@ function savedBodyForRole(text, adminOnly, role) {
   }
 }
 
-export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBody }) {
-  const [open, setOpen] = useState(false)
+export function EndpointCard({
+  endpoint,
+  session,
+  onCapture,
+  savedBody,
+  onSaveBody,
+  defaultOpen = false,
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  // Which "View …" dialog is open: headers | fields | enums | path | query | files.
+  const [modal, setModal] = useState(null)
   const [pathParams, setPathParams] = useState(
     Object.fromEntries(endpoint.pathParams.map((p) => [p.name, p.default ?? ""]))
   )
@@ -239,6 +260,14 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
     showBody(buildBody(builder, variantId, next, scopeId))
   }
 
+  // Path / query values live in their modals, so the URL next to Execute shows them filled in.
+  let requestUrl = `${session.baseUrl.replace(/\/$/, "")}${endpoint.path}`
+  try {
+    requestUrl = buildUrl(session.baseUrl, endpoint.path, pathParams, query)
+  } catch {
+    // An unparsable Base URL: keep the plain text above.
+  }
+
   async function copyBody() {
     try {
       await navigator.clipboard.writeText(bodyText)
@@ -246,6 +275,28 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
       setTimeout(() => setCopied(false), 1500)
     } catch {
       // Clipboard API unavailable (e.g. insecure context) — nothing to recover from here.
+    }
+  }
+
+  const enumCount = endpoint.enums ? Object.keys(endpoint.enums).length : 0
+  const shownFields = fieldsForRole(endpoint.fields, adminOnly, session.role)
+  const fieldCount = shownFields ? Object.keys(shownFields).length : 0
+  const showVariants =
+    builder &&
+    !builder.bulk &&
+    builder.variants.length > 1 &&
+    (!builder.adminOnlyVariants || session.role === "store_admin")
+  // Where it applies (e.g. offers): only the store admin chooses; others use their location.
+  const showScopes = Boolean(
+    builder && !builder.bulk && builder.scopes?.length && session.role === "store_admin"
+  )
+  const showToggles = Boolean(builder && !builder.bulk && builder.toggles.length)
+  let bodyInvalid = false
+  if (endpoint.body != null && bodyText) {
+    try {
+      JSON.parse(bodyText)
+    } catch {
+      bodyInvalid = true
     }
   }
 
@@ -271,189 +322,128 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
       </button>
 
       {open ? (
-        <div className="border-t border-black/10 bg-white/70 p-4">
-          <p className="text-sm leading-6 text-slate-600">{endpoint.description}</p>
-          <ResourceEnums enums={endpoint.enums} className="mt-3" />
-
-          {endpoint.pathParams.length ? (
-            <ParamTable
-              title="Path parameters"
-              rows={endpoint.pathParams}
-              values={pathParams}
-              onChange={setPathParams}
+        <div className="space-y-4 border-t border-black/10 bg-white/70 p-4">
+          <div className="flex flex-wrap gap-2">
+            <ViewButton
+              label="View Headers"
+              count={Object.keys(shownHeaders).length}
+              onClick={() => setModal("headers")}
             />
-          ) : null}
+            {fieldCount ? (
+              <ViewButton label="View Attributes" count={fieldCount} onClick={() => setModal("fields")} />
+            ) : null}
+            {enumCount ? (
+              <ViewButton label="View Enums" count={enumCount} onClick={() => setModal("enums")} />
+            ) : null}
+            {endpoint.pathParams.length ? (
+              <ViewButton
+                label="View Path Parameters"
+                count={endpoint.pathParams.length}
+                onClick={() => setModal("path")}
+              />
+            ) : null}
+            {endpoint.query.length ? (
+              <ViewButton
+                label="View Query Parameters"
+                count={endpoint.query.length}
+                onClick={() => setModal("query")}
+              />
+            ) : null}
+            {fileFields.length ? (
+              <ViewButton
+                label="Attach Files"
+                count={fileFields.filter((field) => fileMap[field.name]).length || null}
+                onClick={() => setModal("files")}
+              />
+            ) : null}
+          </div>
 
-          {endpoint.query.length ? (
-            <ParamTable title="Query" rows={endpoint.query} values={query} onChange={setQuery} />
-          ) : null}
-
-          <section className="mt-4">
-            <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Headers</h4>
-            <p className="mt-1 text-xs text-slate-500">
-              Edit values. Authorization is filled from Authorize when a token is saved.
-            </p>
-            <div className="mt-2 overflow-hidden rounded border border-slate-200">
-              {Object.entries(shownHeaders).map(([key, value]) => (
-                <div key={key} className="grid grid-cols-[180px_1fr] border-b border-slate-100 last:border-b-0">
-                  <div className="bg-slate-50 px-3 py-2 font-mono text-xs font-semibold">{key}</div>
-                  <input
-                    className="bg-white px-3 py-2 font-mono text-xs outline-none"
-                    value={value}
-                    onChange={(e) => setHeaderMap((prev) => ({ ...shownHeaders, [key]: e.target.value }))}
+          {showVariants || showScopes || showToggles ? (
+            <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              {showVariants ? (
+                <OptionGroup label={builder.variantsLabel || "Type"}>
+                  <Segmented
+                    name={`${endpoint.id}-variant`}
+                    options={builder.variants}
+                    value={variantId}
+                    onChange={selectVariant}
                   />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {fileFields.length ? (
-            <section className="mt-4">
-              <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Files — multipart/form-data
-              </h4>
-              <p className="mt-1 text-xs text-slate-500">
-                Optional. When a file is selected, the JSON body is sent as form fields with the file.
-              </p>
-              <div className="mt-2 space-y-2">
-                {fileFields.map((field) => (
-                  <label
-                    key={field.name}
-                    className="flex items-center gap-3 rounded border border-slate-200 bg-white px-3 py-2 text-sm"
-                  >
-                    <span className="w-40 shrink-0 font-mono text-xs font-semibold">
-                      {field.label || field.name}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="min-w-0 flex-1 text-xs"
-                      onChange={(e) =>
-                        setFileMap((prev) => ({
-                          ...prev,
-                          [field.name]: e.target.files?.[0] || null,
-                        }))
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {endpoint.body != null ? (
-            <section className="mt-4">
-              {builder &&
-              !builder.bulk &&
-              builder.variants.length > 1 &&
-              (!builder.adminOnlyVariants || session.role === "store_admin") ? (
-                <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
-                  {builder.variants.map((variant) => (
-                    <label
-                      key={variant.id}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
-                    >
-                      <input
-                        type="radio"
-                        name={`${endpoint.id}-variant`}
-                        checked={variantId === variant.id}
-                        onChange={() => selectVariant(variant.id)}
-                      />
-                      {variant.label}
-                    </label>
-                  ))}
-                </div>
+                </OptionGroup>
               ) : null}
-              {/* Where it applies (e.g. offers): only the store admin chooses; others use their location. */}
-              {builder && !builder.bulk && builder.scopes?.length && session.role === "store_admin" ? (
-                <div className="mb-3 flex items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
-                  {builder.scopes.map((scope) => (
-                    <label
-                      key={scope.id}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
-                    >
-                      <input
-                        type="radio"
-                        name={`${endpoint.id}-scope`}
-                        checked={scopeId === scope.id}
-                        onChange={() => selectScope(scope.id)}
-                      />
-                      {scope.label}
-                    </label>
-                  ))}
-                </div>
+              {showScopes ? (
+                <OptionGroup label="Locations">
+                  <Segmented
+                    name={`${endpoint.id}-scope`}
+                    options={builder.scopes}
+                    value={scopeId}
+                    onChange={selectScope}
+                  />
+                </OptionGroup>
               ) : null}
-              {builder && !builder.bulk && builder.toggles.length ? (
-                <div className="mb-3 flex flex-wrap items-center gap-4 rounded border border-slate-200 bg-white px-3 py-2">
-                  {builder.toggles.map((toggle) => (
-                    <label
-                      key={toggle.id}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"
-                    >
-                      <input
-                        type="checkbox"
+              {showToggles ? (
+                <OptionGroup label="Include">
+                  <div className="flex flex-wrap gap-2">
+                    {builder.toggles.map((toggle) => (
+                      <ToggleChip
+                        key={toggle.id}
+                        label={toggle.label}
                         checked={Boolean(toggles[toggle.id])}
                         onChange={() => flipToggle(toggle.id)}
                       />
-                      {toggle.label}
-                    </label>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </OptionGroup>
               ) : null}
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Request body — application/json
+            </div>
+          ) : null}
+
+          {endpoint.body != null ? (
+            <section>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-slate-700">
+                  Request body <span className="font-normal text-slate-400">application/json</span>
                 </h4>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {bodyInvalid ? (
+                    <span className="text-xs font-medium text-red-600">Invalid JSON</span>
+                  ) : null}
                   <button
                     type="button"
                     onClick={copyBody}
-                    className="text-xs font-semibold text-slate-600 hover:underline"
+                    className="h-8 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                   >
                     {copied ? "Copied!" : "Copy"}
                   </button>
                   <button
                     type="button"
                     onClick={resetBody}
-                    className="text-xs font-semibold text-[#547f00] hover:underline"
+                    className="h-8 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-[#547f00] hover:bg-slate-50"
                   >
                     Reset defaults
                   </button>
                 </div>
               </div>
-              <textarea
-                className="mt-2 min-h-[180px] w-full rounded border border-slate-300 bg-[#1b1b1b] p-3 font-mono text-xs leading-5 text-[#f5f5f5] outline-none focus:border-[#89bf04]"
-                value={bodyText}
-                onChange={(e) => setBodyText(e.target.value)}
-                spellCheck={false}
-              />
+              <JsonEditor value={bodyText} onChange={setBodyText} invalid={bodyInvalid} />
               {endpoint.computed ? <ComputedTotals compute={endpoint.computed} bodyText={bodyText} /> : null}
-              <BodyFields
-                fields={fieldsForRole(endpoint.fields, adminOnly, session.role)}
-                body={builder ? buildBody(builder, variantId, allToggles(builder), scopeId) : activeBody}
-              />
             </section>
           ) : (
-            <p className="mt-4 text-xs text-slate-500">No request body.</p>
+            <p className="text-sm text-slate-500">No request body.</p>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={execute}
               disabled={busy}
-              className="h-9 rounded bg-[#4990e2] px-5 text-sm font-semibold text-white hover:bg-[#357abd] disabled:opacity-60"
+              className="h-10 rounded-md bg-[#4990e2] px-6 text-sm font-semibold text-white hover:bg-[#357abd] disabled:opacity-60"
             >
               {busy ? "Sending…" : "Execute"}
             </button>
-            <span className="font-mono text-xs text-slate-500">
-              {session.baseUrl.replace(/\/$/, "")}
-              {endpoint.path}
-            </span>
+            <span className="min-w-0 break-all font-mono text-xs text-slate-500">{requestUrl}</span>
           </div>
 
           {error ? (
-            <pre className="mt-3 overflow-auto rounded border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <pre className="overflow-auto rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </pre>
           ) : null}
@@ -461,7 +451,164 @@ export function EndpointCard({ endpoint, session, onCapture, savedBody, onSaveBo
           {result ? <ResponsePanel result={result} /> : null}
         </div>
       ) : null}
+
+      {modal === "headers" ? (
+        <Modal title="Headers" onClose={() => setModal(null)}>
+          <p className="mb-3 text-sm text-slate-500">
+            Editable. Authorization is filled from Authorize when a token is saved.
+          </p>
+          <KeyValueInputs
+            rows={Object.keys(shownHeaders).map((name) => ({ name }))}
+            values={shownHeaders}
+            onChange={(next) => setHeaderMap(next)}
+          />
+        </Modal>
+      ) : null}
+      {modal === "fields" ? (
+        <Modal title="Attributes" wide onClose={() => setModal(null)}>
+          <BodyFields
+            fields={shownFields}
+            body={builder ? buildBody(builder, variantId, allToggles(builder), scopeId) : activeBody}
+          />
+        </Modal>
+      ) : null}
+      {modal === "enums" ? (
+        <Modal title="Enums" onClose={() => setModal(null)}>
+          <ResourceEnums enums={endpoint.enums} bare />
+        </Modal>
+      ) : null}
+      {modal === "path" ? (
+        <Modal title="Path Parameters" onClose={() => setModal(null)}>
+          <KeyValueInputs rows={endpoint.pathParams} values={pathParams} onChange={setPathParams} />
+        </Modal>
+      ) : null}
+      {modal === "query" ? (
+        <Modal title="Query Parameters" onClose={() => setModal(null)}>
+          <KeyValueInputs rows={endpoint.query} values={query} onChange={setQuery} />
+        </Modal>
+      ) : null}
+      {modal === "files" ? (
+        <Modal title="Attach Files" onClose={() => setModal(null)}>
+          <p className="mb-3 text-sm text-slate-500">
+            Optional. When a file is selected, the JSON body is sent as form fields with the file
+            (multipart/form-data).
+          </p>
+          <div className="space-y-2">
+            {fileFields.map((field) => (
+              <label
+                key={field.name}
+                className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm"
+              >
+                <span className="w-40 shrink-0 font-mono text-sm font-semibold">
+                  {field.label || field.name}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="min-w-0 flex-1 text-sm"
+                  onChange={(e) =>
+                    setFileMap((prev) => ({
+                      ...prev,
+                      [field.name]: e.target.files?.[0] || null,
+                    }))
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </Modal>
+      ) : null}
     </article>
+  )
+}
+
+/** One labelled row in the options panel (radios / checkboxes). */
+function OptionGroup({ label, children }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span className="w-24 shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+/** Radio buttons drawn as a segmented control. */
+function Segmented({ name, options, value, onChange }) {
+  return (
+    <div role="radiogroup" className="inline-flex rounded-lg border border-slate-300 bg-slate-50 p-1">
+      {options.map((option) => {
+        const active = value === option.id
+        return (
+          <label
+            key={option.id}
+            className={`cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+              active ? "bg-[#4990e2] text-white shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <input
+              type="radio"
+              name={name}
+              className="sr-only"
+              checked={active}
+              onChange={() => onChange(option.id)}
+            />
+            {option.label}
+          </label>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Checkbox drawn as an on/off chip. */
+function ToggleChip({ label, checked, onChange }) {
+  return (
+    <label
+      className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+        checked
+          ? "border-[#49cc90] bg-[#49cc90]/10 text-[#1f7a52]"
+          : "border-slate-300 bg-white text-slate-500 hover:border-slate-400"
+      }`}
+    >
+      <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+      <span
+        aria-hidden="true"
+        className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] leading-none ${
+          checked ? "border-[#49cc90] bg-[#49cc90] text-white" : "border-slate-300 bg-white"
+        }`}
+      >
+        {checked ? "✓" : ""}
+      </span>
+      {label}
+    </label>
+  )
+}
+
+/** Name / value inputs for headers, path and query parameters. */
+function KeyValueInputs({ rows, values, onChange }) {
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      {rows.map((row) => (
+        <div
+          key={row.name}
+          className="grid grid-cols-[200px_1fr] border-b border-slate-100 last:border-b-0"
+        >
+          <div className="bg-slate-50 px-3 py-2.5">
+            <div className="font-mono text-sm font-semibold text-slate-800">{row.name}</div>
+            {row.required ? (
+              <div className="text-[10px] font-semibold uppercase text-red-500">required</div>
+            ) : null}
+          </div>
+          <input
+            className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
+            value={values[row.name] ?? ""}
+            onChange={(e) => onChange({ ...values, [row.name]: e.target.value })}
+          />
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -526,9 +673,9 @@ function BodyFields({ fields, body }) {
   const rows = Object.entries(fields || {})
   if (!rows.length) return null
   return (
-    <div className="mt-3 overflow-hidden rounded border border-slate-200">
+    <div className="overflow-hidden rounded-md border border-slate-200">
       <div
-        className={`grid ${BODY_FIELDS_GRID} bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-slate-500`}
+        className={`grid ${BODY_FIELDS_GRID} gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500`}
       >
         <span>Attribute</span>
         <span>Data Type</span>
@@ -544,7 +691,7 @@ function BodyFields({ fields, body }) {
         return (
           <div
             key={path}
-            className={`grid ${BODY_FIELDS_GRID} items-start gap-2 border-t border-slate-100 px-3 py-2 text-xs`}
+            className={`grid ${BODY_FIELDS_GRID} items-start gap-3 border-t border-slate-100 px-4 py-2.5 text-sm`}
           >
             <code className="break-all font-mono font-semibold text-slate-800">{path}</code>
             <span className="text-slate-500">{type}</span>
@@ -558,41 +705,24 @@ function BodyFields({ fields, body }) {
   )
 }
 
-function ParamTable({ title, rows, values, onChange }) {
-  return (
-    <section className="mt-4">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">{title}</h4>
-      <div className="mt-2 overflow-hidden rounded border border-slate-200">
-        {rows.map((row) => (
-          <div key={row.name} className="grid grid-cols-[180px_1fr] border-b border-slate-100 last:border-b-0">
-            <div className="bg-slate-50 px-3 py-2">
-              <div className="font-mono text-xs font-semibold">{row.name}</div>
-              {row.required ? <div className="text-[10px] uppercase text-red-500">required</div> : null}
-            </div>
-            <input
-              className="bg-white px-3 py-2 font-mono text-xs outline-none"
-              value={values[row.name] ?? ""}
-              onChange={(e) => onChange({ ...values, [row.name]: e.target.value })}
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function ResponsePanel({ result }) {
   const body = result.json ? pretty(result.json) : result.text || "(empty)"
   return (
-    <section className="mt-4 rounded border border-slate-200 bg-white">
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-3 py-2 text-xs">
-        <span className={`font-bold ${result.ok ? "text-[#49cc90]" : "text-[#f93e3e]"}`}>
+    <section className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-sm">
+        <span className={`font-bold ${result.ok ? "text-[#2f9e6e]" : "text-[#f93e3e]"}`}>
           {result.status} {result.statusText}
         </span>
         <span className="text-slate-500">{result.elapsedMs} ms</span>
-        <span className="min-w-0 truncate font-mono text-slate-400">{result.url}</span>
+        <span className="min-w-0 truncate font-mono text-xs text-slate-400">{result.url}</span>
       </div>
-      <pre className="max-h-[420px] overflow-auto p-3 font-mono text-xs leading-5 text-slate-800">{body}</pre>
+      {result.json ? (
+        <JsonView text={body} className="max-h-[480px]" />
+      ) : (
+        <pre className="max-h-[480px] overflow-auto p-4 font-mono text-sm leading-6 text-slate-800">
+          {body}
+        </pre>
+      )}
     </section>
   )
 }

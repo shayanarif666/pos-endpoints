@@ -11,7 +11,7 @@ const LEGACY_PLAN_FLAGS = [
 ]
 
 const defaults = {
-  baseUrl: "https://pak-pos-backend-production.up.railway.app/",
+  baseUrl: "http://localhost:5000/",
   accessToken: "",
   refreshToken: "",
   licenseKey: "",

@@ -125,6 +125,7 @@ const PRODUCT_TOGGLES = [
 function productBuilder(bulk) {
   return {
     bulk,
+    variantsLabel: "Product Type",
     variants: [
       { id: "loose", label: "Loose Item", rows: [PRODUCT_LOOSE_ROW] },
       { id: "pack", label: "Pack Product", rows: [PRODUCT_PACK_ROW] },
@@ -174,6 +175,7 @@ function offerRow(applyTo) {
 function offerBuilder(bulk) {
   return {
     bulk,
+    variantsLabel: "Apply To",
     variants: [
       { id: "category", label: "Apply To Category", rows: [offerRow("category")] },
       { id: "product", label: "Apply To Product", rows: [offerRow("product")] },
@@ -209,6 +211,7 @@ function supplierBuilder() {
   return {
     bulk: false,
     adminOnlyVariants: true,
+    variantsLabel: "Locations",
     variants: [
       { id: "all", label: "All Locations", rows: [[...SUPPLIER_ROW, ["location_scope", "all"]]] },
       {

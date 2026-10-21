@@ -19,7 +19,7 @@ if (import.meta.env.DEV) {
 }
 import { getByPath, loadSession, saveSession } from "./lib/storage.js"
 import { AuthorizeBar } from "./components/AuthorizeBar.jsx"
-import { EndpointCard, ResourceEnums } from "./components/EndpointCard.jsx"
+import { EndpointCard } from "./components/EndpointCard.jsx"
 import { Sidebar } from "./components/Sidebar.jsx"
 
 export default function App() {
@@ -143,20 +143,15 @@ export default function App() {
 
         <main className="mx-auto max-w-5xl space-y-10 px-4 py-6">
           {(() => {
-            // Render the ResourceEnums box only the first time a tag appears (its first group).
-            const enumsShown = new Set()
+            // Each section shows only its name; enums live in each request's View Enums dialog.
             return groupedSections.map(({ group, tagSections }) => (
               <section key={group.key} id={`method-${group.key}`}>
                 <h1 className="mb-4 text-2xl font-bold text-slate-900">{group.label}</h1>
                 <div className="space-y-8">
                   {tagSections.map(({ tag, items }) => {
-                    const showEnums = !enumsShown.has(tag.id)
-                    enumsShown.add(tag.id)
                     return (
                       <div key={tag.id} data-tag={tag.id}>
-                        <h2 className="text-xl font-semibold text-slate-800">{tag.name}</h2>
-                        <p className="mt-1 mb-3 text-sm text-slate-500">{tag.description}</p>
-                        {showEnums ? <ResourceEnums enums={tag.enums} className="mb-3" /> : null}
+                        <h2 className="mb-3 text-xl font-semibold text-slate-800">{tag.name}</h2>
                         <div className="space-y-3">
                           {items.map((item) => (
                             <EndpointCard
