@@ -119,13 +119,13 @@ const PRODUCT_CREATE = {
 }
 
 const MOVEMENT_CREATE = {
+  staffId: must("The staff member who did this movement: their user number (e.g. 1) or UUID — the cashier picked by PIN, or the admin / manager. Sent on every item (staff_id also works)"),
   product_id: must("The product's number (e.g. 1) or its UUID"),
   movement_type: must("stock_in | stock_out | adjustment"),
   reason: must("Any reason except refund, transfer, custom_sale"),
   qty: must("Non-zero change. stock_in positive, stock_out negative"),
   expiry_date: note("YYYY-MM-DD. Leave out to keep the location's current expiry date"),
   supplier_id: note("Purchases: the supplier number (e.g. 1)"),
-  staff_id: STAFF_ID,
   ...VISIBILITY,
 }
 

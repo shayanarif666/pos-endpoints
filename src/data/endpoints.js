@@ -158,12 +158,12 @@ function productBuilder() {
 }
 
 const movementRow = (productId, type, reason, qty, expiry) => [
+  ["staffId", 1],
   ["product_id", productId],
   ["movement_type", type],
   ["reason", reason],
   ["qty", qty],
   ["expiry_date", expiry],
-  ["staff_id", 3, "optional"],
   ["supplier_id", null, "optional"],
   ["is_pos_visible", true, "optional"],
   ["is_web_visible", true, "optional"],
