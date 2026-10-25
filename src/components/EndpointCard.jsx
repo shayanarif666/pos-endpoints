@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
 import { buildUrl, sendRequest } from "../lib/request.js"
-import { ruleOf, synthesizeExample, typeOf } from "../data/bodyFields.js"
+import { defaultOf, noteWithoutDefault, ruleOf, typeOf } from "../data/bodyFields.js"
 import { allToggles, buildBody, defaultToggles } from "../data/bodyBuilder.js"
 import { JsonEditor, JsonView, Modal, ViewButton } from "./DocUi.jsx"
 
@@ -25,39 +25,30 @@ function pretty(value) {
   return JSON.stringify(value, null, 2)
 }
 
-/** `bare` drops the box and heading and uses larger text (the Enums modal). */
-export function ResourceEnums({ enums, className = "", bare = false }) {
+/** Enums modal: each attribute with every value it accepts. */
+export function ResourceEnums({ enums }) {
   if (!enums || !Object.keys(enums).length) return null
-  const list = (
-    <div className={bare ? "space-y-4" : "mt-2 space-y-2"}>
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      <div className="grid grid-cols-[minmax(140px,0.6fr)_minmax(0,1.4fr)] gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+        <span>Attribute</span>
+        <span>Values</span>
+      </div>
       {Object.entries(enums).map(([key, values]) => (
-        <div key={key}>
-          <div
-            className={`font-mono font-semibold text-slate-700 ${bare ? "text-sm" : "text-xs"}`}
-          >
-            {key}
-          </div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {(Array.isArray(values) ? values : []).map((value) => (
-              <span
-                key={value}
-                className={`rounded bg-slate-100 px-2 py-0.5 font-mono text-slate-700 ${
-                  bare ? "text-xs" : "text-[11px]"
-                }`}
-              >
-                {value}
+        <div
+          key={key}
+          className="grid grid-cols-[minmax(140px,0.6fr)_minmax(0,1.4fr)] items-start gap-3 border-t border-slate-100 px-4 py-2.5"
+        >
+          <code className="break-all font-mono text-sm font-semibold text-slate-800">{key}</code>
+          <div className="flex flex-wrap gap-1.5">
+            {values.map((value) => (
+              <span key={String(value)} className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700">
+                {String(value)}
               </span>
             ))}
           </div>
         </div>
       ))}
-    </div>
-  )
-  if (bare) return list
-  return (
-    <div className={`rounded border border-slate-200 bg-white p-3 ${className}`}>
-      <h3 className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Enums</h3>
-      {list}
     </div>
   )
 }
@@ -159,10 +150,6 @@ export function EndpointCard({
     } else if (endpoint.auth === "public") {
       delete merged.Authorization
     }
-    // The location picker (store admin only) owns this header, whatever was typed earlier.
-    delete merged["X-Location-Id"]
-    const chosen = defaultHeaders(endpoint.auth, endpoint.method, session)["X-Location-Id"]
-    if (chosen) merged["X-Location-Id"] = chosen
     return merged
   }, [headerMap, session.accessToken, endpoint.auth, endpoint.method, fileMap, fileFields, session])
 
@@ -279,6 +266,8 @@ export function EndpointCard({
   }
 
   const enumCount = endpoint.enums ? Object.keys(endpoint.enums).length : 0
+  // GET requests show their path parameters right above Execute instead of in a dialog.
+  const inlinePathParams = endpoint.method === "GET" && endpoint.pathParams.length > 0
   const shownFields = fieldsForRole(endpoint.fields, adminOnly, session.role)
   const fieldCount = shownFields ? Object.keys(shownFields).length : 0
   const showVariants =
@@ -335,7 +324,7 @@ export function EndpointCard({
             {enumCount ? (
               <ViewButton label="View Enums" count={enumCount} onClick={() => setModal("enums")} />
             ) : null}
-            {endpoint.pathParams.length ? (
+            {endpoint.pathParams.length && !inlinePathParams ? (
               <ViewButton
                 label="View Path Parameters"
                 count={endpoint.pathParams.length}
@@ -347,6 +336,13 @@ export function EndpointCard({
                 label="View Query Parameters"
                 count={endpoint.query.length}
                 onClick={() => setModal("query")}
+              />
+            ) : null}
+            {endpoint.responses?.length ? (
+              <ViewButton
+                label="View Response"
+                count={endpoint.responses.length}
+                onClick={() => setModal("responses")}
               />
             ) : null}
             {fileFields.length ? (
@@ -430,6 +426,13 @@ export function EndpointCard({
             <p className="text-sm text-slate-500">No request body.</p>
           )}
 
+          {inlinePathParams ? (
+            <section>
+              <h4 className="mb-2 text-sm font-semibold text-slate-700">Path Parameters</h4>
+              <KeyValueInputs rows={endpoint.pathParams} values={pathParams} onChange={setPathParams} />
+            </section>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -448,7 +451,16 @@ export function EndpointCard({
             </pre>
           ) : null}
 
-          {result ? <ResponsePanel result={result} /> : null}
+          {/* The live reply once executed; before that, the prepared sample reply. */}
+          {result ? (
+            <ResponsePanel result={result} />
+          ) : endpoint.responses?.length ? (
+            <SampleResponsePanel
+              sample={endpoint.responses[0]}
+              more={endpoint.responses.length - 1}
+              onMore={() => setModal("responses")}
+            />
+          ) : null}
         </div>
       ) : null}
 
@@ -468,13 +480,29 @@ export function EndpointCard({
         <Modal title="Attributes" wide onClose={() => setModal(null)}>
           <BodyFields
             fields={shownFields}
+            bulk={Boolean(builder?.bulk) || endpoint.id.endsWith("-bulk")}
             body={builder ? buildBody(builder, variantId, allToggles(builder), scopeId) : activeBody}
           />
         </Modal>
       ) : null}
+      {modal === "responses" ? (
+        <Modal title="Sample Responses" wide onClose={() => setModal(null)}>
+          <div className="space-y-4">
+            {endpoint.responses.map((sample) => (
+              <div key={sample.label} className="overflow-hidden rounded-md border border-slate-200">
+                <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                  {sample.label}
+                  <CopyButton text={JSON.stringify(sample.body, null, 2)} />
+                </div>
+                <JsonView text={JSON.stringify(sample.body, null, 2)} className="max-h-[420px]" />
+              </div>
+            ))}
+          </div>
+        </Modal>
+      ) : null}
       {modal === "enums" ? (
         <Modal title="Enums" onClose={() => setModal(null)}>
-          <ResourceEnums enums={endpoint.enums} bare />
+          <ResourceEnums enums={endpoint.enums} />
         </Modal>
       ) : null}
       {modal === "path" ? (
@@ -624,15 +652,8 @@ function exampleAt(body, path) {
   return value
 }
 
-function formatExample(value) {
-  if (value === undefined) return ""
-  if (Array.isArray(value)) return value.length && typeof value[0] === "object" ? "[ … ]" : JSON.stringify(value)
-  if (value && typeof value === "object") return "{ … }"
-  return JSON.stringify(value)
-}
-
 const BODY_FIELDS_GRID =
-  "grid-cols-[minmax(150px,1.1fr)_80px_minmax(100px,0.8fr)_90px_minmax(0,1.5fr)]"
+  "grid-cols-[minmax(150px,1.1fr)_110px_70px_minmax(100px,0.8fr)_minmax(0,1.5fr)]"
 
 /** Values the server derives from the body (not sent), recalculated as the body is edited. */
 function ComputedTotals({ compute, bodyText }) {
@@ -669,7 +690,7 @@ function ComputedTotals({ compute, bodyText }) {
 }
 
 /** Required attributes are left blank; optional ones read "(optional)". */
-function BodyFields({ fields, body }) {
+function BodyFields({ fields, body, bulk = false }) {
   const rows = Object.entries(fields || {})
   if (!rows.length) return null
   return (
@@ -677,31 +698,77 @@ function BodyFields({ fields, body }) {
       <div
         className={`grid ${BODY_FIELDS_GRID} gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500`}
       >
-        <span>Attribute</span>
+        <span>Name</span>
         <span>Data Type</span>
-        <span>Example</span>
         <span>Required</span>
+        <span>Default Value</span>
         <span>Notes</span>
       </div>
       {rows.map(([path, rule]) => {
-        const { required, note } = ruleOf(rule)
-        const bodyValue = exampleAt(body, path)
-        const type = typeOf(path, rule, bodyValue)
-        const example = bodyValue !== undefined ? bodyValue : synthesizeExample(type, rule)
+        const { required } = ruleOf(rule)
+        const type = typeOf(path, rule, exampleAt(body, path))
+        let fallback = defaultOf(rule)
+        if (type === "boolean" && (fallback === "on" || fallback === "off")) fallback = String(fallback === "on")
         return (
           <div
             key={path}
             className={`grid ${BODY_FIELDS_GRID} items-start gap-3 border-t border-slate-100 px-4 py-2.5 text-sm`}
           >
-            <code className="break-all font-mono font-semibold text-slate-800">{path}</code>
+            <code className="break-all font-mono font-semibold text-slate-800">
+              {/* A bulk row's fields read as plain names (title, not items[].title). */}
+              {bulk && path.startsWith("items[].") ? path.slice("items[].".length) : path}
+            </code>
             <span className="text-slate-500">{type}</span>
-            <code className="break-all font-mono text-slate-500">{formatExample(example)}</code>
-            <span className={required ? "" : "italic text-slate-500"}>{required ? "" : "(optional)"}</span>
-            <span className="text-slate-600">{note}</span>
+            <span className={required ? "font-semibold text-[#f93e3e]" : "text-slate-500"}>{required ? "Yes" : "No"}</span>
+            <code className="break-all font-mono text-slate-600">{fallback ?? "—"}</code>
+            <span className="text-slate-600">{noteWithoutDefault(rule)}</span>
           </div>
         )
       })}
     </div>
+  )
+}
+
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false)
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context) — nothing to recover from here.
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="ml-auto h-7 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+    >
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  )
+}
+
+/** The prepared reply shown before the request is executed. */
+function SampleResponsePanel({ sample, more, onMore }) {
+  const body = pretty(sample.body)
+  const ok = sample.status < 300
+  return (
+    <section className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-sm">
+        <span className="font-semibold text-slate-700">Response</span>
+        <span className={`font-bold ${ok ? "text-[#2f9e6e]" : "text-[#f93e3e]"}`}>{sample.label}</span>
+        {more > 0 ? (
+          <button type="button" onClick={onMore} className="text-xs font-semibold text-[#4990e2] hover:underline">
+            +{more} more
+          </button>
+        ) : null}
+        <CopyButton text={body} />
+      </div>
+      <JsonView text={body} className="max-h-[480px]" />
+    </section>
   )
 }
 
@@ -715,6 +782,7 @@ function ResponsePanel({ result }) {
         </span>
         <span className="text-slate-500">{result.elapsedMs} ms</span>
         <span className="min-w-0 truncate font-mono text-xs text-slate-400">{result.url}</span>
+        <CopyButton text={body} />
       </div>
       {result.json ? (
         <JsonView text={body} className="max-h-[480px]" />

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { endpoints, tags } from "./data/endpoints.js"
+import { endpoints, getSections, postSections, tags } from "./data/endpoints.js"
 import { missingBodyFields } from "./data/bodyFields.js"
 import { allToggles, buildBody } from "./data/bodyBuilder.js"
 
@@ -22,6 +22,20 @@ import { AuthorizeBar } from "./components/AuthorizeBar.jsx"
 import { EndpointCard } from "./components/EndpointCard.jsx"
 import { Sidebar } from "./components/Sidebar.jsx"
 
+const SECTION_LISTS = { post: postSections, get: getSections }
+
+/** The listed sections (their ids in order), then any other request of the group under "Other". */
+function sectionsOf(sections, items) {
+  const listed = new Set(sections.flatMap((section) => section.ids))
+  const rows = sections.map((section) => ({
+    tag: { id: section.id, name: section.name, navTag: section.tag },
+    items: section.ids.map((id) => items.find((item) => item.id === id)).filter(Boolean),
+  }))
+  const rest = items.filter((item) => !listed.has(item.id))
+  if (rest.length) rows.push({ tag: { id: "other-" + rest[0].method, name: "Other" }, items: rest })
+  return rows
+}
+
 export default function App() {
   const [session, setSession] = useState(loadSession)
   const [authOpen, setAuthOpen] = useState(true)
@@ -37,7 +51,7 @@ export default function App() {
   }
 
   function clearTokens() {
-    updateSession({ accessToken: "", refreshToken: "", licenseKey: "", role: "", locationNumber: "" })
+    updateSession({ accessToken: "", refreshToken: "", licenseKey: "", role: "" })
   }
 
   function onCapture(payload, map) {
@@ -54,8 +68,6 @@ export default function App() {
         }
       }
     }
-    // A new login starts on the user's own location again.
-    if (patch.accessToken) patch.locationNumber = ""
     if (Object.keys(patch).length) updateSession(patch)
   }
 
@@ -71,11 +83,11 @@ export default function App() {
     )
   }, [query])
 
-  // Top-level grouping by method, in this fixed order; PUT and PATCH share one group.
+  // Top-level grouping by method, in this fixed order (GET right under POST); PUT and PATCH share one group.
   const METHOD_GROUPS = [
     { key: "post", label: "POST", test: (m) => m === "POST" },
-    { key: "put-patch", label: "PUT & PATCH", test: (m) => m === "PUT" || m === "PATCH" },
     { key: "get", label: "GET", test: (m) => m === "GET" },
+    { key: "put-patch", label: "PUT & PATCH", test: (m) => m === "PUT" || m === "PATCH" },
     { key: "delete", label: "DELETE", test: (m) => m === "DELETE" },
   ]
 
@@ -84,12 +96,14 @@ export default function App() {
     () =>
       METHOD_GROUPS.map((group) => ({
         group,
-        tagSections: tags
-          .map((tag) => ({
-            tag,
-            items: filtered.filter((item) => item.tag === tag.id && group.test(item.method)),
-          }))
-          .filter((section) => section.items.length),
+        // POST and GET follow their own section lists (in that order); the others go by tag.
+        tagSections: (SECTION_LISTS[group.key]
+          ? sectionsOf(SECTION_LISTS[group.key], filtered.filter((item) => group.test(item.method)))
+          : tags.map((tag) => ({
+              tag,
+              items: filtered.filter((item) => item.tag === tag.id && group.test(item.method)),
+            }))
+        ).filter((section) => section.items.length),
       })).filter((g) => g.tagSections.length),
     [filtered]
   )
@@ -150,7 +164,7 @@ export default function App() {
                 <div className="space-y-8">
                   {tagSections.map(({ tag, items }) => {
                     return (
-                      <div key={tag.id} data-tag={tag.id}>
+                      <div key={tag.id} data-tag={tag.navTag || tag.id}>
                         <h2 className="mb-3 text-xl font-semibold text-slate-800">{tag.name}</h2>
                         <div className="space-y-3">
                           {items.map((item) => (

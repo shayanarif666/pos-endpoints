@@ -11,13 +11,12 @@ const LEGACY_PLAN_FLAGS = [
 ]
 
 const defaults = {
-  baseUrl: "http://localhost:5000/",
+  baseUrl: "https://pak-pos-backend-production.up.railway.app/",
   accessToken: "",
   refreshToken: "",
   licenseKey: "",
-  // Captured from login. A store_admin can pick the location each request acts on.
+  // Captured from login: store-admin-only body fields are shown only to a store admin.
   role: "",
-  locationNumber: "",
   bodies: {},
 }
 
@@ -43,10 +42,6 @@ export function migrateLegacyPlanBody(text) {
         delete obj[key]
       }
       obj.features = features
-      changed = true
-    }
-    if ("location_id" in obj) {
-      delete obj.location_id
       changed = true
     }
     if ("store_id" in obj) {
@@ -81,7 +76,7 @@ export function saveSession(next) {
 export function defaultHeaders(
   auth,
   method,
-  { accessToken, role, locationNumber },
+  { accessToken },
   { multipart = false } = {}
 ) {
   const headers = { Accept: "application/json" }
@@ -90,9 +85,6 @@ export function defaultHeaders(
   }
   if (auth !== "public" && accessToken) {
     headers.Authorization = `Bearer ${accessToken}`
-  }
-  if (auth !== "public" && role === "store_admin" && locationNumber) {
-    headers["X-Location-Id"] = String(locationNumber)
   }
   return headers
 }

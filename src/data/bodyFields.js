@@ -28,6 +28,31 @@ function bulkOf(spec) {
   return { items: R, ...prefixed("items[].", spec) }
 }
 
+// Store admin only: their token has no location, so they name it (a manager's or cashier's
+// location comes from their token). On a bulk request it is sent once, next to items[].
+const ADMIN_LOCATION = {
+  location_id: note("Store admin only: the location number (e.g. 1) or UUID this applies to. Manager / cashier: leave it out — the token's location is used"),
+}
+
+/** Bulk body with the store admin's location_id at the top level instead of in every row. */
+function bulkAtLocation(spec) {
+  return { ...ADMIN_LOCATION, ...bulkOf(spec) }
+}
+
+// The store's tax settings: PUT /tax-rates, and the same fields at store registration.
+const TAX_SETTINGS = {
+  ntn: O,
+  strn: O,
+  charge_tax_on_sales: note("Master switch for all tax on sales. Default true at registration"),
+  fbr_invoice_enabled: note("Default false"),
+  sales_tax_enabled: note("Sales tax on / off. Default on — switch off when each product carries its own sales tax"),
+  sales_tax_rate: note("Store-wide sales tax %, 0–100, on every taxable line. Default 18"),
+  payment_tax_enabled: note("Payment-method GST on / off. Default on — when off, rates are kept but not charged"),
+  rates: note("Payment-method GST rows to change. Defaults: cash 16, card 5, jazzcash 5, easypaisa 5"),
+  "rates[].payment_method": must("cash | card | jazzcash | easypaisa | cod"),
+  "rates[].gst_percent": must("0–100"),
+}
+
 const PLAN_CREATE = {
   code: R,
   type: must("monthly | yearly"),
@@ -35,9 +60,22 @@ const PLAN_CREATE = {
   price_pkr: R,
   max_devices: R,
   max_locations: R,
-  features: O,
+  max_users: note("Max staff accounts. Leave out / null = no limit"),
+  reporting_level: note("basic | standard | advanced | custom. Default basic"),
+  import_export: note("Import & export data. Default false"),
+  staff_attendance: note("Staff attendance (clock in / clock out). Default false"),
+  email_integration: note("Default false"),
+  whatsapp_integration: note("Default false"),
+  receipt_customization: note("Default false"),
+  barcode_scanning: note("Default false"),
+  batch_management: note("Batch opening / closing. Default false"),
+  remote_access: note("AnyDesk-type remote connection. Default false"),
+  features: note("Free-text selling points for the plan card"),
   is_active: note("Default true"),
 }
+
+const STAFF_ID = note("The staff member doing it — the cashier picked by PIN (their user number, e.g. 3). Leave out = the signed-in admin / manager")
+
 
 const CATEGORY_CREATE = {
   name: must("A name that already exists is accepted — the slug gets a -2, -3... suffix"),
@@ -64,9 +102,10 @@ const PRODUCT_CREATE = {
   pack_size: must("Pack Product only: units per pack, >= 2"),
   pack_cost: must("Pack Product only: whole-pack cost. Stored as pack_cost_price; cost per unit = pack_cost ÷ pack_size (calculated)"),
   pack_price: must("Pack Product only: whole-pack selling price. Stored as pack_selling_price; price per unit = pack_price ÷ pack_size (calculated)"),
-  tax_name: note("Label for the tax, e.g. GST"),
-  tax_type: note("percentage | fixed. Product tax applies when type + value are sent"),
-  tax_value: O,
+  taxes: note("Product-level taxes — as many as apply (e.g. GST + excise / import duty). Empty or left out = no product tax. Category tax and the store's sales tax are added at checkout"),
+  "taxes[].name": note("Label shown on the receipt, e.g. GST"),
+  "taxes[].type": must("percentage | fixed (fixed = per unit)"),
+  "taxes[].value": must("The % or the amount per unit"),
   discount_name: note("Label for the discount, e.g. Eid Shopping"),
   discount_type: note("percentage | fixed. Product discount applies when type + value are sent"),
   discount_value: O,
@@ -84,7 +123,9 @@ const MOVEMENT_CREATE = {
   movement_type: must("stock_in | stock_out | adjustment"),
   reason: must("Any reason except refund, transfer, custom_sale"),
   qty: must("Non-zero change. stock_in positive, stock_out negative"),
-  expiry_date: must("YYYY-MM-DD"),
+  expiry_date: note("YYYY-MM-DD. Leave out to keep the location's current expiry date"),
+  supplier_id: note("Purchases: the supplier number (e.g. 1)"),
+  staff_id: STAFF_ID,
   ...VISIBILITY,
 }
 
@@ -105,10 +146,12 @@ const STAFF_CREATE = {
   password: must("Min 6 characters"),
   pin: must("4–6 digits. Must differ from every other user's PIN at this location (and from the store admin's); another location or store may reuse it"),
   role: must("manager | cashier"),
+  location_id: note("Store admin only: the location number (e.g. 2) the manager / cashier works at. A manager's new staff get the manager's location"),
   phone: O,
 }
 
 const OFFER_CREATE = {
+  staff_id: STAFF_ID,
   name: R,
   type: must("promotional | flash_sale | bulk_discount | bogo"),
   apply_to: must("category | product"),
@@ -129,33 +172,35 @@ const OFFER_CREATE = {
 }
 
 const ORDER_ITEM = {
-  "items[].product_id": note("Catalog line. Leave out only for custom sale lines (send title + unit_price)"),
-  "items[].quantity": R,
+  "items[].productId": note("Catalog line: the product number (e.g. 1) or UUID. Leave out on custom sale lines"),
+  "items[].qty": R,
   "items[].weight": note("Weight-based products (kg)"),
+  "items[].category": note("Custom sale lines only: the category typed at the till"),
   "items[].title": note("Custom sale lines only"),
-  "items[].unit_price": note("Custom sale lines only; catalog lines use selling_price"),
+  "items[].price": note("Custom sale lines only; catalog lines use the product's selling price"),
 }
 
 const ORDER_CREATE = {
   channel: must("pos for the desktop till"),
   is_pos_visible: note("Ignored: the server sets it from channel"),
   is_web_visible: note("Ignored: the server sets it from channel"),
-  register_session_id: note("Defaults to your own open shift"),
+  staff_id: STAFF_ID,
+  batch_id: note("The open batch (its number). Defaults to the staff member's open batch"),
   device_id: note("Defaults to the device in your POS token"),
-  customer_id: note("Required when part of the bill is credit / udhaar"),
+  customer_id: note("Customer number. Required when part of the bill is credit / udhaar"),
   tax_exempt: O,
-  client_local_id: note("Offline idempotency key: a retry returns the same order"),
   placed_at: note("Offline sales: when the sale happened on the device (ISO date-time)"),
   coupon_code: O,
   order_discount_type: note("percentage | fixed. Cashiers need an approval"),
   order_discount_value: O,
   approval_request_id: note("Approved discount_override request (cashier discounts)"),
-  is_custom: note("true for Custom sales"),
+  is_custom: note("true for a custom sale (lines without a catalog product)"),
   items: R,
   ...ORDER_ITEM,
-  payments: note("Split / tendered payments. Leave out to pay the full total by payment_method"),
+  payments: note("One row per payment method; several rows = mixed payment (e.g. card 100 + cash 400 — only cash may be more than the bill, the rest is change). Leave out to pay the full total by payment_method"),
   "payments[].method": must("cash | card | jazzcash | easypaisa"),
   "payments[].amount": R,
+  "payments[].transaction_id": note("Card / wallet reference of this payment, kept as the transaction's reference. The transaction itself is numbered 1, 2, 3... by the server"),
   amount_paid: note("Cash tendered, for change_due"),
   payment_method: note("Required when payments is not sent"),
 }
@@ -178,10 +223,10 @@ const LOCATION_CREATE = {
   phone: O,
   is_active: note("Default true"),
   is_default: note("Default false"),
-  manager_name: R,
-  manager_email: R,
-  manager_password: must("Min 6 characters"),
-  manager_pin: must("4–6 digits, unique across all stores"),
+  manager_name: note("Optional: send all four manager_* fields to add a manager with the location, or add one later with POST /staff"),
+  manager_email: note("With manager_name"),
+  manager_password: note("With manager_name. Min 6 characters"),
+  manager_pin: note("With manager_name. 4–6 digits, unique within the location"),
   manager_phone: O,
 }
 
@@ -206,6 +251,8 @@ export const BODY_FIELDS = {
     password: must("Min 6 characters"),
   },
   "admin-create-store": {
+    ...TAX_SETTINGS,
+    status: note("trial = 3-day free trial (license trial, no billing) | active = purchased plan. Default active"),
     plan_id: R,
     name: R,
     legal_name: O,
@@ -216,6 +263,8 @@ export const BODY_FIELDS = {
     contact_email: R,
     contact_phone: R,
     custom_domain: note("Storefront domain, e.g. www.fatimastationers.com"),
+    logo_url: O,
+    favicon_url: O,
     location_name: R,
     location_address: O,
     location_city: O,
@@ -224,26 +273,20 @@ export const BODY_FIELDS = {
     admin_email: R,
     admin_phone: O,
     admin_password: must("Min 6 characters"),
-    admin_pin: must("4–6 digits, unique across all stores"),
-    manager_name: R,
-    manager_email: must("Must differ from admin_email"),
-    manager_phone: O,
-    manager_password: must("Min 6 characters"),
-    manager_pin: must("4–6 digits, unique across all stores"),
+    admin_pin: must("4–6 digits, unique within the location"),
     pos_enabled: note("Default true"),
     web_enabled: note("Default true"),
     billing_status: note("pending | paid | failed | refunded. Default pending"),
     amount: O,
     method_note: O,
+    billing_note: O,
   },
   "auth-login": {
-    email: R,
+    email: must("Store admin or manager (a cashier is verified by PIN instead)"),
     password: R,
-    channel: note("pos (POS app, default) | web (dashboard)"),
   },
-  "auth-login-pin": {
-    pin: must("4–6 digits, unique within one location"),
-    channel: note("Always pos (default pos)"),
+  "auth-pin-verify": {
+    pin: must("The staff member's PIN (cashier, manager or store admin) at this location"),
   },
   "auth-patch-me": {
     name: O,
@@ -256,16 +299,16 @@ export const BODY_FIELDS = {
   // License
   "license-validate": {
     license_key: R,
-    device_uid: must("This PC's stable id. Leave it out only to just inspect the key"),
+    device_uid: must("This till's id, an integer (e.g. 1). Leave it out only to just inspect the key"),
   },
 
   // Devices
-  "device-create": {
-    device_uid: R,
-    name: R,
-    location_id: note("Store admin only"),
-    platform: O,
-    app_version: O,
+  "license-renew": {
+    plan_id: note("Plan number (e.g. 1) or UUID. Leave out to renew on the current plan; another plan switches it"),
+    amount: note("Billing amount. Default: the plan's price_pkr"),
+    billing_status: note("pending | paid | failed | refunded. Default paid"),
+    method_note: note("How it was paid, e.g. cash. Default manual"),
+    note: O,
   },
   "device-heartbeat": {},
 
@@ -281,13 +324,14 @@ export const BODY_FIELDS = {
     contact_phone: O,
     logo_url: O,
     favicon_url: O,
-    currency: O,
     timezone: O,
     ntn: O,
     strn: O,
     fbr_invoice_enabled: O,
-    charge_tax_on_sales: O,
-    default_tax_rate: note("0–100"),
+    charge_tax_on_sales: note("Master switch for all tax on sales"),
+    sales_tax_enabled: note("Sales tax on / off. Default on"),
+    sales_tax_rate: note("Sales tax %, 0–100. Default 18"),
+    payment_tax_enabled: note("Payment-method GST on / off. Default on"),
     expiry_warning_days: O,
     expiry_critical_days: O,
     receipt_footer: O,
@@ -295,37 +339,47 @@ export const BODY_FIELDS = {
     web_enabled: O,
     default_location_id: O,
   },
-  "tax-put": {
-    ntn: O,
-    strn: O,
-    charge_tax_on_sales: O,
-    fbr_invoice_enabled: O,
-    default_tax_rate: note("0–100"),
-    rates: R,
-    "rates[].payment_method": must("cash | card | jazzcash | easypaisa | cod"),
-    "rates[].gst_percent": must("0–100"),
+  "currency-put": {
+    code: note("3-letter ISO code, e.g. PKR, USD. Default PKR"),
+    name: note("e.g. Pakistani Rupee"),
+    symbol: note("e.g. Rs"),
+    decimal_places: note("0–4. Default 2"),
+    symbol_position: note("before | after the amount. Default before"),
   },
+  "tax-put": TAX_SETTINGS,
 
-  // Shifts
-  "shift-clock-in": {
-    opening_cash: R,
-    device_id: note("pos_devices row id OR this PC's stable hardware id — either works here. Defaults to the device in your POS token"),
-    device_uid: note("Alternative to device_id if you'd rather be explicit — this PC's stable hardware id"),
-    note: O,
-    opened_at: note("Offline sync: when the shift actually opened, if earlier than now. Defaults to now"),
+  // Staff sessions (attendance) and batches (cash drawer)
+  "staff-clock-in": {
+    ...ADMIN_LOCATION,
+    staffId: must("The staff member clocking in (user number, e.g. 3)"),
+    clocked_at: note("Offline sync: when it actually happened. Defaults to now"),
   },
-  "shift-clock-out": {
-    counted_cash: note("Leave out to total the note counts below"),
-    closing_cash: note("Defaults to counted cash"),
-    coins_total: O,
+  "staff-clock-out": {
+    ...ADMIN_LOCATION,
+    staffId: must("The staff member clocking out (user number)"),
+    clocked_at: note("Offline sync: when it actually happened. Defaults to now"),
+  },
+  "batch-open": {
+    ...ADMIN_LOCATION,
+    staffId: must("The staff member the batch belongs to (user number). staff_id also works"),
+    opening_amount: must("Cash put in the drawer"),
+    device_id: note("This PC's hardware id or pos_devices id. Defaults to the device in your POS token"),
+    note: O,
+    opening_at: note("When the batch opened (ISO date-time). Defaults to now"),
+  },
+  "batch-close": {
+    ...ADMIN_LOCATION,
+    staffId: must("The staff member whose open batch is closed (user number). staff_id also works"),
+    total_cash: must("Cash counted in the drawer (or send the note counts below instead)"),
     note_5000_count: O,
     note_1000_count: O,
     note_500_count: O,
     note_100_count: O,
     note_50_count: O,
     note_20_count: O,
+    coins_total: O,
     note: O,
-    closed_at: note("Offline sync: when the shift actually closed (e.g. at day-end), if earlier than now. Defaults to now"),
+    closing_at: note("When the batch closed (ISO date-time). Defaults to now"),
   },
 
   // Categories
@@ -350,8 +404,8 @@ export const BODY_FIELDS = {
     reason_note: O,
     ...VISIBILITY,
   },
-  "movement-create": MOVEMENT_CREATE,
-  "movement-bulk": bulkOf(MOVEMENT_CREATE),
+  "movement-create": { ...ADMIN_LOCATION, ...MOVEMENT_CREATE },
+  "movement-bulk": { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID whose stock changes. Any role — a manager / cashier only their own location"), ...bulkOf(MOVEMENT_CREATE) },
 
   // Customers
   "cust-create": CUSTOMER_CREATE,
@@ -360,7 +414,31 @@ export const BODY_FIELDS = {
 
   // Staff
   "staff-create": STAFF_CREATE,
-  "staff-bulk": bulkOf(STAFF_CREATE),
+  "staff-bulk": bulkOf({
+    locationId: must("On every staff item: the location number (e.g. 1) or UUID they work at. A manager can only use their own location"),
+    ...Object.fromEntries(Object.entries(STAFF_CREATE).filter(([key]) => key !== "location_id")),
+  }),
+
+  // Stock transfers
+  "transfer-create": {
+    from_location_id: must("Location number (e.g. 1) or UUID the stock leaves from"),
+    to_location_id: must("Location number or UUID it goes to"),
+    product_id: must("Product number (e.g. 1) or UUID"),
+    qty: R,
+    note: O,
+    staff_id: STAFF_ID,
+  },
+
+  "transfer-bulk": {
+    items: R,
+    "items[].from_location_id": must("Location number (e.g. 1) or UUID the stock leaves from"),
+    "items[].to_location_id": must("Location number or UUID it goes to"),
+    "items[].product_id": must("Product number (e.g. 1) or UUID"),
+    "items[].qty": R,
+    "items[].note": O,
+    "items[].staff_id": STAFF_ID,
+    staff_id: note("Once for every transfer instead of on each item"),
+  },
 
   // Offers
   "offer-create": OFFER_CREATE,
@@ -382,22 +460,32 @@ export const BODY_FIELDS = {
   ),
 
   // Orders
-  "order-create": ORDER_CREATE,
-  "order-bulk": bulkOf(ORDER_CREATE),
-  "order-refund": { order_item_id: R, quantity: R, reason: R },
-  "order-refund-complete": { reason: R },
+  "order-create": { ...ADMIN_LOCATION, ...ORDER_CREATE },
+  "order-bulk": { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID where the sales happened. Any role — a manager / cashier only their own location"), ...bulkOf(ORDER_CREATE) },
+  "order-refund": {
+    order_item_id: must("The line's item number in the order (1, 2, 3...) or its UUID"),
+    qty: R,
+    reason: R,
+    staff_id: STAFF_ID,
+  },
+  "order-refund-complete": { reason: R, staff_id: STAFF_ID },
   "order-refund-bulk": {
+    locationId: must("Once, before items[]: the location number (e.g. 1) or UUID of the orders refunded. Any role — a manager / cashier only their own location"),
     items: R,
-    "items[].order_id": R,
-    "items[].order_item_id": R,
-    "items[].quantity": R,
+    "items[].order_id": must("Order number (e.g. 1) or UUID"),
+    "items[].order_item_id": must("The line's item number in that order, or its UUID"),
+    "items[].qty": R,
     "items[].reason": R,
+    "items[].staff_id": STAFF_ID,
   },
   "order-refund-complete-bulk": {
+    locationId: must("Once, before items[]: the location number (e.g. 1) or UUID of the orders refunded. Any role — a manager / cashier only their own location"),
     items: R,
-    "items[].order_id": R,
+    "items[].order_id": must("Order number (e.g. 1) or UUID"),
     "items[].reason": R,
+    "items[].staff_id": STAFF_ID,
   },
+  "receipt-generate": { order_id: must("Order number (e.g. 1) or UUID") },
   "order-void": {
     reason: O,
     approval_request_id: note("Cashiers on Package 2/3: approved void_order request"),
@@ -451,7 +539,6 @@ export function ruleOf(rule) {
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-const UUID_PLACEHOLDER = "00000000-0000-4000-8000-000000000001"
 const NUMBER_SUFFIX_RE =
   /_(number|int|count|qty|quantity|price|cash|amount|percent|value|values|days|threshold|size|total|pkr|rate)$/
 // Known booleans that don't follow the is_/has_ naming convention.
@@ -461,6 +548,8 @@ const KNOWN_BOOLEAN_KEYS = new Set([
   "web_enabled",
   "fbr_invoice_enabled",
   "charge_tax_on_sales",
+  "payment_tax_enabled",
+  "sales_tax_enabled",
   "tax_exempt",
 ])
 
@@ -473,6 +562,10 @@ const KNOWN_BOOLEAN_KEYS = new Set([
  */
 export function typeOf(path, rule, bodyValue) {
   const { note: noteText } = ruleOf(rule)
+  // References that take the short number or the UUID (location_id, product_id...).
+  if (/(^|_)id$|[a-z]Id$/.test(path.split(".").pop()) && /number/i.test(noteText) && /UUID/.test(noteText)) {
+    return "number | UUID"
+  }
   if (bodyValue !== undefined) {
     if (typeof bodyValue === "boolean") return "boolean"
     if (typeof bodyValue === "number") return "number"
@@ -494,23 +587,42 @@ export function typeOf(path, rule, bodyValue) {
   return "string"
 }
 
-/** A representative value for the Example column when the live body doesn't have one. */
-export function synthesizeExample(type, rule) {
-  const { note: noteText } = ruleOf(rule)
-  switch (type) {
-    case "UUID":
-      return UUID_PLACEHOLDER
-    case "boolean":
-      return true
-    case "number":
-      return 1
-    case "date-time":
-      return new Date().toISOString()
-    case "enum": {
-      const match = noteText && noteText.match(/([a-zA-Z0-9_]+)\s*\|/)
-      return match ? match[1] : undefined
-    }
-    default:
-      return undefined
+// "Default X" / "Defaults to X" / "Default: X" inside a note, up to " — ", ". ", ";" or the end.
+const DEFAULT_RE = /\s*\bDefaults?(?::|\s+to|\s+is)?\s+(.+?)(?=\s+—|[.;]\s|[.;]?$)[.;]?/i
+
+/** The default value a note names (e.g. "web | pos | both. Default both" → "both"), or null. */
+export function defaultOf(rule) {
+  const { note } = ruleOf(rule)
+  const match = note && note.match(DEFAULT_RE)
+  return match ? match[1].trim() : null
+}
+
+/** The note without its "Default …" part (that one has its own column). */
+export function noteWithoutDefault(rule) {
+  const { note } = ruleOf(rule)
+  if (!note) return ""
+  return note
+    .replace(DEFAULT_RE, "")
+    .replace(/\s*\.\s*—\s*/, ". ")
+    .replace(/^[\s—.;]+|[\s—;]+$/g, "")
+    .trim()
+}
+
+/**
+ * Enums written in the attribute notes ("manager | cashier", "percentage | fixed (per unit)"):
+ * { attribute: [values] }. A bulk row's attributes read without "items[].".
+ */
+export function enumsFromFields(fields) {
+  const out = {}
+  for (const [path, rule] of Object.entries(fields || {})) {
+    const { note } = ruleOf(rule)
+    const part = note && note.split(/\.\s/).find((piece) => piece.includes(" | "))
+    if (!part) continue
+    const values = part
+      .split("|")
+      .map((piece) => piece.trim().match(/^[A-Za-z0-9_-]+/)?.[0])
+      .filter(Boolean)
+    if (values.length >= 2) out[path.replace(/^items\[\]\./, "")] = [...new Set(values)]
   }
+  return out
 }

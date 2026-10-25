@@ -1,15 +1,9 @@
-import { useEffect, useState } from "react"
-import { buildUrl } from "../lib/request.js"
-
 export function AuthorizeBar({ session, onChange, onClear, open, setOpen }) {
   const loggedIn = Boolean(session.accessToken)
 
   return (
     <div className="border-b border-slate-200 bg-white">
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">
-        {loggedIn && session.role === "store_admin" ? (
-          <LocationPicker session={session} onChange={onChange} />
-        ) : null}
         <label className="flex min-w-[280px] flex-1 items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           Base URL
           <input
@@ -71,53 +65,6 @@ export function AuthorizeBar({ session, onChange, onClear, open, setOpen }) {
         </div>
       ) : null}
     </div>
-  )
-}
-
-/**
- * Store admin only: the location every authenticated request acts on (sent as X-Location-Id).
- * Empty means the admin's own location, which is what the server uses without the header.
- */
-function LocationPicker({ session, onChange }) {
-  const [locations, setLocations] = useState([])
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    setError("")
-    fetch(buildUrl(session.baseUrl, "/api/v1/locations", {}, {}), {
-      headers: { Accept: "application/json", Authorization: `Bearer ${session.accessToken}` },
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        if (cancelled) return
-        if (Array.isArray(json?.data)) setLocations(json.data)
-        else setError(json?.message || "Could not load locations")
-      })
-      .catch(() => !cancelled && setError("Could not load locations"))
-    return () => {
-      cancelled = true
-    }
-  }, [session.baseUrl, session.accessToken])
-
-  return (
-    <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-      Location
-      <select
-        className="h-9 rounded border border-slate-300 bg-white px-2 text-sm font-normal normal-case text-slate-800 outline-none focus:border-[#89bf04]"
-        value={String(session.locationNumber || "")}
-        onChange={(e) => onChange({ locationNumber: e.target.value })}
-        title="Sent as the X-Location-Id header on every authenticated request"
-      >
-        <option value="">My own location</option>
-        {locations.map((location) => (
-          <option key={location.id} value={String(location.location_number)}>
-            #{location.location_number} {location.name}
-          </option>
-        ))}
-      </select>
-      {error ? <span className="font-normal normal-case text-red-600">{error}</span> : null}
-    </label>
   )
 }
 

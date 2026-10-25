@@ -32,5 +32,7 @@ export function buildBody(builder, variantId, toggles, scopeId) {
         .map(([key, value]) => [key, value])
     )
   )
-  return builder.bulk ? { items: rows } : rows[0]
+  // bulkTop: fields sent once next to items[] (e.g. the store admin's location_id).
+  const top = Object.fromEntries((builder.bulkTop || []).map(([key, value]) => [key, value]))
+  return builder.bulk ? { ...top, items: rows } : rows[0]
 }

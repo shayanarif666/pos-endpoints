@@ -1,5 +1,6 @@
-import { bodyFieldsFor } from "./bodyFields.js"
+import { bodyFieldsFor, enumsFromFields } from "./bodyFields.js"
 import { buildBody, defaultToggles } from "./bodyBuilder.js"
+import { SAMPLE_RESPONSES } from "./sampleResponses.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -38,17 +39,19 @@ const CATEGORY_TOGGLES = [
   { id: "optional", label: "Show Optional Fields", default: false },
 ]
 
-const PRODUCT_TAIL = [
-  ...TAX("GST", "percentage", 5),
-  ...DISCOUNT("Eid Shopping", "percentage", 5),
+// Shared tail of a product row; tax / discount differ per example item.
+const productTail = ({ taxes, discount, weight }) => [
+  ["taxes", taxes, "tax"],
+  ...DISCOUNT("Eid Shopping", "percentage", discount),
   ["low_stock_threshold", 10],
   ["sell_loose", true],
+  ["is_weight_based", weight],
   ["image", ""],
-  ["is_weight_based", false, "optional"],
   ["is_published", false, "optional"],
   ...VISIBILITY_OPTIONAL,
 ]
 
+// Loose item: sold one by one.
 const PRODUCT_LOOSE_ROW = [
   ["title", "1 Litre Pepsi"],
   ["barcode", "78263672323325"],
@@ -56,28 +59,48 @@ const PRODUCT_LOOSE_ROW = [
   ["unit", "bottle"],
   ["cost", 50],
   ["price", 100],
-  ...PRODUCT_TAIL,
+  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 5, weight: false }),
 ]
 
+// Loose + pack: a box of 12 that also sells single pieces.
 const PRODUCT_PACK_ROW = [
-  ["title", "1 Litre Pepsi"],
-  ["barcode", "78263672323325"],
-  ["category_id", 1],
-  ["unit", "bottle"],
+  ["title", "Lux Soap"],
+  ["barcode", "8961014001234"],
+  ["category_id", 2],
+  ["unit", "piece"],
   ["is_pack_product", true],
-  ["pack_size", 10],
-  ["pack_cost", 500],
-  ["pack_price", 1000],
-  ...PRODUCT_TAIL,
+  ["pack_size", 12],
+  ["pack_cost", 900],
+  ["pack_price", 1200],
+  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 0, weight: false }),
+]
+
+// Loose + pack + weight: a 25 kg bag, also sold loose by the kg on the scale.
+const PRODUCT_PACK_WEIGHT_ROW = [
+  ["title", "Basmati Rice"],
+  ["barcode", "8964000123456"],
+  ["category_id", 3],
+  ["unit", "kg"],
+  ["is_pack_product", true],
+  ["pack_size", 25],
+  ["pack_cost", 7500],
+  ["pack_price", 9000],
+  ...productTail({
+    taxes: [
+      { name: "GST", type: "percentage", value: 18 },
+      { name: "Excise", type: "fixed", value: 2 },
+    ],
+    discount: 10,
+    weight: true,
+  }),
 ]
 
 const round2 = (n) => Math.round(n * 100) / 100
 
-// Mirrors the products.total_price_each_unit / total_pack_price generated columns: the product's
-// own discount first, then its own tax on the discounted price. Fixed amounts are per unit.
+// Mirrors how the server keeps total_price_each_unit / total_pack_price: the product's own
+// discount first, then each of its taxes on the discounted price. Fixed amounts are per unit.
 function priceAfterDiscountAndTax(item, base, units) {
   const discountValue = Number(item.discount_value)
-  const taxValue = Number(item.tax_value)
   let net = base
   if (item.discount_type && item.discount_value != null && discountValue > 0) {
     net -= Math.min(
@@ -85,10 +108,12 @@ function priceAfterDiscountAndTax(item, base, units) {
       item.discount_type === "percentage" ? (base * discountValue) / 100 : discountValue * units
     )
   }
-  let tax = 0
-  if (item.tax_type && item.tax_value != null) {
-    tax = item.tax_type === "percentage" ? (net * taxValue) / 100 : taxValue * units
-  }
+  const taxes = Array.isArray(item.taxes) ? item.taxes : []
+  const tax = taxes.reduce((sum, row) => {
+    const value = Number(row?.value)
+    if (!row || Number.isNaN(value)) return sum
+    return sum + (row.type === "percentage" ? (net * value) / 100 : row.type === "fixed" ? value * units : 0)
+  }, 0)
   return round2(net + tax)
 }
 
@@ -122,105 +147,184 @@ const PRODUCT_TOGGLES = [
   { id: "optional", label: "Show Optional Fields", default: false },
 ]
 
-function productBuilder(bulk) {
+function productBuilder() {
   return {
-    bulk,
-    variantsLabel: "Product Type",
+    bulk: true,
     variants: [
-      { id: "loose", label: "Loose Item", rows: [PRODUCT_LOOSE_ROW] },
-      { id: "pack", label: "Pack Product", rows: [PRODUCT_PACK_ROW] },
+      { id: "default", label: null, rows: [PRODUCT_LOOSE_ROW, PRODUCT_PACK_ROW, PRODUCT_PACK_WEIGHT_ROW] },
     ],
     toggles: PRODUCT_TOGGLES,
   }
 }
 
-const MOVEMENT_ROW = [
-  ["product_id", 1],
-  ["movement_type", "stock_in"],
-  ["reason", "purchase"],
-  ["qty", 50],
-  ["expiry_date", "2026-12-31"],
+const movementRow = (productId, type, reason, qty, expiry) => [
+  ["product_id", productId],
+  ["movement_type", type],
+  ["reason", reason],
+  ["qty", qty],
+  ["expiry_date", expiry],
+  ["staff_id", 3, "optional"],
+  ["supplier_id", null, "optional"],
   ["is_pos_visible", true, "optional"],
   ["is_web_visible", true, "optional"],
   ["channel", "both", "optional"],
 ]
 
-function movementBuilder(bulk) {
+function movementBuilder() {
   return {
-    bulk,
-    variants: [{ id: "default", label: "Movement", rows: [MOVEMENT_ROW] }],
-    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
-  }
-}
-
-function offerRow(applyTo) {
-  return [
-    ["name", "Weekend 10% off"],
-    ["type", "promotional"],
-    ["apply_to", applyTo],
-    ["discount_type", "percentage"],
-    ["discount_value", 10],
-    applyTo === "category" ? ["category_id", 1] : ["product_id", 1],
-    ["min_qty", null],
-    ["buy_qty", null],
-    ["get_qty", null],
-    ["start_at", "2026-09-01T00:00:00.000Z"],
-    ["end_at", "2026-12-31T23:59:59.000Z"],
-    ["is_active", true],
-    ["promo_price", null, "optional"],
-    ["free_product_id", null, "optional"],
-  ]
-}
-
-function offerBuilder(bulk) {
-  return {
-    bulk,
-    variantsLabel: "Apply To",
+    bulk: true,
     variants: [
-      { id: "category", label: "Apply To Category", rows: [offerRow("category")] },
-      { id: "product", label: "Apply To Product", rows: [offerRow("product")] },
-    ],
-    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
-    // Store admin only (radios hidden and keys stripped for a manager / cashier, whose offer is
-    // always for their own location).
-    scopes: [
-      { id: "all", label: "All Locations", rows: [["location_scope", "all"]] },
       {
-        id: "selected",
-        label: "Selected Locations",
+        id: "default",
+        label: "Movement",
         rows: [
-          ["location_scope", "selected"],
-          ["location_ids", [1, 2]],
+          movementRow(1, "stock_in", "purchase", 50, "2026-12-31"),
+          movementRow(2, "stock_in", "opening_balance", 24, "2027-06-30"),
+          movementRow(1, "stock_out", "damage", -2, "2026-12-31"),
         ],
       },
     ],
+    bulkTop: [["locationId", 1]],
+    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
 
-const SUPPLIER_ROW = [
-  ["name", "Nestle Distributor"],
-  ["phone", "03006666666"],
-  ["email", "sales@distributor.local"],
-  ["address", "Industrial Area"],
-  ["payment_terms", "Net 15"],
+const OFFER_DATES = [
+  ["start_at", "2026-09-01T00:00:00.000Z"],
+  ["end_at", "2026-12-31T23:59:59.000Z"],
+  ["is_active", true],
 ]
 
-// Store admin picks where the supplier delivers; managers / cashiers see no radios and send no
-// location (the adminOnly keys are stripped for them).
-function supplierBuilder() {
+const OFFER_ROWS = [
+  [
+    ["name", "Weekend 10% off"],
+    ["type", "promotional"],
+    ["apply_to", "category"],
+    ["discount_type", "percentage"],
+    ["discount_value", 10],
+    ["category_id", 1],
+    ...OFFER_DATES,
+    ["staff_id", 3, "optional"],
+  ],
+  [
+    ["name", "Buy 3 save 5%"],
+    ["type", "bulk_discount"],
+    ["apply_to", "product"],
+    ["discount_type", "percentage"],
+    ["discount_value", 5],
+    ["product_id", 2],
+    ["min_qty", 3],
+    ...OFFER_DATES,
+    ["staff_id", 3, "optional"],
+  ],
+  [
+    ["name", "Buy 2 get 1 free"],
+    ["type", "bogo"],
+    ["apply_to", "product"],
+    ["product_id", 1],
+    ["buy_qty", 2],
+    ["get_qty", 1],
+    ...OFFER_DATES,
+    ["free_product_id", 1, "optional"],
+    ["staff_id", 3, "optional"],
+  ],
+]
+
+// Each offer picks where it runs (store admin only; stripped for a manager / cashier, whose
+// offers are for their own location): every location, one location, several locations.
+const OFFER_LOCATIONS = [
+  [["location_scope", "all"]],
+  [
+    ["location_scope", "selected"],
+    ["location_ids", [1]],
+  ],
+  [
+    ["location_scope", "selected"],
+    ["location_ids", [1, 2]],
+  ],
+]
+
+function offerBuilder() {
   return {
-    bulk: false,
-    adminOnlyVariants: true,
-    variantsLabel: "Locations",
+    bulk: true,
     variants: [
-      { id: "all", label: "All Locations", rows: [[...SUPPLIER_ROW, ["location_scope", "all"]]] },
       {
-        id: "selected",
-        label: "Selected Locations",
-        rows: [[...SUPPLIER_ROW, ["location_scope", "selected"], ["location_ids", [1]]]],
+        id: "default",
+        label: null,
+        rows: OFFER_ROWS.map((row, index) => [...row, ...OFFER_LOCATIONS[index % OFFER_LOCATIONS.length]]),
       },
     ],
-    toggles: [],
+    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
+  }
+}
+
+const ORDER_OPTIONAL = [
+  ["customer_id", null, "optional"],
+  ["placed_at", "2026-10-24T10:15:00.000Z", "optional"],
+]
+
+// One order row: location, till staff and batch, the lines, and the payments.
+const orderRow = ({ custom = false, items, payments, paid, extra = [] }) => [
+  ["channel", "pos"],
+  ...(custom ? [["is_custom", true]] : []),
+  ["staff_id", 3],
+  ["batch_id", 1],
+  ["items", items],
+  ["payments", payments],
+  ["amount_paid", paid],
+  ...ORDER_OPTIONAL,
+  ...extra,
+]
+
+// Five sales: catalog and custom, cash and mixed (card / JazzCash / EasyPaisa + cash). Only cash
+// may be more than the bill; the rest of it comes back as change_due.
+const ORDER_ROWS = [
+  orderRow({
+    items: [{ productId: 1, qty: 2 }, { productId: 2, qty: 1 }],
+    payments: [{ method: "cash", amount: 1000 }],
+    paid: 1000,
+    extra: [
+      ["order_discount_type", null, "optional"],
+      ["order_discount_value", null, "optional"],
+      ["tax_exempt", false, "optional"],
+    ],
+  }),
+  orderRow({
+    custom: true,
+    items: [
+      { category: "Stationary", title: "SP10 Blue Pen", price: 50, qty: 2 },
+      { category: "Stationary", title: "A4 Notebook", price: 120, qty: 1 },
+    ],
+    payments: [{ method: "cash", amount: 500 }],
+    paid: 500,
+  }),
+  orderRow({
+    items: [{ productId: 2, qty: 12 }, { productId: 1, qty: 1 }],
+    payments: [{ method: "card", amount: 100 }, { method: "cash", amount: 3000 }],
+    paid: 3100,
+  }),
+  orderRow({
+    custom: true,
+    items: [
+      { category: "Household", title: "Tissue Box", price: 150, qty: 1 },
+      { category: "Electronics", title: "AA Batteries (pair)", price: 80, qty: 2 },
+    ],
+    payments: [{ method: "jazzcash", amount: 50 }, { method: "cash", amount: 500 }],
+    paid: 550,
+  }),
+  orderRow({
+    items: [{ productId: 1, qty: 3 }, { productId: 2, qty: 2 }],
+    payments: [{ method: "easypaisa", amount: 100 }, { method: "cash", amount: 1500 }],
+    paid: 1600,
+  }),
+]
+
+function orderBuilder() {
+  return {
+    bulk: true,
+    variants: [{ id: "default", label: null, rows: ORDER_ROWS }],
+    bulkTop: [["locationId", 1]],
+    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
 
@@ -260,6 +364,7 @@ export const RESOURCE_ENUMS = {
       "wholesale",
       "other",
     ],
+    symbol_position: ["before", "after"],
   },
   shifts: {
     status: ["clock_in", "clock_out"],
@@ -377,6 +482,13 @@ export const RESOURCE_ENUMS = {
   data: {},
 }
 
+/** The body attributes' own enums (from their notes) first, then the resource's. */
+function endpointEnums(resourceEnums, fields) {
+  const merged = { ...enumsFromFields(fields), ...(resourceEnums || {}) }
+  const rows = Object.entries(merged).filter(([, values]) => Array.isArray(values) && values.length)
+  return rows.length ? Object.fromEntries(rows) : null
+}
+
 function ep({
   id,
   tag,
@@ -398,6 +510,8 @@ function ep({
   computed = null,
   // Body keys only a store admin may send (shown only when the signed-in role is store_admin).
   adminOnly = [],
+  // Sample replies: [{ label, body }], shown under View Response.
+  responses = [],
 }) {
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
@@ -416,9 +530,11 @@ function ep({
     bodyBuilder,
     computed,
     adminOnly,
+    // Captured replies first (shown under the request), then the hand-written edge cases.
+    responses: [...(SAMPLE_RESPONSES[id] || []), ...responses],
     files,
     capture,
-    enums: enums || RESOURCE_ENUMS[tag] || null,
+    enums: endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
     fields: effectiveBody == null ? null : bodyFieldsFor({ id, tag }),
   }
 }
@@ -458,13 +574,13 @@ export const tags = [
   },
   {
     id: "store",
-    name: "Store & tax",
+    name: "Store, tax & currency",
     description: "Settings, Tax manager, and cart default tax. GET/PATCH stores/me, tax-rates.",
     enums: RESOURCE_ENUMS.store,
   },
   {
     id: "shifts",
-    name: "Register sessions",
+    name: "Staff sessions & batches",
     description: "Register page + POS shell current session.",
     enums: RESOURCE_ENUMS.shifts,
   },
@@ -486,12 +602,6 @@ export const tags = [
     description:
       "Inventory page and product opening/adjust qty via stock-movements. POST accepts movement_type stock_in, stock_out or adjustment; the other types are written by sales, refunds and transfers.",
     enums: RESOURCE_ENUMS.inventory,
-  },
-  {
-    id: "customers",
-    name: "Customers",
-    description: "Customers page and POS checkout dropdown.",
-    enums: RESOURCE_ENUMS.customers,
   },
   {
     id: "staff",
@@ -538,13 +648,105 @@ export const tags = [
   },
 ]
 
+// Sample POS replies (shown under View Response).
+const ORDER_TAIL = {
+  is_order_discounted: false,
+  order_discount_type: null,
+  discount_amount: 0,
+  payment_method: "cash",
+  payment_status: "paid",
+  payment_gst_amount: 0,
+  fbr_invoice_enabled: false,
+  fbr_tax_amount: 0,
+  order_status: "completed",
+}
+const SAMPLE_CATALOG_ORDER = {
+  id: 1,
+  location: { id: 1, name: "Gulshan e Iqbal Block 13 D" },
+  is_custom: false,
+  staff: { id: 3, name: "Ameer Hamza", role: "cashier" },
+  customer: null,
+  batch: { id: 1, status: "open" },
+  currency: "PKR",
+  order_items: [
+    {
+      id: 1,
+      product: { id: 1, title: "1 Litre Pepsi", sku: "1-LITRE-PEPSI", unit: "bottle" },
+      qty: 1,
+      unit_price: 100,
+      discount_amount: 5,
+      subtotal: 95,
+      tax_amount: 10,
+      total: 105,
+    },
+  ],
+  subtotal: 105,
+  ...ORDER_TAIL,
+  total_amount: 105,
+  amount_paid: 150,
+  change_due: 45,
+  cancel_reason: null,
+  cancelled_by: null,
+  placed_at: "2026-10-24T10:15:00.000Z",
+  channel: "pos",
+  is_pos_visible: true,
+  is_web_visible: false,
+}
+// The POST group is laid out by these sections (in this order) instead of by tag.
+export const postSections = [
+  { id: "super-admin", name: "Super Admin Actions", tag: "plans", ids: ["plans-create", "admin-create-store", "admin-register-superadmin"] },
+  { id: "authentication", name: "Authentication", tag: "auth", ids: ["auth-login", "auth-pin-verify"] },
+  { id: "license", name: "License", tag: "license", ids: ["license-validate", "license-renew"] },
+  { id: "locations", name: "Locations", tag: "locations", ids: ["location-create"] },
+  { id: "user-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-clock-in", "staff-clock-out"] },
+  { id: "staff", name: "Staff", tag: "staff", ids: ["staff-bulk"] },
+  { id: "batch-report", name: "Batch Report", tag: "shifts", ids: ["batch-open", "batch-close"] },
+  { id: "categories", name: "Categories", tag: "categories", ids: ["cat-bulk"] },
+  { id: "products", name: "Products", tag: "products", ids: ["prod-bulk"] },
+  { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
+  { id: "offers", name: "Offers", tag: "offers", ids: ["offer-bulk"] },
+  { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
+  { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
+]
+
+// The GET group: these sections in this order, then every other GET under "Other".
+export const getSections = [
+  { id: "get-super-admin", name: "Super Admin Actions", tag: "plans", ids: ["plans-list"] },
+  { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
+  { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
+  { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
+  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-expiry", "prod-weight-list"] },
+  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
+  { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
+  { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
+  { id: "get-offers", name: "Offers", tag: "offers", ids: ["offer-list"] },
+  { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
+  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["rep-all-locations", "rep-location", "rep-profit"] },
+  { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
+  { id: "get-order-history", name: "Complete Order History", tag: "orders", ids: ["order-history"] },
+  { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
+  { id: "get-tax", name: "Tax-rate", tag: "store", ids: ["tax-get"] },
+  { id: "get-transactions", name: "Transactions", tag: "orders", ids: ["transaction-list"] },
+  { id: "get-receipts", name: "Receipts", tag: "orders", ids: ["order-receipt", "refund-receipt"] },
+]
+
+const LOCATION_ROW = [
+  ["name", "Gulshan e Iqbal Block 2"],
+  ["address_line", "Shop # 12, Main University Road, Gulshan e Iqbal Block 2, Karachi"],
+  ["city", "Karachi"],
+  ["phone", "03001234567"],
+  ["postal_code", "75300", "optional"],
+  ["is_active", true, "optional"],
+  ["is_default", false, "optional"],
+]
+
 export const endpoints = [
   ep({
     id: "plans-create",
     tag: "plans",
     method: "POST",
     path: "/api/v1/plans",
-    summary: "Create plan",
+    summary: "Plans",
     description:
       "Super Admin only. Upserts by code. code is any unique slug (not limited to package_1–3). type is monthly or yearly. features is a free-form string array.",
     auth: "superadmin",
@@ -555,6 +757,16 @@ export const endpoints = [
       price_pkr: 2500,
       max_devices: 1,
       max_locations: 1,
+      max_users: 5,
+      reporting_level: "basic",
+      import_export: false,
+      staff_attendance: true,
+      email_integration: false,
+      whatsapp_integration: false,
+      receipt_customization: false,
+      barcode_scanning: true,
+      batch_management: true,
+      remote_access: false,
       features: [],
       is_active: true,
     },
@@ -564,19 +776,10 @@ export const endpoints = [
     tag: "plans",
     method: "GET",
     path: "/api/v1/plans",
-    summary: "Get plans",
-    description: "Super Admin only. Active packages.",
+    summary: "Plans",
+    description:
+      "Super Admin. Every active plan — its id is the plan_id for Store Register and Renew License.",
     auth: "superadmin",
-  }),
-  ep({
-    id: "plans-get",
-    tag: "plans",
-    method: "GET",
-    path: "/api/v1/plans/:id",
-    summary: "Get plan by id",
-    description: "Super Admin only.",
-    auth: "superadmin",
-    pathParams: [{ name: "id", default: UUID, required: true }],
   }),
   ep({
     id: "plans-patch",
@@ -613,7 +816,7 @@ export const endpoints = [
     tag: "auth",
     method: "POST",
     path: "/api/v1/admin/superadmins",
-    summary: "Register Super Admin",
+    summary: "Super admin",
     description:
       "Public only for the very first Super Admin (empty platform). After that it needs a Super Admin token, otherwise 403. Super Admin has no PIN and never signs in with one. Returns access_token + refresh_token.",
     auth: "public",
@@ -632,40 +835,49 @@ export const endpoints = [
     tag: "auth",
     method: "POST",
     path: "/api/v1/admin/stores",
-    summary: "Register store",
+    summary: "Store Register",
     description:
-      "Super Admin. Creates store (slug from name), first location, store_admin, manager, and a pending license. POS then activates that key. Responses use store_number and location_number.",
+      "Super Admin. Creates the store (slug from name) with its first location, the store admin, billing and the license — status trial (3-day trial license, no billing) or active (purchased, license pending until a till activates it). The store's currency is created as PKR (change it with PUT /currency). Tax settings (same fields as PUT /tax-rates) are saved with the store, so orders are taxed from the first sale: charge_tax_on_sales defaults to on, sales tax 18%, payment-method GST cash 16 / card 5 / jazzcash 5 / easypaisa 5 — send only what differs; with logo / favicon files (multipart) send rates as a JSON string. No manager here: the store admin adds managers later with POST /staff (role manager, location_id). Response { store, location, admin, license, billing, plan }.",
     auth: "superadmin",
     body: {
-      plan_id: UUID,
-      name: "Demo Grocery",
-      legal_name: "Demo Grocery Pvt Ltd",
-      owner_name: "Ali Khan",
+      status: "trial",
+      plan_id: "8637587a-1656-451d-a82f-c796bd4e2ac2",
+      name: "Acadex",
+      legal_name: "Acadex Pvt Ltd",
+      owner_name: "Zayan Ahmed",
       business_type: "grocery",
-      address: "Shop 12, Main Market",
-      city: "Lahore",
-      contact_email: "owner@demo-grocery.local",
-      contact_phone: "03001234567",
-      custom_domain: "www.demo-grocery.com",
-      location_name: "Main Counter",
-      location_address: "Shop 12, Main Market",
-      location_city: "Lahore",
-      location_phone: "03001234567",
-      admin_name: "Store Admin",
-      admin_email: "admin@demo-grocery.local",
-      admin_phone: "03001111111",
-      admin_password: "ChangeMe123",
+      address: "Shop # 432 Allama rasheed main rashid Minhas road Gulshan e Iqbal Block 13 D Karachi",
+      city: "Karachi",
+      contact_email: "info@acadex.co",
+      contact_phone: "021635645614",
+      custom_domain: "www.acadex.com",
+      location_name: "Gulshan e Iqbal Block 13 D",
+      location_address: "Shop # 432 Allama rasheed main rashid Minhas road Gulshan e Iqbal Block 13 D Karachi",
+      location_city: "Karachi",
+      location_phone: "03162196345",
+      admin_name: "Zayan Ahmed",
+      admin_email: "zayan@acadex.co",
+      admin_phone: "03162196345",
+      admin_password: "zayanahmed",
       admin_pin: "1111",
-      manager_name: "Floor Manager",
-      manager_email: "manager@demo-grocery.local",
-      manager_phone: "03002222222",
-      manager_password: "ChangeMe123",
-      manager_pin: "2222",
       pos_enabled: true,
       web_enabled: true,
       billing_status: "paid",
       amount: 0,
-      method_note: "manual",
+      method_note: "Trial Version",
+      ntn: "1234567-8",
+      strn: "3277876123456",
+      charge_tax_on_sales: true,
+      fbr_invoice_enabled: false,
+      sales_tax_enabled: true,
+      sales_tax_rate: 18,
+      payment_tax_enabled: true,
+      rates: [
+        { payment_method: "cash", gst_percent: 16 },
+        { payment_method: "card", gst_percent: 5 },
+        { payment_method: "jazzcash", gst_percent: 5 },
+        { payment_method: "easypaisa", gst_percent: 5 },
+      ],
     },
     files: [
       { name: "logo", label: "Logo" },
@@ -678,14 +890,13 @@ export const endpoints = [
     tag: "auth",
     method: "POST",
     path: "/api/v1/auth/login",
-    summary: "Login (email)",
+    summary: "Login",
     description:
-      "Body is only email + password + channel. channel defaults to pos (POS app); send channel=web for the dashboard. The POS till may identify itself with the optional X-Device-Uid header (its stable hardware id from POST /licenses/validate) — it tags the session with the till and is not part of the body. channel=web returns access_token + refresh_token + expires_in, 1 hour access / 30 days refresh — renew with /auth/refresh. channel=pos for the POS app returns a single field instead, token (the access_token) — no refresh_token, no expires_in; POS tokens last 10 years since the till is mostly offline and can't call /auth/refresh, so there's nothing to renew. Store and license are resolved on the server, and an unknown/stale device hint doesn't fail the login. POS login needs store staff (store admin, manager, cashier), POS enabled on the store and an activated license (POST /licenses/validate), otherwise 403. The POS token stops working when the license is revoked/expired or POS is disabled for the store. If the same email + password exists in two stores the login returns 409. channel=pos's data also carries store{}, plus location{} for a manager or cashier (a store admin gets no location{} — they work across all locations and pick one per request with the X-Location-Id header, the Location dropdown at the top of these docs). Every store-staff login (email or PIN, POS or web) sets the user's status to clock_in; POST /auth/logout and closing their register session (POST /register-sessions/:id/clock-out) set it to clock_out — user.status shows it. It also lists users[] ({ id, name, role, pin, location_id, status }) so the till can switch staff by PIN, and — for a store admin only — locations[] ({ id, name }) instead of location{} — ids are the store-level numbers (location number / user number). Store admin: locations[] with every active location, and every active manager + cashier of the store. Manager: location{} (their own), with its cashiers and the other managers there (not the manager who signed in). Cashier: location{} (their own) and only themself. No license detail and no plan at all; both come back from POST /licenses/validate instead, to keep the login payload small.",
+      "Store admin or manager only — a cashier never signs in, the till verifies them with POST /auth/pin/verify (cashier email login returns 403). channel=pos returns { token, user, store, locations | location, users }: user { id (user number), name, email, pin, role, phone, status (store trial | active), is_active }; store { id, name, status (trial | active), trial_ended_at }; a store admin gets locations[] ({ id, name, address }) and users[] (every manager and cashier, with locationId); a manager gets location{} and users[] (the cashiers of that location). The token gives the store and location (and the store admin picks a location with location_id in the body). channel=web returns the dashboard's access_token + refresh_token.",
     auth: "public",
     body: {
-      email: "manager@demo-grocery.local",
+      email: "zayan@acadex.co",
       password: "ChangeMe123",
-      channel: "pos",
     },
     capture: {
       accessToken: ["data.token", "data.access_token"],
@@ -694,39 +905,14 @@ export const endpoints = [
     },
   }),
   ep({
-    id: "auth-login-pin",
+    id: "auth-pin-verify",
     tag: "auth",
     method: "POST",
-    path: "/api/v1/auth/login",
-    summary: "POS login (PIN)",
+    path: "/api/v1/auth/pin/verify",
+    summary: "PIN Verification",
     description:
-      "POS Login PIN tab. Body is only pin + channel; channel is always pos (default pos — PIN login is not available on the dashboard, channel=web returns 400). A PIN is unique only within one location, so the same PIN can exist at other locations or stores. If the PIN belongs to just one active staff member it signs in directly; if several share it, the till must send the X-Device-Uid header (its hardware id from POST /licenses/validate) — its store and location pick the right user — otherwise 409. The store must have POS enabled and an activated license. Returns the same single-field token (10-year access_token, no refresh_token) and the same store{} + users[] shape, with location{} for a manager / cashier or locations[] for a store admin, as POST /auth/login above with channel=pos (store admin: all locations + all managers and cashiers; manager: own location with its cashiers and other managers, not themself; cashier: only themself).",
-    auth: "public",
-    body: {
-      pin: "2222",
-      channel: "pos",
-    },
-    capture: {
-      accessToken: "data.token",
-      role: "data.user.role",
-    },
-  }),
-  ep({
-    id: "auth-logout",
-    tag: "auth",
-    method: "POST",
-    path: "/api/v1/auth/logout",
-    summary: "Logout",
-    description:
-      "Signs out the device that sends it (dashboard tab or POS till): that session ends, so its token (POS token or web access_token / refresh_token) stops working; the same user stays signed in on other devices. A store admin, manager or cashier is set to status clock_out (login sets clock_in). No body — just the Bearer token. Still allowed when the store license is expired or suspended, so a blocked user can always sign out. Response data: { id, status } — id is the user number (same id as the login response), status is now clock_out, e.g. { success: true, message: \"Logged out\", data: { id: 1, status: \"clock_out\" } }.",
-  }),
-  ep({
-    id: "auth-me",
-    tag: "auth",
-    method: "GET",
-    path: "/api/v1/auth/me",
-    summary: "Get auth me",
-    description: "POS Settings → My account. The plain PIN is not returned here (only on Staff screens). License and devices are nested on location(s).",
+      "On a signed-in till (store admin / manager token). Checks the PIN of a cashier, manager or the store admin at this location and returns { id, name, email, role, pin, phone, status, is_active } — no token. The POS then sends that id as staff_id (or id) on the cashier's clock in, batch, orders, refunds and stock.",
+    body: { pin: "3333" },
   }),
   ep({
     id: "auth-patch-me",
@@ -739,45 +925,39 @@ export const endpoints = [
   }),
 
   ep({
+    id: "license-renew",
+    tag: "license",
+    method: "POST",
+    path: "/api/v1/admin/licenses/:id/renew",
+    summary: "Renew License",
+    description:
+      "Super Admin. Renews the license for 1 month on the given plan; a trial store's renewal is the purchase — license and store go from trial to active and keep all their data. :id is the license UUID. Response { storeId, license_key, status, starts_at, expires_at, planId, renew_at }.",
+    auth: "superadmin",
+    pathParams: [{ name: "id", default: UUID, required: true }],
+    body: {
+      plan_id: 1,
+      amount: 2500,
+      billing_status: "paid",
+      method_note: "cash",
+      note: "",
+    },
+  }),
+  ep({
     id: "license-validate",
     tag: "license",
     method: "POST",
     path: "/api/v1/licenses/validate",
-    summary: "Activate license",
+    summary: "License Key Validation",
     description:
       "POS Activate page. Rules: invalid / expired / revoked key -> success false, data.valid false. Device already registered on a valid key -> valid true. New device -> registered only if the store plan still has a free device slot (active devices across the store), otherwise 409 + valid false. A device the store deactivated gets 403. A new device is registered with location_id = null; the store admin assigns its branch later with PATCH /pos-devices/:id (an already registered device keeps its location). Response data — license_key, device_id (echoes back the device_uid you sent, or null if none was sent), status, starts_at, expires_at, already_registered, suspended_at, suspended_reason, valid, plan{} (id, code, name, max_devices, max_locations, features — id is the plan number, no separate top-level plan_number) — is the only POS-facing response carrying the license_key and the plan; POST /auth/login dropped both to keep the login payload small.",
     auth: "public",
     body: {
-      license_key: "FROM_AUTHORIZE",
-      device_uid: "",
+      license_key: "LIC-0931-3965-76DF-21E2",
+      device_uid: 1,
     },
     capture: { licenseKey: "data.license_key" },
   }),
 
-  ep({
-    id: "device-list",
-    tag: "devices",
-    method: "GET",
-    path: "/api/v1/pos-devices",
-    summary: "List POS devices",
-    description:
-      "Store admin sees POS devices across all stores. Manager sees every device in their current store. Response includes store_number and location_number.",
-  }),
-  ep({
-    id: "device-create",
-    tag: "devices",
-    method: "POST",
-    path: "/api/v1/pos-devices",
-    summary: "Add POS device",
-    description:
-      "Store admin / manager. Location comes from JWT. device_uid is unique per store (browser id).",
-    body: {
-      device_uid: "front-counter-pc",
-      name: "Front Counter PC",
-      platform: "Win32",
-      app_version: "pos-web-1.0",
-    },
-  }),
   ep({
     id: "device-heartbeat",
     tag: "devices",
@@ -790,45 +970,44 @@ export const endpoints = [
   }),
 
   ep({
-    id: "location-list",
-    tag: "locations",
-    method: "GET",
-    path: "/api/v1/locations",
-    summary: "List locations",
-    description:
-      "Store admin: every branch of the store. Manager: only their own location. Each row includes location_number, is_default, is_active and its manager.",
-  }),
-  ep({
     id: "location-create",
     tag: "locations",
     method: "POST",
     path: "/api/v1/locations",
-    summary: "Create location",
+    summary: "Create Location",
     description:
-      "Store admin only. Creates the branch and its manager account in one step. 409 when the plan location limit (max_locations) is reached.",
-    body: {
-      name: "Gulberg Branch",
-      address_line: "45 Main Boulevard, Gulberg",
-      city: "Lahore",
-      postal_code: "54660",
-      phone: "03005555555",
-      is_active: true,
-      is_default: false,
-      manager_name: "Branch Manager",
-      manager_email: "gulberg@demo-grocery.local",
-      manager_password: "ChangeMe123",
-      manager_pin: "4444",
-      manager_phone: "03005555556",
+      "Store admin only. Adds a branch to the store (the plan's max_locations is checked — a full plan returns 409). Required: name, address_line, city. With Manager also creates the branch's manager (manager_name, manager_email, manager_password, manager_pin — all four together); otherwise add managers later with Bulk Create Staff (locationId). The new location gets the next location number (2, 3...). On channel=pos the response is { success, message (\"Location Successfully Created\"), data: { id (location number), name, address_line, city, phone, ... } } — no UUIDs.",
+    bodyBuilder: {
+      bulk: false,
+      variantsLabel: "Location",
+      variants: [
+        { id: "plain", label: "Location Only", rows: [LOCATION_ROW] },
+        {
+          id: "manager",
+          label: "With Manager",
+          rows: [
+            [
+              ...LOCATION_ROW,
+              ["manager_name", "Bilal Raza"],
+              ["manager_email", "bilal@acadex.co"],
+              ["manager_password", "bilalraza"],
+              ["manager_pin", "5555"],
+              ["manager_phone", "03111234567", "optional"],
+            ],
+          ],
+        },
+      ],
+      toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
     },
   }),
   ep({
-    id: "location-get",
+    id: "location-list",
     tag: "locations",
     method: "GET",
-    path: "/api/v1/locations/:id",
-    summary: "Get location",
-    description: "Store admin: any branch. Manager: only their own location (404 otherwise).",
-    pathParams: [{ name: "id", default: UUID, required: true }],
+    path: "/api/v1/locations",
+    summary: "Locations",
+    description:
+      "Store admin: every branch of the store. Manager: only their own location. Each row includes location_number, is_default, is_active and its manager.",
   }),
   ep({
     id: "location-patch",
@@ -861,8 +1040,8 @@ export const endpoints = [
     tag: "store",
     method: "GET",
     path: "/api/v1/stores/me",
-    summary: "Own store profile",
-    description: "Settings, Tax manager, POS cart (default_tax_rate), history.",
+    summary: "Store Profile",
+    description: "Settings, Tax manager, POS cart (sales_tax_rate, payment_tax_enabled), history.",
   }),
   ep({
     id: "store-patch-me",
@@ -887,13 +1066,14 @@ export const endpoints = [
       contact_phone: "03001234567",
       logo_url: "",
       favicon_url: "",
-      currency: "PKR",
       timezone: "Asia/Karachi",
       ntn: "1234567-8",
       strn: "3277876123456",
       fbr_invoice_enabled: false,
       charge_tax_on_sales: true,
-      default_tax_rate: 17,
+      sales_tax_enabled: true,
+      sales_tax_rate: 18,
+      payment_tax_enabled: true,
       expiry_warning_days: 30,
       expiry_critical_days: 7,
       receipt_footer: "Thank you for shopping",
@@ -907,8 +1087,9 @@ export const endpoints = [
     tag: "store",
     method: "GET",
     path: "/api/v1/tax-rates",
-    summary: "List GST rates",
-    description: "Tax manager load.",
+    summary: "Tax-rate",
+    description:
+      "Tax manager load: charge_tax_on_sales, sales_tax_enabled + sales_tax_rate, payment_tax_enabled + rates (payment-method GST), ntn, strn, fbr_invoice_enabled.",
   }),
   ep({
     id: "tax-put",
@@ -917,65 +1098,137 @@ export const endpoints = [
     path: "/api/v1/tax-rates",
     summary: "Save GST rates",
     description:
-      "POS Tax manager. Updates payment GST rows plus store ntn/strn, charge_tax_on_sales, fbr_invoice_enabled, and default_tax_rate.",
+      "POS Tax manager. Three taxes, each on the line amount after discounts (not on top of each other): sales tax — one store-wide % (sales_tax_rate, default 18%) that the owner switches on / off with sales_tax_enabled (off when each product carries its own sales tax); product taxes — a list on each product (taxes[]); category tax — one per category. Payment-method GST (rates) applies on top of the bill only while payment_tax_enabled is on (defaults: cash 16%, card 5%, JazzCash 5%, EasyPaisa 5%). charge_tax_on_sales is the master switch for all tax. Send only what changes; rates is optional.",
     body: {
       ntn: "1234567-8",
       strn: "3277876123456",
       charge_tax_on_sales: true,
       fbr_invoice_enabled: false,
-      default_tax_rate: 17,
+      sales_tax_enabled: true,
+      sales_tax_rate: 18,
+      payment_tax_enabled: true,
       rates: [
-        { payment_method: "cash", gst_percent: 0 },
-        { payment_method: "card", gst_percent: 0 },
-        { payment_method: "jazzcash", gst_percent: 0 },
-        { payment_method: "easypaisa", gst_percent: 0 },
-        { payment_method: "cod", gst_percent: 0 },
+        { payment_method: "cash", gst_percent: 16 },
+        { payment_method: "card", gst_percent: 5 },
+        { payment_method: "jazzcash", gst_percent: 5 },
+        { payment_method: "easypaisa", gst_percent: 5 },
       ],
+    },
+  }),
+  ep({
+    id: "currency-get",
+    tag: "store",
+    method: "GET",
+    path: "/api/v1/currency",
+    summary: "Currency",
+    description: "The store's currency { code, name, symbol, decimal_places, symbol_position }. Every store gets PKR (Pakistani Rupee, Rs, 2 decimals, symbol before) at registration; a store registered before the currency table shows these defaults until PUT /currency saves its row.",
+  }),
+  ep({
+    id: "currency-put",
+    tag: "store",
+    method: "PUT",
+    path: "/api/v1/currency",
+    summary: "Update currency",
+    description: "Store admin or manager. Send only what changes (at least one field). code is the 3-letter ISO code (e.g. PKR, USD) and becomes the currency on new orders and receipts. A store without a currency row yet gets it created here. Response: the saved { code, name, symbol, decimal_places, symbol_position }.",
+    body: {
+      code: "PKR",
+      name: "Pakistani Rupee",
+      symbol: "Rs",
+      decimal_places: 2,
+      symbol_position: "before",
     },
   }),
 
   ep({
-    id: "shift-current",
+    id: "staff-session-list",
     tag: "shifts",
     method: "GET",
-    path: "/api/v1/register-sessions/current",
-    summary: "Open session",
-    description: "POS shell. Null if register is closed. Location comes from JWT. Includes store_number and location_number.",
-    query: [{ name: "device_id", default: "", required: false }],
+    path: "/api/v1/staff-sessions",
+    summary: "User Session History",
+    description:
+      "Staff attendance (clock in / clock out), newest first. Filters: staffId (user number), status clock_in | clock_out, from / to (clock-in time). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Each row { id, staff, location, status, opening_at, closing_at }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (clock-in time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
-    id: "shift-list",
+    id: "batch-current",
     tag: "shifts",
     method: "GET",
-    path: "/api/v1/register-sessions",
-    summary: "Shift history",
-    description: "Register page. Location comes from JWT for manager/cashier. Includes store_number and location_number.",
+    path: "/api/v1/batches/current",
+    summary: "Current Open Batch",
+    description:
+      "The open batch of a staff member at the location — staffId (user number) or, left out, the signed-in user; a store admin may name location_id. Same shape as a Batch History row { id, staff, location, status, opening_amount, opening_at, cash_sales, …, closing_at }; data is null when no batch is open. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "staffId", default: "3", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
-    id: "shift-clock-in",
+    id: "batch-list",
     tag: "shifts",
-    method: "POST",
-    path: "/api/v1/register-sessions",
-    summary: "Clock in",
-    description: "Register page. Required before POS checkout. Location comes from JWT. Response is intentionally minimal — just { id, opened_at } (id is the short session_number, used as :id on clock-out) — not the full session record.",
-    body: {
-      opening_cash: 5000,
-      device_id: UUID,
-      opened_at: "2026-10-16T14:30:00.000Z",
-    },
+    method: "GET",
+    path: "/api/v1/batches",
+    summary: "Batch History",
+    description:
+      "Cash drawer batches, newest first. Filters: staffId, status open | closed, from / to (opening time). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Each row { id, staff, location, status, opening_amount, opening_at, cash_sales, card_sales, jazzcash_sales, easypaisa_sales, total_sales, expected_cash, total_cash (counted at closing), cash_variance, closing_at }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (opening time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
-    id: "shift-clock-out",
+    id: "staff-clock-in",
     tag: "shifts",
     method: "POST",
-    path: "/api/v1/register-sessions/:id/clock-out",
-    summary: "Clock out",
-    description: "Register page. :id accepts either the session's UUID id or its short session_number (e.g. 1) — use whichever the till has on hand. Response is intentionally minimal — just { id, closed_at, counted_cash } (id is the short session_number) — not the full session record.",
-    pathParams: [{ name: "id", default: "1", required: true }],
-    body: {
-      counted_cash: 16450,
-      closed_at: "2026-10-16T16:30:00.000Z",
-    },
+    path: "/api/v1/staff-sessions/clock-in",
+    summary: "User Session Clock In",
+    description: "Attendance. staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: { location_id: 1, staffId: 3, clocked_at: "2026-10-24T09:00:00.000Z" },
+    adminOnly: ["location_id"],
+  }),
+  ep({
+    id: "staff-clock-out",
+    tag: "shifts",
+    method: "POST",
+    path: "/api/v1/staff-sessions/clock-out",
+    summary: "User Session Clock Out",
+    description: "Ends the staff member's open attendance session. Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: { location_id: 1, staffId: 3, clocked_at: "2026-10-24T17:00:00.000Z" },
+    adminOnly: ["location_id"],
+  }),
+  ep({
+    id: "batch-open",
+    tag: "shifts",
+    method: "POST",
+    path: "/api/v1/batches/open",
+    summary: "Batch Opening",
+    description: "Opens the cash drawer for a staff member; sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: { location_id: 1, staffId: 3, opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
+    adminOnly: ["location_id"],
+  }),
+  ep({
+    id: "batch-close",
+    tag: "shifts",
+    method: "POST",
+    path: "/api/v1/batches/close",
+    summary: "Batch Closing",
+    description: "Closes the staff member's open batch with the counted cash. Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: { location_id: 1, staffId: 3, total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
+    adminOnly: ["location_id"],
   }),
 
   ep({
@@ -983,37 +1236,31 @@ export const endpoints = [
     tag: "categories",
     method: "GET",
     path: "/api/v1/categories",
-    summary: "List categories",
-    description: "POS grid filter, Products, Categories, Offers.",
-  }),
-  ep({
-    id: "cat-create",
-    tag: "categories",
-    method: "POST",
-    path: "/api/v1/categories",
-    summary: "Create category",
-    description: "Categories page and Products quick-add. Only name is required. The Has Category Tax / Has Category Discount checkboxes only add or remove the tax_* / discount_* fields in this example — they are not fields themselves and nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields. Creating the same category again is fine: the slug gets a -2, -3... suffix instead of an error. Optional category icon/image file. On channel=pos, the response is {success, message (\"Category Successfully Created\"), data: { id, name }} instead of the full created record — id here is the short category_number, not the internal UUID (PATCH/DELETE /categories/:id still needs the real UUID).",
-    files: [{ name: "icon", label: "Category icon" }],
-    bodyBuilder: {
-      bulk: false,
-      variants: [{ id: "default", label: null, rows: [categoryRow("Soap", 5, 5)] }],
-      toggles: CATEGORY_TOGGLES,
-    },
+    summary: "Categories",
+    description:
+      "Every category of the store, in the same shape as Bulk Categories: { id, name, slug, parent, image_url, description, tax_type, tax_value, tax_name, discount_type, discount_value, discount_name, is_active }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
   }),
   ep({
     id: "cat-bulk",
     tag: "categories",
     method: "POST",
     path: "/api/v1/categories/bulk",
-    summary: "Bulk create categories",
-    description: "POS sync. Send { items: [ ...create category bodies ] } or a raw array. Same fields and rules as single create. On channel=pos, the response is {success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ]} (one entry per created category, in the same order) instead of the full per-item results. id is the short category_number, not the internal UUID.",
+    summary: "Bulk Categories",
+    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: {
       bulk: true,
       variants: [
         {
           id: "default",
           label: null,
-          rows: [categoryRow("Soap", 5, 5), categoryRow("Daal", 10, 0)],
+          rows: [categoryRow("Beverages", 5, 5), categoryRow("Soap", 10, 0), categoryRow("Rice & Daal", 0, 10)],
         },
       ],
       toggles: CATEGORY_TOGGLES,
@@ -1053,31 +1300,29 @@ export const endpoints = [
     tag: "products",
     method: "GET",
     path: "/api/v1/products",
-    summary: "List products",
-    description: "POS grid, Products, Inventory, Offers, Weight page.",
+    summary: "Products",
+    description:
+      "Products in the same shape as Bulk Products, plus qty (stock at the location read, or every location for a store admin) and stocks [{ locationId, qty, expiry_date }]. Filters: q (title, SKU or barcode), categoryId (category number). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
       { name: "q", default: "", required: false },
-      { name: "category_id", default: "", required: false },
+      { name: "categoryId", default: "", required: false },
+      { name: "location_id", default: "", required: false },
     ],
-  }),
-  ep({
-    id: "prod-create",
-    tag: "products",
-    method: "POST",
-    path: "/api/v1/products",
-    summary: "Create product",
-    description: "Products page. Required: title, barcode (unique per store), category_id, and the prices — cost + price for a Loose Item; pack_size + pack_cost + pack_price for a Pack Product, whose per-unit cost and price are always calculated by the server as pack_cost ÷ pack_size and pack_price ÷ pack_size (stored as cost_price / selling_price). category_id is the category's number (e.g. 1); its UUID also works. image is a plain image URL saved as featured_image and images[0]; an empty string means no image. The Has Product Tax / Has Product Discount checkboxes only add or remove the tax_* / discount_* fields in this example — nothing is stored for them; tax/discount apply whenever their type + value are sent. Show Optional Fields adds the rarely-needed fields after image. The server computes the price after this product's own discount and then its own tax on the discounted price (e.g. 100 → 5% off → 95 → +5% GST → 99.75): total_price for a Loose Item, or total_price_each_unit and total_pack_price for a Pack Product — shown under the body below. Category tax, offers and store tax are added at checkout, not in these totals. Creating the same product again is fine as long as the barcode differs: slug and SKU get a -2, -3... suffix (a repeated barcode returns 409). There is no expiry_date on the product — expiry is per location via stock movements. Responses use the stored column names (cost_price, selling_price, pack_cost_price, pack_selling_price, total_price_each_unit, total_pack_price). On channel=pos, the response is {success, message (\"Product Successfully Created\"), data: { id, title }} — id is the short product_number, not the UUID.",
-    bodyBuilder: productBuilder(false),
-    computed: productTotals,
   }),
   ep({
     id: "prod-bulk",
     tag: "products",
     method: "POST",
     path: "/api/v1/products/bulk",
-    summary: "Bulk create products",
-    description: "POS sync. Send { items: [ ...create product bodies ] } or a raw array. JSON only (no files). Same fields and rules as single create (a Pack Product item sends is_pack_product, pack_size, pack_cost, pack_price). On channel=pos, the response is {success, message (\"Products Successfully Created\"), data: [ { id, title }, ... ]} (one entry per created product, in the same order) — id is the short product_number, not the UUID.",
-    bodyBuilder: productBuilder(true),
+    summary: "Bulk Products",
+    description:
+      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    bodyBuilder: productBuilder(),
     computed: productTotals,
   }),
   ep({
@@ -1093,8 +1338,7 @@ export const endpoints = [
       title: "1 Litre Pepsi",
       category_id: UUID,
       price: 90,
-      tax_type: "percentage",
-      tax_value: 17,
+      taxes: [{ name: "GST", type: "percentage", value: 18 }],
       is_pack_product: false,
       pack_size: null,
       is_pos_visible: true,
@@ -1107,17 +1351,33 @@ export const endpoints = [
     tag: "products",
     method: "GET",
     path: "/api/v1/products/expiry",
-    summary: "Expiry manager",
+    summary: "Expiry Manager",
     description:
-      "Expiry page. Dates come from product_stocks per location. Each row includes store_id, store_number, location_id, location_number, expiry_date.",
+      "Store admin / manager. Stock with an expiry date, soonest first: { productId, title, sku, barcode, unit, locationId, qty, expiry_date, expiry_status (expired | critical | warning | ok, from the store's expiry_critical_days / expiry_warning_days) }. A store admin sees every location (or one with location_id); a manager only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (expiry date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "prod-weight-list",
     tag: "products",
     method: "GET",
     path: "/api/v1/products/weight",
-    summary: "Weight manager list",
-    description: "Weight page.",
+    summary: "Weight Manager",
+    description:
+      "Store admin / manager. Products sold by weight (is_weight_based), in the Products shape. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
   }),
   ep({
     id: "stock-put",
@@ -1152,139 +1412,95 @@ export const endpoints = [
     tag: "inventory",
     method: "GET",
     path: "/api/v1/stock-movements",
-    summary: "Movement history",
-    description: "Inventory page table. Returns store_name and location_name (not store_id_int / location_id_int).",
+    summary: "Stock Movements",
+    description:
+      "Stock movements, newest first, in the Bulk Stock Movements shape { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, unit_sold }. Filters: productId, movement_type, reason, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (movement time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "productId", default: "", required: false },
+      { name: "movement_type", default: "", required: false },
+      { name: "reason", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
-    id: "movement-create",
+    id: "transfer-list",
     tag: "inventory",
-    method: "POST",
-    path: "/api/v1/stock-movements",
-    summary: "Post movement",
-    description: "Inventory page and product create/edit qty. The location comes from the token. product_id is the product's number (e.g. 1); its UUID also works. qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment (e.g. -12 for an adjustment with reason sale). Show Optional Fields adds the visibility fields. On channel=pos, the response is {success, message (\"Stock Successfully Created\"), data} where data is the product's stock at this location after the movement: { product_id, qty } for a loose item, or { product_id, pack_size, number_of_packs, qty } for a pack product (number_of_packs = full packs in qty, e.g. stock_in 50 with pack_size 10 → 5 packs; a sale of 12 then leaves qty 38 → 3 full packs).",
-    bodyBuilder: movementBuilder(false),
+    method: "GET",
+    path: "/api/v1/stock-transfers",
+    summary: "Stock Transfer",
+    description:
+      "Stock transfers sent from or arriving at the location, newest first: { id, from_location, to_location, product, qty, status (on_the_way | completed | cancelled), note, staff }. Filters: status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (transfer time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "movement-bulk",
     tag: "inventory",
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
-    summary: "Bulk stock movements",
-    description: "POS sync. Send { items: [ ...movement bodies ] } or a raw array. Same fields and rules as a single movement. On channel=pos, the response is {success, message (\"Stock Successfully Created\"), data: [ ... ]} with one stock entry per created movement, in order — { product_id, qty } for loose items, { product_id, pack_size, number_of_packs, qty } for pack products.",
-    bodyBuilder: movementBuilder(true),
-  }),
-
-  ep({
-    id: "cust-list",
-    tag: "customers",
-    method: "GET",
-    path: "/api/v1/customers",
-    summary: "List customers",
-    description: "Customers page and POS checkout dropdown.",
+    summary: "Bulk Stock Movements",
+    description: "POS sync: { locationId, items: [ ...movements ] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). product_id is the product number (UUID also works). qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment. On channel=pos the response is { success, message (\"Stock Successfully Created\"), data: [ ... ] } one per created movement, in order: { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    bodyBuilder: movementBuilder(),
   }),
   ep({
-    id: "cust-create",
-    tag: "customers",
+    id: "transfer-bulk",
+    tag: "inventory",
     method: "POST",
-    path: "/api/v1/customers",
-    summary: "Add customer",
-    description: "Customers modal. total_debt and remaining_debt are independent (e.g. 1000 / 500). On channel=pos, the response is just {success, message} with data: null (\"Customer Successfully Created\") instead of the created record.",
-    body: {
-      name: "Ahmed Raza",
-      phone: "03004444444",
-      email: "ahmed@example.com",
-      remaining_debt: 500,
-      total_debt: 1000,
-      debt_notes: "Opening udhaar",
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
-    },
-  }),
-  ep({
-    id: "cust-bulk",
-    tag: "customers",
-    method: "POST",
-    path: "/api/v1/customers/bulk",
-    summary: "Bulk create customers",
-    description: "POS sync. Send { items: [ ...create customer bodies ] } or a raw array. On channel=pos, the response is just {success, message} with data: null (\"Customers Successfully Created\") instead of the per-item results.",
+    path: "/api/v1/stock-transfers/bulk",
+    summary: "Bulk Stock Transfer",
+    description: "Store admin. { items: [ ...transfers ] } — each sends stock of one product from one location to another (location / product numbers or UUIDs) and stays on_the_way until the destination completes it (POST /stock-transfers/:id/complete). staff_id may be sent once next to items[] or on each transfer. On channel=pos the response data is [ { id, from_location, to_location, product, qty, status, note, staff }, ... ], in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       items: [
-        {
-          name: "Ahmed Raza",
-          phone: "03004444444",
-          email: "ahmed@example.com",
-          remaining_debt: 500,
-          total_debt: 1000,
-          debt_notes: "Opening udhaar",
-          is_pos_visible: true,
-          is_web_visible: true,
-          channel: "both",
-        },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill", staff_id: 3 },
+        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "", staff_id: 3 },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock", staff_id: 3 },
       ],
     },
   }),
-  ep({
-    id: "cust-patch",
-    tag: "customers",
-    method: "PATCH",
-    path: "/api/v1/customers/:id",
-    summary: "Update customer",
-    description: "Customers edit. Accepts name/contact plus total_debt, remaining_debt, and debt_notes.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
-    body: {
-      name: "Ahmed Raza",
-      phone: "03004444444",
-      email: "ahmed@example.com",
-      remaining_debt: 200,
-      total_debt: 1000,
-      debt_notes: "Will pay Friday",
-      is_active: true,
-      is_pos_visible: true,
-      is_web_visible: true,
-      channel: "both",
-    },
-  }),
+
 
   ep({
     id: "staff-list",
     tag: "staff",
     method: "GET",
     path: "/api/v1/staff",
-    summary: "List staff",
-    description: "Staff page. Response includes password: null (hashed in DB). Create returns the password you sent.",
-  }),
-  ep({
-    id: "staff-create",
-    tag: "staff",
-    method: "POST",
-    path: "/api/v1/staff",
-    summary: "Create staff",
-    description: "Staff page. A store admin or a manager can create a cashier or a manager; the new user gets the location from the token (no location_id needed). The PIN must be unique among the users of that location — the same PIN is fine at another location or store (PIN login then tells them apart by the till's device_uid). On channel=pos, the response is {success, message (\"Cashier Successfully Created\" / \"Manager Successfully Created\"), data: { id, name, role }} — id is the short user_number, not the UUID. Other channels get the full user, including the password you sent.",
-    body: {
-      name: "Cashier One",
-      email: "cashier@demo-grocery.local",
-      password: "ChangeMe123",
-      pin: "3333",
-      role: "cashier",
-    },
+    summary: "Staff",
+    description:
+      "Managers and cashiers: { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active }. Filter: role manager | cashier. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "role", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "staff-bulk",
     tag: "staff",
     method: "POST",
     path: "/api/v1/staff/bulk",
-    summary: "Bulk create staff",
-    description: "POS sync. Send { items: [ ...create staff bodies ] } or a raw array. Same fields and rules as single create. On channel=pos, the response is {success, message, data: [ { id, name, role }, ... ]} (one per created user, in order); the message is \"Cashiers Successfully Created\" / \"Managers Successfully Created\", or \"Staff Successfully Created\" when the batch mixes roles.",
+    summary: "Bulk Create Staff",
+    description: "{ items: [ ...staff ] }. Every staff item carries its own locationId (location number, e.g. 1, or UUID) — whether a store admin or a manager is signed in. A store admin may put each one at any location; a manager can only use their own location (another one is refused). The PIN must be unique among the users of that location (another location or store may reuse it). On channel=pos the response is { success, message, data: [ { id, location, name, email, pin, role, phone, is_active }, ... ] } — the whole staff member (same shape as login users[] and GET Staff), one per created user, in order; id is the short user_number. The message is \"Cashiers Successfully Created\" / \"Managers Successfully Created\", or \"Staff Successfully Created\" when the roles are mixed. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       items: [
-        {
-          name: "Cashier One",
-          email: "cashier@demo-grocery.local",
-          password: "ChangeMe123",
-          pin: "3333",
-          role: "cashier",
-        },
+        { locationId: 1, name: "Ahmed Malik", email: "ahmed@acadex.co", password: "ahmedmalik", pin: "2222", role: "manager" },
+        { locationId: 1, name: "Ameer Hamza", email: "ameer@acadex.co", password: "ameerhamza", pin: "3333", role: "cashier" },
+        { locationId: 1, name: "Yasir Ali Khan", email: "yasir@acadex.co", password: "yasiralikhan", pin: "4444", role: "cashier" },
       ],
     },
   }),
@@ -1294,31 +1510,28 @@ export const endpoints = [
     tag: "offers",
     method: "GET",
     path: "/api/v1/offers",
-    summary: "List offers",
-    description: "Offers page (type=) and POS cards (pos=1).",
+    summary: "Offers",
+    description:
+      "Offers running at the location (store admin: every offer, or one location with location_id): { id, type, apply_to, product | category, discount_type, discount_value, start_at, end_at, min_qty, buy_qty, get_qty, staff, name, is_active }. Filters: type, pos=1 (only offers live right now). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
       { name: "type", default: "", required: false },
-      { name: "pos", default: "1", required: false },
+      { name: "pos", default: "", required: false },
+      { name: "location_id", default: "", required: false },
     ],
-  }),
-  ep({
-    id: "offer-create",
-    tag: "offers",
-    method: "POST",
-    path: "/api/v1/offers",
-    summary: "Create offer",
-    description: "Store admin, manager or cashier. Where the offer runs: only a store admin chooses — All Locations (location_scope all) or Selected Locations (location_scope selected + location_ids: [1] for one location, [1, 2, 3, 4] for several; location numbers, UUIDs also work). A manager or cashier sends no location — the offer is saved for the store and location in their token (location_scope / location_ids in their body are ignored). Offers page. One flat object creates the offer and its target together: the offer fields (name, type, apply_to, discount, quantities, dates) go to the offer, and category_id / product_id, promo_price and free_product_id go to its offer target. apply_to category needs category_id; apply_to product needs product_id — either as the short number (e.g. 1) or the UUID. type: promotional | flash_sale | bulk_discount | bogo. min_qty is for bulk_discount; buy_qty + get_qty are for bogo (buy 2 get 1 → every 3 items, 1 is free); promo_price is a flash_sale fixed price; free_product_id is the bogo free item. Several targets at once: send targets: [{ category_id }, ...] instead. On channel=pos, the response is {success, message (\"Offer Successfully Created\"), data: { id, type, name, category_id | product_id }} — id is the short offer_number and category_id / product_id the short number.",
-    bodyBuilder: offerBuilder(false),
-    adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
     id: "offer-bulk",
     tag: "offers",
     method: "POST",
     path: "/api/v1/offers/bulk",
-    summary: "Bulk create offers",
-    description: "POS sync. Send { items: [ ...create offer bodies ] } or a raw array. Same flat fields and rules as single create, including the location rule (store admin: location_scope / location_ids; manager or cashier: their own location). On channel=pos, the response is {success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category_id | product_id }, ... ]} (one per created offer, in order).",
-    bodyBuilder: offerBuilder(true),
+    summary: "Bulk Offer Creation",
+    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). Where it runs is set on each offer, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1] and [1, 2]. A manager or cashier sends no location; their offers are for their token's location. On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    bodyBuilder: offerBuilder(),
     adminOnly: ["location_scope", "location_ids"],
   }),
   ep({
@@ -1353,124 +1566,172 @@ export const endpoints = [
   }),
 
   ep({
-    id: "order-create",
-    tag: "orders",
-    method: "POST",
-    path: "/api/v1/orders",
-    summary: "POS checkout",
-    description:
-      "POS checkout. Catalog selling_price is used. Response order.tax splits default store tax, product tax, category tax, payment-method GST (mixed is split per method), and FBR (same invoice GST when fbr_invoice_enabled). Each item includes product_tax_* and category_tax_*.",
-    body: {
-      channel: "pos",
-      is_pos_visible: true,
-      is_web_visible: false,
-      register_session_id: UUID,
-      device_id: UUID,
-      customer_id: null,
-      tax_exempt: false,
-      client_local_id: "pos-local-001",
-      items: [
-        {
-          product_id: UUID,
-          quantity: 2,
-        },
-      ],
-      payments: [{ method: "cash", amount: 180 }],
-      amount_paid: 200,
-      payment_method: "cash",
-    },
-  }),
-  ep({
     id: "order-bulk",
     tag: "orders",
     method: "POST",
     path: "/api/v1/orders/bulk",
-    summary: "Bulk create orders",
+    summary: "Bulk Order Creation",
     description:
-      "POS offline sync (Package 2/3). Send { items: [ ...order bodies ] } or a raw array. Each sale keeps its placed_at and is booked into the shift that was open at that time, even if that shift is closed now.",
-    body: {
-      items: [
-        {
-          channel: "pos",
-          is_pos_visible: true,
-          is_web_visible: false,
-          register_session_id: UUID,
-          device_id: UUID,
-          client_local_id: "pos-local-001",
-          placed_at: "2026-10-02T10:15:00.000Z",
-          items: [{ product_id: UUID, quantity: 2 }],
-          payments: [{ method: "cash", amount: 180 }],
-          payment_method: "cash",
-        },
-      ],
-    },
+      "POS sales: { locationId, items: [ ...orders ] } — works on every plan. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). The example sends five sales: three Catalog Sales (items [{ productId, qty }]) and two Custom Sales (is_custom true, items [{ category, title, price, qty }]), paid in cash or mixed (card / JazzCash / EasyPaisa + cash). staff_id = the cashier (PIN), batch_id = their open batch. Flow: Order Creation → Receipt → Transaction — the POS sends only the order; the server creates its receipt and its transaction (one per payment in payments[], numbered 1, 2, 3... per store; a payment's transaction_id is kept as its reference) together with it, so there is no receipt or transaction request. Response data: one order per created sale, in order (see View Response): subtotal includes the product & category tax; total_amount = subtotal + payment GST + FBR fee − order discount. An order that fails is listed in failed [{ index, message, status }]; when every order fails the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    bodyBuilder: orderBuilder(),
+    responses: [
+      {
+        label: "One order failed (200)",
+        body: { success: true, message: "Order Created", data: [SAMPLE_CATALOG_ORDER], failed: [{ index: 1, message: "Product 99 not found", status: 404 }] },
+      },
+      {
+        label: "Every order failed",
+        body: { success: false, message: "Product 99 not found", data: [], failed: [{ index: 0, message: "Product 99 not found", status: 404 }] },
+      },
+    ],
   }),
   ep({
-    id: "order-list",
+    id: "order-list-completed",
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders",
-    summary: "Sales history",
-    description: "History and Cancelled pages.",
-    query: [{ name: "channel", default: "pos", required: false }],
+    summary: "Orders Completed",
+    description:
+      "Completed sales (status=completed), newest first. Each order in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "status", default: "completed", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "is_custom", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "order-list-pending",
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/orders",
+    summary: "Orders Pending",
+    description:
+      "Pending sales — not paid yet (status=pending). Each order in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "status", default: "pending", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "is_custom", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "order-list-cancelled",
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/orders",
+    summary: "Orders Cancelled",
+    description:
+      "Cancelled and voided sales (status=cancelled). Each order in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "status", default: "cancelled", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "is_custom", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "order-history",
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/orders",
+    summary: "Complete Order History",
+    description:
+      "Every order whatever its status (status=all; also completed | pending | cancelled | refunded). Each order in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "status", default: "all", required: false },
+      { name: "staffId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "is_custom", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "order-get",
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders/:id",
-    summary: "Order detail",
-    description: "History refund modal.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
+    summary: "Order Detail",
+    description:
+      "One order — :id is the order number (e.g. 1) or UUID — in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, total_amount, amount_paid, change_due, placed_at }. A manager / cashier only sees orders of their own location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
     id: "order-receipt",
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders/:id/receipt",
-    summary: "Order receipt",
-    description: "History reprint.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
+    summary: "Receipt by Order Id",
+    description:
+      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order. { id, location, staff, order, transaction { id, method }, subTotal, discount_amount, tax_breakdown { payment_gst, fbr_fee }, tax_amount, total, issued_at, currency }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
-    id: "order-refund",
+    id: "refund-receipt",
     tag: "orders",
-    method: "POST",
-    path: "/api/v1/orders/:id/refund",
-    summary: "Refund item",
-    description: "History page item refund.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
-    body: {
-      order_item_id: UUID,
-      quantity: 1,
-      reason: "Customer return",
-    },
+    method: "GET",
+    path: "/api/v1/orders/refunds/:refundId/receipt",
+    summary: "Receipt by Refund Id",
+    description:
+      "The receipt of a refund — :refundId is the refund number (the id in the refund replies) or UUID. Created automatically with the refund. { id, location, staff, order, refundId, refund_type, currency, reason, subTotal, tax_amount, total, issued_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    pathParams: [{ name: "refundId", default: "1", required: true }],
   }),
   ep({
-    id: "order-refund-complete",
+    id: "transaction-list",
     tag: "orders",
-    method: "POST",
-    path: "/api/v1/orders/:id/refund/complete",
-    summary: "Refund remaining items",
-    description: "Refunds remaining qty on every line of the order.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
-    body: { reason: "Full return" },
+    method: "GET",
+    path: "/api/v1/transactions",
+    summary: "Transactions",
+    description:
+      "The orders' transactions — one per payment, created with the order (id = the transaction number 1, 2, 3...; reference = the card / wallet reference the till sent, if any): { id, reference, order, location, method, amount, tax_amount, currency, status, paid_at }. Filters: orderId, method, status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (payment time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "orderId", default: "", required: false },
+      { name: "method", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "order-refund-bulk",
     tag: "orders",
     method: "POST",
     path: "/api/v1/orders/refunds/bulk",
-    summary: "Bulk item refunds",
-    description: "POS sync. Each item needs order_id, order_item_id, quantity, reason.",
+    summary: "Bulk Order Items Refund",
+    description:
+      "POS sync: { locationId, items: [...] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds some items of an order: each entry needs order_id, order_item_id (the line's number in that order), qty and reason. Response data: one refund per entry, in order, in the same shape as a complete refund — { id, location, staff, order, receiptId, currency, reason, amount, tax, total }. Failed entries are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
+      locationId: 1,
       items: [
-        {
-          order_id: UUID,
-          order_item_id: UUID,
-          quantity: 1,
-          reason: "Customer return",
-        },
+        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return", staff_id: 3 },
+        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item", staff_id: 3 },
       ],
     },
   }),
@@ -1479,83 +1740,83 @@ export const endpoints = [
     tag: "orders",
     method: "POST",
     path: "/api/v1/orders/refunds/complete/bulk",
-    summary: "Bulk complete order refunds",
-    description: "POS sync. Refund remaining qty on all items of each order.",
+    summary: "Bulk Order Refund",
+    description:
+      "POS sync: { locationId, items: [...] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds whole orders: the remaining qty on every line of each order. Response data: one refund per order, in order — { id, location, staff (user number), order, receiptId, currency, reason, amount (before tax), tax, total }. Failed orders are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
-      items: [{ order_id: UUID, reason: "Full return" }],
+      locationId: 1,
+      items: [
+        { order_id: 2, reason: "Full return", staff_id: 3 },
+        { order_id: 3, reason: "Customer changed mind", staff_id: 3 },
+      ],
     },
   }),
   ep({
-    id: "order-cancelled",
-    tag: "orders",
-    method: "GET",
-    path: "/api/v1/orders/cancelled",
-    summary: "Cancelled / voided",
-    description: "Cancelled page.",
-  }),
-  ep({
-    id: "order-refunds",
+    id: "refund-list-complete",
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders/refunds",
-    summary: "Refund list",
-    description: "History > Refund records. Store admin may filter by location_id; from / to filter by refund date.",
-    query: [
-      { name: "location_id", default: "", required: false },
-      { name: "from", default: "", required: false },
-      { name: "to", default: "", required: false },
-    ],
-  }),
-  ep({
-    id: "order-sales-by-location",
-    tag: "orders",
-    method: "GET",
-    path: "/api/v1/orders/summary/locations",
-    summary: "Sales by location",
+    summary: "Refunds Complete Orders",
     description:
-      "Sales tabs summary per branch (store admin: every location or ?location_id=; manager: own branch). Each row: sales (completed totals), completed_orders, pending_orders + pending_amount, cancelled_orders (cancelled + voided), refunded_orders, refunds_count, refunds_amount, net_sales (sales minus partial refunds). Also totals. Filters: from, to (placed_at), channel, payment_method.",
+      "Whole orders refunded with Bulk Order Refund (type=complete) — one entry per order, its lines added up. Each refund { id, location, staff, order, receiptId, currency, reason, amount (before tax), tax, total }. Filters: orderId, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refund time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
-      { name: "location_id", default: "", required: false },
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "type", default: "complete", required: false },
+      { name: "orderId", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "channel", default: "", required: false },
-      { name: "payment_method", default: "", required: false },
+      { name: "location_id", default: "", required: false },
     ],
   }),
   ep({
-    id: "order-refund-receipt",
+    id: "refund-list-partial",
     tag: "orders",
     method: "GET",
-    path: "/api/v1/orders/:id/refunds/:refundId/receipt",
-    summary: "Refund receipt",
-    description: "Cancelled page reprint.",
-    pathParams: [
-      { name: "id", default: UUID, required: true },
-      { name: "refundId", default: UUID, required: true },
+    path: "/api/v1/orders/refunds",
+    summary: "Refunds Partial Order",
+    description:
+      "Item refunds made with Bulk Order Items Refund (type=partial) — one entry per refunded item. Each refund { id, location, staff, order, receiptId, currency, reason, amount (before tax), tax, total }. Filters: orderId, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refund time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "type", default: "partial", required: false },
+      { name: "orderId", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
     ],
-  }),
-  ep({
-    id: "order-void",
-    tag: "orders",
-    method: "POST",
-    path: "/api/v1/orders/:id/void",
-    summary: "Void sale",
-    description: "Cancelled page.",
-    pathParams: [{ name: "id", default: UUID, required: true }],
-    body: { reason: "POS void" },
   }),
 
   ep({
-    id: "rep-breakdown",
+    id: "rep-all-locations",
     tag: "reports",
     method: "GET",
-    path: "/api/v1/reports/breakdown",
-    summary: "POS reports breakdown",
+    path: "/api/v1/reports/all-locations",
+    summary: "All Locations Report",
     description:
-      "Reports page (all tabs). sales_summary.totals and tax_breakdown split tax_collection into product, category, default store, payment GST, and FBR. Scope comes from JWT.",
+      "Store admin only. Every location of the store together, plus by_location (per location: orders, gross_sales, discounts, net_sales, tax, refunds, total_sales, percent). Sections as in Detailed Reporting: sales_summary, by_product, by_category, payments, z_reports, inventory, stock_movement, refunded_orders, cancelled_orders, by_cashier, tax_breakdown (Sales Tax, Product / Category Level Tax, Payment Method Tax). The reply starts with period, locationId, from, to only. locationId is null. Filters: period daily | weekly | monthly | yearly, from, to.",
     query: [
       { name: "period", default: "daily", required: false },
-      { name: "channel", default: "pos", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "rep-location",
+    tag: "reports",
+    method: "GET",
+    path: "/api/v1/reports/location",
+    summary: "Location Report",
+    description:
+      "One location: locationId = the location number (e.g. 1) or UUID. A store admin picks any location; a manager / cashier gets their own (leave locationId out), another location is refused (403). Sections as in Detailed Reporting: sales_summary, by_product, by_category, payments, z_reports, inventory, stock_movement, refunded_orders, cancelled_orders, by_cashier, tax_breakdown (Sales Tax, Product / Category Level Tax, Payment Method Tax). The reply starts with period, locationId, from, to only. Filters: period daily | weekly | monthly | yearly, from, to.",
+    query: [
+      { name: "period", default: "daily", required: false },
+      { name: "locationId", default: "1", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
     ],
   }),
   ep({
@@ -1563,7 +1824,7 @@ export const endpoints = [
     tag: "reports",
     method: "GET",
     path: "/api/v1/reports/profit",
-    summary: "Gross profit & loss",
+    summary: "Profit & Loss",
     description:
       "Profit & loss. Totals include sales_collected, cost, discounts, refunds, tax_collection (product, category, default store, payment GST, FBR), and gross_profit.",
     query: [
@@ -1577,40 +1838,30 @@ export const endpoints = [
     tag: "suppliers",
     method: "GET",
     path: "/api/v1/suppliers",
-    summary: "List suppliers",
+    summary: "Suppliers",
     description:
-      "Each supplier: name, phone, email, address, payment_terms, location_scope (all | selected), location_ids and locations. Store admin sees every supplier and may filter with ?location_id= (suppliers that deliver to that branch, including all-location ones). A manager or cashier gets only the suppliers of their own location (from the token).",
-    query: [{ name: "location_id", default: "", required: false }],
-  }),
-  ep({
-    id: "sup-create",
-    tag: "suppliers",
-    method: "POST",
-    path: "/api/v1/suppliers",
-    summary: "Add supplier",
-    description:
-      "Store admin, manager or cashier. Body: name, phone, email, address, payment_terms. Only a store admin chooses the locations: location_scope all = supplies every branch; selected + location_ids = one branch (one id) or several branches (many ids); sending only location_ids also means selected. location_ids holds location numbers (1, 2, 3 — the location id the POS uses; UUIDs also work). A manager or cashier sends no location — the supplier is saved for the store and location in their token (location_scope / location_ids in their body are ignored). The All / Selected radio buttons (store admin only) switch between location_scope all and selected + location_ids. On channel=pos, the response is {success, message (\"Supplier Successfully Created\"), data: { id }} — id is the short supplier_number, not the UUID.",
-    bodyBuilder: supplierBuilder(),
-    adminOnly: ["location_scope", "location_ids"],
+      "Suppliers in the Bulk Suppliers shape { id, locations, name, email, phone, payment_terms, address, is_active } — location_ids [] means every location. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "range", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
   }),
   ep({
     id: "sup-bulk",
     tag: "suppliers",
     method: "POST",
     path: "/api/v1/suppliers/bulk",
-    summary: "Bulk create suppliers",
-    description: "POS sync. Send { items: [ ...create supplier bodies ] } or a raw array. Same location rule as Add supplier: a manager or cashier's suppliers go to their own location. On channel=pos, the response is {success, message (\"Suppliers Successfully Created\"), data: [ { id }, ... ]} — one supplier_number per created supplier, in order.",
+    summary: "Bulk Suppliers",
+    description: "{ items: [ ...suppliers ] } — name, phone, email, address, payment_terms. Only a store admin chooses the locations per supplier: location_scope all = every branch; selected + location_ids = one or several branches (location numbers, UUIDs also work). A manager or cashier sends no location — their suppliers go to their token's location. On channel=pos the response is { success, message (\"Suppliers Successfully Created\"), data: [ { id }, ... ] } — one supplier_number per created supplier, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       items: [
-        {
-          name: "Nestle Distributor",
-          phone: "03006666666",
-          email: "sales@distributor.local",
-          address: "Industrial Area",
-          payment_terms: "Net 15",
-          location_scope: "selected",
-          location_ids: [1],
-        },
+        { name: "Nestle Distributor", phone: "03006666666", email: "sales@nestle-dist.local", address: "Industrial Area", payment_terms: "Net 15", location_scope: "all" },
+        { name: "Unilever Wholesale", phone: "03007777777", email: "orders@unilever-ws.local", address: "Korangi", payment_terms: "Net 30", location_scope: "selected", location_ids: [1] },
+        { name: "Rice Mills Co", phone: "03008888888", email: "info@ricemills.local", address: "Gujranwala", payment_terms: "Cash on delivery", location_scope: "selected", location_ids: [1, 2] },
       ],
     },
     adminOnly: ["location_scope", "location_ids"],
@@ -1645,24 +1896,7 @@ export const endpoints = [
     pathParams: [{ name: "id", default: UUID, required: true }],
   }),
 
-  ep({
-    id: "audit-list",
-    tag: "audit",
-    method: "GET",
-    path: "/api/v1/audit-logs",
-    summary: "Store audit logs",
-    description: "Audit page.",
-  }),
 
-  ep({
-    id: "data-modules",
-    tag: "data",
-    method: "GET",
-    path: "/api/v1/admin/data/modules",
-    summary: "List wipeable modules",
-    description: "Super Admin. Names you can pass to the delete-all / delete-one / bulk-delete routes.",
-    auth: "superadmin",
-  }),
   ep({
     id: "data-delete-all",
     tag: "data",
@@ -1728,16 +1962,6 @@ function dataModuleDeleteEndpoints() {
       description: `Super Admin. Deletes one ${name} row and related child rows.`,
       auth: "superadmin",
       pathParams: [{ name: "id", default: UUID, required: true }],
-    }),
-    ep({
-      id: `data-${name}-bulk`,
-      tag: "data",
-      method: "POST",
-      path: `/api/v1/admin/data/${name}/bulk-delete`,
-      summary: `Bulk delete ${name}`,
-      description: `Super Admin. Deletes multiple ${name} rows by id.`,
-      auth: "superadmin",
-      body: { ids: [UUID, "00000000-0000-4000-8000-000000000002"] },
     }),
   ])
 }
