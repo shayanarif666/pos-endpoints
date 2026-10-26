@@ -260,29 +260,32 @@ function offerBuilder() {
 
 const ORDER_OPTIONAL = [
   ["customer_id", null, "optional"],
-  ["placed_at", "2026-10-24T10:15:00.000Z", "optional"],
 ]
 
-// One order row: location, till staff and batch, the lines, and the payments.
-const orderRow = ({ custom = false, items, payments, paid, extra = [] }) => [
+// One order row: till staff and batch, the lines, the payments, and the till's own totals.
+// client_local_id + placed_at: the till's id and time of the sale, so a resend is not a second order.
+const orderRow = ({ id, custom = false, items, payments, summary, extra = [] }) => [
+  ["client_local_id", `POS1-2026-10-26-000${id}`],
+  ["placed_at", `2026-10-26T10:0${id}:00.000Z`],
   ["channel", "pos"],
   ...(custom ? [["is_custom", true]] : []),
   ["staff_id", 3],
   ["batch_id", 1],
   ["items", items],
   ["payments", payments],
-  ["amount_paid", paid],
+  ...(summary ? [["summary", summary]] : []),
   ...ORDER_OPTIONAL,
   ...extra,
 ]
 
-// Five sales: catalog and custom, cash and mixed (card / JazzCash / EasyPaisa + cash). Only cash
-// may be more than the bill; the rest of it comes back as change_due.
+// Five sales: catalog and custom, cash and split (card / JazzCash / EasyPaisa + cash). Each
+// payment: amount = its share of the bill + its payment tax; paid = what the customer handed
+// over (only cash may be more — the rest is change). Cash with only paid covers the rest of the bill.
 const ORDER_ROWS = [
   orderRow({
+    id: 1,
     items: [{ productId: 1, qty: 2 }, { productId: 2, qty: 1 }],
-    payments: [{ method: "cash", amount: 1000 }],
-    paid: 1000,
+    payments: [{ method: "cash", paid: 1000 }],
     extra: [
       ["order_discount_type", null, "optional"],
       ["order_discount_value", null, "optional"],
@@ -290,32 +293,46 @@ const ORDER_ROWS = [
     ],
   }),
   orderRow({
+    id: 2,
     custom: true,
     items: [
       { category: "Stationary", title: "SP10 Blue Pen", price: 50, qty: 2 },
       { category: "Stationary", title: "A4 Notebook", price: 120, qty: 1 },
     ],
-    payments: [{ method: "cash", amount: 500 }],
-    paid: 500,
+    payments: [{ method: "cash", paid: 500 }],
   }),
   orderRow({
+    id: 3,
     items: [{ productId: 2, qty: 12 }, { productId: 1, qty: 1 }],
-    payments: [{ method: "card", amount: 100 }, { method: "cash", amount: 3000 }],
-    paid: 3100,
+    payments: [{ method: "card", amount: 100, transaction_id: "CARD-77120" }, { method: "cash", paid: 3000 }],
   }),
   orderRow({
+    id: 4,
     custom: true,
     items: [
       { category: "Household", title: "Tissue Box", price: 150, qty: 1 },
       { category: "Electronics", title: "AA Batteries (pair)", price: 80, qty: 2 },
     ],
-    payments: [{ method: "jazzcash", amount: 50 }, { method: "cash", amount: 500 }],
-    paid: 550,
+    payments: [{ method: "jazzcash", amount: 50, transaction_id: "JC-55102" }, { method: "cash", paid: 500 }],
   }),
+  // The full form: every figure worked out by the till (Pepsi × 3, Lux × 2, sales tax off).
   orderRow({
+    id: 5,
     items: [{ productId: 1, qty: 3 }, { productId: 2, qty: 2 }],
-    payments: [{ method: "easypaisa", amount: 100 }, { method: "cash", amount: 1500 }],
-    paid: 1600,
+    payments: [
+      { method: "cash", bill_share: 500, amount: 580, paid: 1000 },
+      { method: "easypaisa", bill_share: 106.55, amount: 111.88, paid: 111.88, transaction_id: "EP-883920" },
+    ],
+    summary: {
+      subtotal: 485,
+      product_tax_amount: 87.3,
+      category_tax_amount: 34.25,
+      sales_tax_amount: 0,
+      bill_before_payment_tax: 606.55,
+      payment_tax_amount: 85.33,
+      tax_amount: 206.88,
+      total_amount: 691.88,
+    },
   }),
 ]
 
@@ -1572,7 +1589,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { locationId, items: [ ...orders ] } — works on every plan. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). The example sends five sales: three Catalog Sales (items [{ productId, qty }]) and two Custom Sales (is_custom true, items [{ category, title, price, qty }]), paid in cash or mixed (card / JazzCash / EasyPaisa + cash). staff_id = the cashier (PIN), batch_id = their open batch. Flow: Order Creation → Receipt → Transaction — the POS sends only the order; the server creates its receipt and its transaction (one per payment in payments[], numbered 1, 2, 3... per store; a payment's transaction_id is kept as its reference) together with it, so there is no receipt or transaction request. Response data: one order per created sale, in order (see View Response): subtotal includes the product & category tax; total_amount = subtotal + payment GST + FBR fee − order discount. An order that fails is listed in failed [{ index, message, status }]; when every order fails the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sales: { locationId, items: [ ...orders ] } — works on every plan. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). The example sends five sales: three Catalog Sales (items [{ productId, qty }]) and two Custom Sales (is_custom true, items [{ category, title, price, qty }]), paid in cash or split (card / JazzCash / EasyPaisa + cash). Payments: each method pays its own share of the bill (bill_share) plus its own payment tax on that share — amount = bill_share × (1 + rate%) (e.g. cash 16%: 500 → 580; EasyPaisa 5%: 106.55 → 111.88); paid = what the customer handed over, and only cash may be more than its amount (the rest is change_due). A card / wallet row may send just amount (its share is amount ÷ (1 + rate)); the first cash row without bill_share covers the rest of the bill. amount_paid may also be sent per method: [{ method, paid }]. summary (optional) = the till's own totals { subtotal, product_tax_amount, category_tax_amount, sales_tax_amount, bill_before_payment_tax, payment_tax_amount, tax_amount, total_amount }: the server prices the order again and refuses it (400, with both figures) when one differs by more than 0.01. Send client_local_id + placed_at so a resent sale is not saved twice and keeps its real time. staff_id = the cashier (PIN), batch_id = their open batch. Flow: Order Creation → Receipt → Transaction — the POS sends only the order; the server creates its receipt and its transaction (one per payment in payments[], numbered 1, 2, 3... per store; a payment's transaction_id is kept as its reference) together with it, so there is no receipt or transaction request. Response data: one order per created sale, in order (see View Response): subtotal includes the product & category tax; total_amount = subtotal + payment GST + FBR fee − order discount. An order that fails is listed in failed [{ index, message, status }]; when every order fails the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: orderBuilder(),
     responses: [
       {

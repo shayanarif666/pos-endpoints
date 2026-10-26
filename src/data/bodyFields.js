@@ -197,11 +197,15 @@ const ORDER_CREATE = {
   is_custom: note("true for a custom sale (lines without a catalog product)"),
   items: R,
   ...ORDER_ITEM,
-  payments: note("One row per payment method; several rows = mixed payment (e.g. card 100 + cash 400 — only cash may be more than the bill, the rest is change). Leave out to pay the full total by payment_method"),
+  payments: note("One row per payment method; several rows = split payment. Each method pays its own share of the bill plus its own payment tax. Leave out to pay the full total by payment_method"),
   "payments[].method": must("cash | card | jazzcash | easypaisa"),
-  "payments[].amount": R,
+  "payments[].bill_share": note("This method's share of the bill before payment tax. Leave out on cash to cover the rest of the bill"),
+  "payments[].amount": note("What this method pays toward the bill = bill_share + its payment tax (e.g. cash 16%: 500 → 580). Required on a card / wallet row without bill_share"),
+  "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change"),
   "payments[].transaction_id": note("Card / wallet reference of this payment, kept as the transaction's reference. The transaction itself is numbered 1, 2, 3... by the server"),
-  amount_paid: note("Cash tendered, for change_due"),
+  summary: note("The till's own totals; the server checks each one sent (± 0.01) and refuses the order on a mismatch"),
+  client_local_id: note("The till's own id for this sale. A resend with the same id returns the saved order instead of a second one"),
+  amount_paid: note("Older form: total handed over, or per method [{ method, paid }]"),
   payment_method: note("Required when payments is not sent"),
 }
 
