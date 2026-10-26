@@ -181,7 +181,7 @@ const ORDER_ITEM = {
 }
 
 const ORDER_CREATE = {
-  channel: must("pos for the desktop till"),
+  channel: note("Default pos. Send web only for a web order"),
   is_pos_visible: note("Ignored: the server sets it from channel"),
   is_web_visible: note("Ignored: the server sets it from channel"),
   staff_id: STAFF_ID,
@@ -202,9 +202,6 @@ const ORDER_CREATE = {
   "payments[].bill_share": note("This method's share of the bill before payment tax. Leave out on cash to cover the rest of the bill"),
   "payments[].amount": note("What this method pays toward the bill = bill_share + its payment tax (e.g. cash 16%: 500 → 580). Required on a card / wallet row without bill_share"),
   "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change"),
-  "payments[].transaction_id": note("Card / wallet reference of this payment, kept as the transaction's reference. The transaction itself is numbered 1, 2, 3... by the server"),
-  summary: note("The till's own totals; the server checks each one sent (± 0.01) and refuses the order on a mismatch"),
-  client_local_id: note("The till's own id for this sale. A resend with the same id returns the saved order instead of a second one"),
   amount_paid: note("Older form: total handed over, or per method [{ method, paid }]"),
   payment_method: note("Required when payments is not sent"),
 }
