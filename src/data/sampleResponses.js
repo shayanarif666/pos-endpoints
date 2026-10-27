@@ -15,8 +15,8 @@ export const SAMPLE_RESPONSES = {
         "license_key": "LIC-0931-3965-76DF-21E2",
         "device_id": 1,
         "status": "trial",
-        "starts_at": "2026-10-26T18:49:43.000Z",
-        "expires_at": "2026-10-29T18:49:43.000Z",
+        "starts_at": "2026-10-27T18:24:49.000Z",
+        "expires_at": "2026-10-30T18:24:49.000Z",
         "already_registered": false,
         "suspended_at": null,
         "suspended_reason": null,
@@ -43,8 +43,8 @@ export const SAMPLE_RESPONSES = {
         "is_default": false,
         "is_active": true,
         "manager": null,
-        "created_at": "2026-10-26T18:49:43.795Z",
-        "updated_at": "2026-10-26T18:49:43.795Z"
+        "created_at": "2026-10-27T18:24:50.281Z",
+        "updated_at": "2026-10-27T18:24:50.281Z"
       }
     }
   }],
@@ -118,7 +118,7 @@ export const SAMPLE_RESPONSES = {
           "id": 1,
           "name": "Acadex",
           "status": "trial",
-          "trial_ended_at": "2026-10-29T18:49:43.000Z"
+          "trial_ended_at": "2026-10-30T18:24:49.000Z"
         },
         "locations": [
           {
@@ -229,7 +229,7 @@ export const SAMPLE_RESPONSES = {
           "name": "Gulshan e Iqbal Block 13 D"
         },
         "opening_amount": 5000,
-        "opening_at": "2026-10-26T18:49:44.231Z"
+        "opening_at": "2026-10-27T18:24:50.778Z"
       }
     }
   }],
@@ -449,7 +449,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 50,
           "qty_after": 50,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 2,
@@ -476,7 +476,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 24,
           "qty_after": 24,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 3,
@@ -503,7 +503,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 48,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         }
       ]
     }
@@ -539,7 +539,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.336Z"
+          "created_at": "2026-10-27T18:24:50.902Z"
         },
         {
           "id": 2,
@@ -565,7 +565,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.343Z"
+          "created_at": "2026-10-27T18:24:50.918Z"
         },
         {
           "id": 3,
@@ -591,7 +591,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.349Z"
+          "created_at": "2026-10-27T18:24:50.926Z"
         }
       ]
     }
@@ -846,7 +846,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -922,7 +922,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 198.86,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1013,7 +1013,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 1032.57,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1098,7 +1098,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1189,7 +1189,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1244,7 +1244,16 @@ export const SAMPLE_RESPONSES = {
           "amount": 220,
           "tax": 81.14,
           "total": 301.14,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 136.88,
+              "method": "cash",
+              "bill_share": 118,
+              "payment_tax_amount": 18.88,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 3,
@@ -1296,7 +1305,23 @@ export const SAMPLE_RESPONSES = {
           "amount": 1230,
           "tax": 837.43,
           "total": 2067.43,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 1828.05,
+              "method": "cash",
+              "bill_share": 1575.91,
+              "payment_tax_amount": 252.14,
+              "payment_tax_percent": 16
+            },
+            {
+              "amount": 92.92,
+              "method": "card",
+              "bill_share": 88.5,
+              "payment_tax_amount": 4.42,
+              "payment_tax_percent": 5
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         }
       ]
     }
@@ -1345,7 +1370,16 @@ export const SAMPLE_RESPONSES = {
           "amount": 90,
           "tax": 57.2,
           "total": 147.2,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 147.2,
+              "method": "cash",
+              "bill_share": 126.9,
+              "payment_tax_amount": 20.3,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 6,
@@ -1378,13 +1412,22 @@ export const SAMPLE_RESPONSES = {
               "qty": 1,
               "unit_price": 100,
               "amount": 100,
-              "tax": 69.36
+              "tax": 69.37
             }
           ],
           "amount": 100,
-          "tax": 69.36,
-          "total": 169.36,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "tax": 69.37,
+          "total": 169.37,
+          "payments": [
+            {
+              "amount": 169.37,
+              "method": "cash",
+              "bill_share": 146.01,
+              "payment_tax_amount": 23.36,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         }
       ]
     }
@@ -1408,13 +1451,13 @@ export const SAMPLE_RESPONSES = {
         },
         "status": "open",
         "opening_amount": 5000,
-        "opening_at": "2026-10-26T18:49:44.000Z",
-        "cash_sales": 958.54,
-        "card_sales": 100,
+        "opening_at": "2026-10-27T18:24:50.000Z",
+        "cash_sales": 1058.53,
+        "card_sales": 0,
         "jazzcash_sales": 50,
         "easypaisa_sales": 111.88,
-        "total_sales": 1220.42,
-        "expected_cash": 5958.54,
+        "total_sales": 1220.41,
+        "expected_cash": 6058.53,
         "total_cash": null,
         "cash_variance": null,
         "closing_at": null
@@ -1439,7 +1482,7 @@ export const SAMPLE_RESPONSES = {
           "name": "Gulshan e Iqbal Block 13 D"
         },
         "total_cash": 10000,
-        "closing_at": "2026-10-26T18:49:45.024Z"
+        "closing_at": "2026-10-27T18:24:51.682Z"
       }
     }
   }],
@@ -1475,10 +1518,10 @@ export const SAMPLE_RESPONSES = {
         "storeId": 1,
         "license_key": "LIC-0931-3965-76DF-21E2",
         "status": "active",
-        "starts_at": "2026-10-26T18:49:45.046Z",
-        "expires_at": "2026-11-26T18:49:45.046Z",
+        "starts_at": "2026-10-27T18:24:51.706Z",
+        "expires_at": "2026-11-27T18:24:51.706Z",
         "planId": 1,
-        "renew_at": "2026-10-26T18:49:45.046Z"
+        "renew_at": "2026-10-27T18:24:51.706Z"
       }
     }
   }],
@@ -1490,7 +1533,7 @@ export const SAMPLE_RESPONSES = {
       "message": "OK",
       "data": [
         {
-          "id": "6b499877-133b-4568-9fea-62f878295c4f",
+          "id": "8a662311-675b-4771-bd52-9ac892c975a3",
           "code": "solo-pos",
           "type": "monthly",
           "name": "Solo",
@@ -1509,8 +1552,8 @@ export const SAMPLE_RESPONSES = {
           "remote_access": false,
           "features": [],
           "is_active": true,
-          "created_at": "2026-10-26T18:49:43.000Z",
-          "updated_at": "2026-10-26T18:49:43.000Z"
+          "created_at": "2026-10-27T18:24:49.000Z",
+          "updated_at": "2026-10-27T18:24:49.000Z"
         }
       ]
     }
@@ -1555,7 +1598,7 @@ export const SAMPLE_RESPONSES = {
         "is_active": true,
         "status": "active",
         "trial_ends_at": null,
-        "created_at": "2026-10-26T18:49:43.000Z",
+        "created_at": "2026-10-27T18:24:49.000Z",
         "account_manager_name": null,
         "account_manager_phone": null,
         "suspend_reason": null,
@@ -1594,8 +1637,8 @@ export const SAMPLE_RESPONSES = {
             "pin": "2222",
             "is_active": true
           },
-          "created_at": "2026-10-26T18:49:43.000Z",
-          "updated_at": "2026-10-26T18:49:43.000Z"
+          "created_at": "2026-10-27T18:24:49.000Z",
+          "updated_at": "2026-10-27T18:24:49.000Z"
         },
         {
           "id": 2,
@@ -1609,8 +1652,8 @@ export const SAMPLE_RESPONSES = {
           "is_default": false,
           "is_active": true,
           "manager": null,
-          "created_at": "2026-10-26T18:49:43.000Z",
-          "updated_at": "2026-10-26T18:49:43.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z",
+          "updated_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 3,
@@ -1624,8 +1667,8 @@ export const SAMPLE_RESPONSES = {
           "is_default": false,
           "is_active": true,
           "manager": null,
-          "created_at": "2026-10-26T18:49:43.000Z",
-          "updated_at": "2026-10-26T18:49:43.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z",
+          "updated_at": "2026-10-27T18:24:50.000Z"
         }
       ]
     }
@@ -2096,7 +2139,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2181,7 +2224,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2263,7 +2306,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2361,7 +2404,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Customer left",
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2458,7 +2501,7 @@ export const SAMPLE_RESPONSES = {
         "change_due": 536.23,
         "cancel_reason": null,
         "cancelled_by": null,
-        "placed_at": "2026-10-26T18:49:44.000Z",
+        "placed_at": "2026-10-27T18:24:51.000Z",
         "channel": "pos",
         "is_pos_visible": true,
         "is_web_visible": false
@@ -2522,7 +2565,23 @@ export const SAMPLE_RESPONSES = {
           "amount": 1230,
           "tax": 837.43,
           "total": 2067.43,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 1967.43,
+              "method": "cash",
+              "bill_share": 1696.07,
+              "payment_tax_amount": 271.36,
+              "payment_tax_percent": 16
+            },
+            {
+              "amount": 100,
+              "method": "card",
+              "bill_share": 95.24,
+              "payment_tax_amount": 4.76,
+              "payment_tax_percent": 5
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 1,
@@ -2564,7 +2623,16 @@ export const SAMPLE_RESPONSES = {
           "amount": 220,
           "tax": 81.14,
           "total": 301.14,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 301.14,
+              "method": "cash",
+              "bill_share": 259.6,
+              "payment_tax_amount": 41.54,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         }
       ],
       "pagination": {
@@ -2613,13 +2681,22 @@ export const SAMPLE_RESPONSES = {
               "qty": 1,
               "unit_price": 100,
               "amount": 100,
-              "tax": 69.36
+              "tax": 69.37
             }
           ],
           "amount": 100,
-          "tax": 69.36,
-          "total": 169.36,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "tax": 69.37,
+          "total": 169.37,
+          "payments": [
+            {
+              "amount": 169.37,
+              "method": "cash",
+              "bill_share": 146.01,
+              "payment_tax_amount": 23.36,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 5,
@@ -2658,7 +2735,16 @@ export const SAMPLE_RESPONSES = {
           "amount": 90,
           "tax": 57.2,
           "total": 147.2,
-          "refunded_at": "2026-10-26T18:49:44.000Z"
+          "payments": [
+            {
+              "amount": 147.2,
+              "method": "cash",
+              "bill_share": 126.9,
+              "payment_tax_amount": 20.3,
+              "payment_tax_percent": 16
+            }
+          ],
+          "refunded_at": "2026-10-27T18:24:51.000Z"
         }
       ],
       "pagination": {
@@ -2704,7 +2790,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 44,
           "unit_sold": 4,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 14,
@@ -2734,7 +2820,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 43,
           "unit_sold": 5,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 13,
@@ -2764,7 +2850,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 22,
           "unit_sold": 2,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 12,
@@ -2794,7 +2880,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 44,
           "unit_sold": 4,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 11,
@@ -2824,7 +2910,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 43,
           "unit_sold": 5,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 10,
@@ -2854,7 +2940,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 12,
           "qty_after": 21,
           "unit_sold": 3,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 9,
@@ -2884,7 +2970,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 9,
           "unit_sold": 15,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 8,
@@ -2914,7 +3000,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -3,
           "qty_after": 42,
           "unit_sold": 6,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 7,
@@ -2944,7 +3030,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 45,
           "unit_sold": 3,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 6,
@@ -2974,7 +3060,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -12,
           "qty_after": 11,
           "unit_sold": 13,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 5,
@@ -3004,7 +3090,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 23,
           "unit_sold": 1,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 4,
@@ -3034,7 +3120,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 46,
           "unit_sold": 2,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 3,
@@ -3061,7 +3147,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 48,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 2,
@@ -3088,7 +3174,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 24,
           "qty_after": 24,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 1,
@@ -3115,7 +3201,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 50,
           "qty_after": 50,
           "unit_sold": 0,
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         }
       ],
       "pagination": {
@@ -3157,7 +3243,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 2,
@@ -3183,7 +3269,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         },
         {
           "id": 3,
@@ -3209,7 +3295,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Ameer Hamza",
             "role": "cashier"
           },
-          "created_at": "2026-10-26T18:49:44.000Z"
+          "created_at": "2026-10-27T18:24:50.000Z"
         }
       ],
       "pagination": {
@@ -3423,45 +3509,45 @@ export const SAMPLE_RESPONSES = {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "payment_method_tax": {
-                "cash": 146.01,
+                "cash": 146,
                 "card": 0,
                 "jazzcash": 2.38,
                 "easypaisa": 5.33,
-                "total": 153.72
+                "total": 153.71
               },
-              "total": 420.42
+              "total": 420.41
             },
             "shipping": 0,
-            "total_sales": 1220.42,
+            "total_sales": 1220.41,
             "total_collected": 3905.55,
-            "refunds": 2685.13,
-            "refunded_tax": 1045.13,
+            "refunds": 2685.14,
+            "refunded_tax": 1045.14,
             "refunded_orders": 2,
             "refunded_items": 18,
             "voided_orders": 1,
             "cancelled_orders": 0,
             "cost": 350,
-            "tax": 420.42,
+            "tax": 420.41,
             "revenue": 800,
             "tax_collection": {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "default_store_tax": 144,
-              "payment_gst": 153.72,
-              "payment_gst_cash": 146.01,
+              "payment_gst": 153.71,
+              "payment_gst_cash": 146,
               "payment_gst_card": 0,
               "payment_gst_jazzcash": 2.38,
               "payment_gst_easypaisa": 5.33,
-              "total": 420.42
+              "total": 420.41
             },
             "gross_profit": 450,
-            "avg_order_value": 406.81,
-            "payments_net": 1220.42
+            "avg_order_value": 406.8,
+            "payments_net": 1220.41
           },
           "trend": [
             {
-              "bucket": "2026-10-26",
-              "sales": 1220.42,
+              "bucket": "2026-10-27",
+              "sales": 1220.41,
               "orders": 3
             }
           ],
@@ -3471,8 +3557,8 @@ export const SAMPLE_RESPONSES = {
               "transactions": 5,
               "gross_amount": 3643.67,
               "tax": 502.58,
-              "refunds": 2585.13,
-              "net_amount": 1058.54,
+              "refunds": 2585.14,
+              "net_amount": 1058.53,
               "percent": 87
             },
             {
@@ -3631,8 +3717,8 @@ export const SAMPLE_RESPONSES = {
               "transactions": 5,
               "gross_amount": 3643.67,
               "tax": 502.58,
-              "refunds": 2585.13,
-              "net_amount": 1058.54,
+              "refunds": 2585.14,
+              "net_amount": 1058.53,
               "percent": 87
             },
             {
@@ -3667,8 +3753,8 @@ export const SAMPLE_RESPONSES = {
             "transactions": 8,
             "gross_amount": 3905.55,
             "tax": 515.05,
-            "refunds": 2685.13,
-            "net_amount": 1220.42
+            "refunds": 2685.14,
+            "net_amount": 1220.41
           }
         },
         "z_reports": {
@@ -3676,8 +3762,8 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "session_id": 1,
-              "date_time": "2026-10-26T18:49:44.000Z",
-              "closed_at": "2026-10-26T18:49:45.000Z",
+              "date_time": "2026-10-27T18:24:50.000Z",
+              "closed_at": "2026-10-27T18:24:51.000Z",
               "status": "CLOSED",
               "cashier": "Ameer Hamza",
               "opening_amount": 5000,
@@ -3685,19 +3771,19 @@ export const SAMPLE_RESPONSES = {
               "gross_sales": 910,
               "discounts": 110,
               "net_sales": 800,
-              "tax": 420.42,
-              "refunds": 2685.13,
-              "total_sales": 1220.42,
-              "cash_sales": 1058.54,
+              "tax": 420.41,
+              "refunds": 2685.14,
+              "total_sales": 1220.41,
+              "cash_sales": 1058.53,
               "card_sales": 0,
               "jazzcash_sales": 50,
               "easypaisa_sales": 111.88,
               "cash_in": 0,
               "cash_out": 0,
-              "expected_cash": 6058.54,
+              "expected_cash": 6058.53,
               "counted_cash": 10000,
-              "variance": 3941.46,
-              "sales": 1220.42
+              "variance": 3941.47,
+              "sales": 1220.41
             }
           ]
         },
@@ -3726,38 +3812,8 @@ export const SAMPLE_RESPONSES = {
         "stock_movement": {
           "rows": [
             {
-              "id": 1,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_IN",
-              "qty": 50,
-              "reason": "Purchase",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 2,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "Lux Soap",
-              "type": "STOCK_IN",
-              "qty": 24,
-              "reason": "Opening Balance",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 3,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_OUT",
-              "qty": -2,
-              "reason": "Damage",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
               "id": 4,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -2,
@@ -3767,7 +3823,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 5,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -1,
@@ -3777,7 +3833,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 6,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -12,
@@ -3787,7 +3843,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 7,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
@@ -3797,7 +3853,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 8,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -3,
@@ -3807,7 +3863,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 9,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -2,
@@ -3817,7 +3873,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 10,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "REFUND",
               "qty": 12,
@@ -3827,7 +3883,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 11,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -3837,7 +3893,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 12,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -3847,7 +3903,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 13,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "REFUND",
               "qty": 1,
@@ -3857,7 +3913,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 14,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
@@ -3867,11 +3923,41 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 15,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
               "reason": "Refund",
+              "channel": "both",
+              "cashier": "Zayan Ahmed"
+            },
+            {
+              "id": 1,
+              "date": "2026-10-27T18:24:50.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_IN",
+              "qty": 50,
+              "reason": "Purchase",
+              "channel": "both",
+              "cashier": "Zayan Ahmed"
+            },
+            {
+              "id": 2,
+              "date": "2026-10-27T18:24:50.000Z",
+              "product": "Lux Soap",
+              "type": "STOCK_IN",
+              "qty": 24,
+              "reason": "Opening Balance",
+              "channel": "both",
+              "cashier": "Zayan Ahmed"
+            },
+            {
+              "id": 3,
+              "date": "2026-10-27T18:24:50.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_OUT",
+              "qty": -2,
+              "reason": "Damage",
               "channel": "both",
               "cashier": "Zayan Ahmed"
             }
@@ -3880,29 +3966,29 @@ export const SAMPLE_RESPONSES = {
         "refund_void": {
           "rows": [
             {
-              "id": 1,
+              "id": 5,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 2,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 1,
               "channel": "pos",
-              "amount": 136.88,
-              "reason": "Full return",
+              "amount": 147.2,
+              "reason": "Customer return",
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 2,
+              "id": 6,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 2,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 1,
               "channel": "pos",
-              "amount": 164.26,
-              "reason": "Full return",
+              "amount": 169.37,
+              "reason": "Damaged item",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 6,
               "type": "void",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "order_number": 6,
               "channel": "pos",
               "amount": 147.2,
@@ -3910,19 +3996,29 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 4,
+              "id": 2,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 3,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 2,
               "channel": "pos",
-              "amount": 146.46,
-              "reason": "Customer changed mind",
+              "amount": 164.26,
+              "reason": "Full return",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 1,
+              "type": "refund",
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 2,
+              "channel": "pos",
+              "amount": 136.88,
+              "reason": "Full return",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 3,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "order_number": 3,
               "channel": "pos",
               "amount": 1920.97,
@@ -3930,23 +4026,13 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 6,
+              "id": 4,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 1,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 3,
               "channel": "pos",
-              "amount": 169.36,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 1,
-              "channel": "pos",
-              "amount": 147.2,
-              "reason": "Customer return",
+              "amount": 146.46,
+              "reason": "Customer changed mind",
               "cashier": "Ameer Hamza"
             }
           ],
@@ -3954,27 +4040,38 @@ export const SAMPLE_RESPONSES = {
             "refunds": 6,
             "voids": 1,
             "cancelled": 0,
-            "amount": 2832.33
+            "amount": 2832.34
           }
         },
         "refunded_orders": {
           "rows": [
             {
-              "id": 1,
-              "order_number": 2,
-              "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "id": 5,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-27T18:24:51.000Z",
+              "amount": 90,
+              "tax": 57.2,
+              "total": 147.2,
+              "reason": "Customer return",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 6,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 100,
-              "tax": 36.88,
-              "total": 136.88,
-              "reason": "Full return",
+              "tax": 69.37,
+              "total": 169.37,
+              "reason": "Damaged item",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 2,
               "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 120,
               "tax": 44.26,
               "total": 164.26,
@@ -3982,21 +4079,21 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 4,
-              "order_number": 3,
+              "id": 1,
+              "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
-              "amount": 90,
-              "tax": 56.46,
-              "total": 146.46,
-              "reason": "Customer changed mind",
+              "date": "2026-10-27T18:24:51.000Z",
+              "amount": 100,
+              "tax": 36.88,
+              "total": 136.88,
+              "reason": "Full return",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 3,
               "order_number": 3,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 1140,
               "tax": 780.97,
               "total": 1920.97,
@@ -4004,25 +4101,14 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 6,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-26T18:49:44.000Z",
-              "amount": 100,
-              "tax": 69.36,
-              "total": 169.36,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-26T18:49:44.000Z",
+              "id": 4,
+              "order_number": 3,
+              "refund_type": "complete",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 90,
-              "tax": 57.2,
-              "total": 147.2,
-              "reason": "Customer return",
+              "tax": 56.46,
+              "total": 146.46,
+              "reason": "Customer changed mind",
               "cashier": "Ameer Hamza"
             }
           ],
@@ -4032,8 +4118,8 @@ export const SAMPLE_RESPONSES = {
             "partial": 2,
             "orders": 3,
             "amount": 1640,
-            "tax": 1045.13,
-            "total": 2685.13
+            "tax": 1045.14,
+            "total": 2685.14
           }
         },
         "cancelled_orders": {
@@ -4041,7 +4127,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 6,
               "status": "voided",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 147.2,
               "reason": "Customer left",
               "cashier": "Ameer Hamza"
@@ -4063,8 +4149,8 @@ export const SAMPLE_RESPONSES = {
               "total_sales": 3905.55,
               "discounts": 190,
               "tax": 1465.55,
-              "refunds": 2685.13,
-              "net_sales": 1220.42
+              "refunds": 2685.14,
+              "net_sales": 1220.41
             }
           ]
         },
@@ -4072,31 +4158,31 @@ export const SAMPLE_RESPONSES = {
           "totals": {
             "orders": 3,
             "net_sales": 800,
-            "tax_collected": 420.42,
-            "total_sales": 1220.42,
+            "tax_collected": 420.41,
+            "total_sales": 1220.41,
             "taxes": {
               "sales_tax": 144,
               "product_tax": 88.2,
               "category_tax": 34.5,
               "payment_method_tax": {
-                "cash": 146.01,
+                "cash": 146,
                 "card": 0,
                 "jazzcash": 2.38,
                 "easypaisa": 5.33,
-                "total": 153.72
+                "total": 153.71
               },
-              "total": 420.42
+              "total": 420.41
             },
             "tax_collection": {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "default_store_tax": 144,
-              "payment_gst": 153.72,
-              "payment_gst_cash": 146.01,
+              "payment_gst": 153.71,
+              "payment_gst_cash": 146,
               "payment_gst_card": 0,
               "payment_gst_jazzcash": 2.38,
               "payment_gst_easypaisa": 5.33,
-              "total": 420.42
+              "total": 420.41
             },
             "fbr_reported": 0
           },
@@ -4119,7 +4205,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": "payment_tax_cash",
               "tax_rule": "Payment Method Tax (Cash)",
-              "tax_collected": 146.01
+              "tax_collected": 146
             },
             {
               "id": "payment_tax_card",
@@ -4139,12 +4225,12 @@ export const SAMPLE_RESPONSES = {
             {
               "id": "payment_tax",
               "tax_rule": "Payment Method Tax (total)",
-              "tax_collected": 153.72
+              "tax_collected": 153.71
             },
             {
               "id": "total",
               "tax_rule": "Total Tax",
-              "tax_collected": 420.42
+              "tax_collected": 420.41
             }
           ]
         },
@@ -4159,9 +4245,9 @@ export const SAMPLE_RESPONSES = {
               "gross_sales": 910,
               "discounts": 110,
               "net_sales": 800,
-              "tax": 420.42,
-              "refunds": 2685.13,
-              "total_sales": 1220.42,
+              "tax": 420.41,
+              "refunds": 2685.14,
+              "total_sales": 1220.41,
               "percent": 100
             }
           ]
@@ -4194,45 +4280,45 @@ export const SAMPLE_RESPONSES = {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "payment_method_tax": {
-                "cash": 146.01,
+                "cash": 146,
                 "card": 0,
                 "jazzcash": 2.38,
                 "easypaisa": 5.33,
-                "total": 153.72
+                "total": 153.71
               },
-              "total": 420.42
+              "total": 420.41
             },
             "shipping": 0,
-            "total_sales": 1220.42,
+            "total_sales": 1220.41,
             "total_collected": 3905.55,
-            "refunds": 2685.13,
-            "refunded_tax": 1045.13,
+            "refunds": 2685.14,
+            "refunded_tax": 1045.14,
             "refunded_orders": 2,
             "refunded_items": 18,
             "voided_orders": 1,
             "cancelled_orders": 0,
             "cost": 350,
-            "tax": 420.42,
+            "tax": 420.41,
             "revenue": 800,
             "tax_collection": {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "default_store_tax": 144,
-              "payment_gst": 153.72,
-              "payment_gst_cash": 146.01,
+              "payment_gst": 153.71,
+              "payment_gst_cash": 146,
               "payment_gst_card": 0,
               "payment_gst_jazzcash": 2.38,
               "payment_gst_easypaisa": 5.33,
-              "total": 420.42
+              "total": 420.41
             },
             "gross_profit": 450,
-            "avg_order_value": 406.81,
-            "payments_net": 1220.42
+            "avg_order_value": 406.8,
+            "payments_net": 1220.41
           },
           "trend": [
             {
-              "bucket": "2026-10-26",
-              "sales": 1220.42,
+              "bucket": "2026-10-27",
+              "sales": 1220.41,
               "orders": 3
             }
           ],
@@ -4242,8 +4328,8 @@ export const SAMPLE_RESPONSES = {
               "transactions": 5,
               "gross_amount": 3643.67,
               "tax": 502.58,
-              "refunds": 2585.13,
-              "net_amount": 1058.54,
+              "refunds": 2585.14,
+              "net_amount": 1058.53,
               "percent": 87
             },
             {
@@ -4402,8 +4488,8 @@ export const SAMPLE_RESPONSES = {
               "transactions": 5,
               "gross_amount": 3643.67,
               "tax": 502.58,
-              "refunds": 2585.13,
-              "net_amount": 1058.54,
+              "refunds": 2585.14,
+              "net_amount": 1058.53,
               "percent": 87
             },
             {
@@ -4438,8 +4524,8 @@ export const SAMPLE_RESPONSES = {
             "transactions": 8,
             "gross_amount": 3905.55,
             "tax": 515.05,
-            "refunds": 2685.13,
-            "net_amount": 1220.42
+            "refunds": 2685.14,
+            "net_amount": 1220.41
           }
         },
         "z_reports": {
@@ -4447,8 +4533,8 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "session_id": 1,
-              "date_time": "2026-10-26T18:49:44.000Z",
-              "closed_at": "2026-10-26T18:49:45.000Z",
+              "date_time": "2026-10-27T18:24:50.000Z",
+              "closed_at": "2026-10-27T18:24:51.000Z",
               "status": "CLOSED",
               "cashier": "Ameer Hamza",
               "opening_amount": 5000,
@@ -4456,19 +4542,19 @@ export const SAMPLE_RESPONSES = {
               "gross_sales": 910,
               "discounts": 110,
               "net_sales": 800,
-              "tax": 420.42,
-              "refunds": 2685.13,
-              "total_sales": 1220.42,
-              "cash_sales": 1058.54,
+              "tax": 420.41,
+              "refunds": 2685.14,
+              "total_sales": 1220.41,
+              "cash_sales": 1058.53,
               "card_sales": 0,
               "jazzcash_sales": 50,
               "easypaisa_sales": 111.88,
               "cash_in": 0,
               "cash_out": 0,
-              "expected_cash": 6058.54,
+              "expected_cash": 6058.53,
               "counted_cash": 10000,
-              "variance": 3941.46,
-              "sales": 1220.42
+              "variance": 3941.47,
+              "sales": 1220.41
             }
           ]
         },
@@ -4497,8 +4583,88 @@ export const SAMPLE_RESPONSES = {
         "stock_movement": {
           "rows": [
             {
+              "id": 7,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 5,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "Lux Soap",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 11,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 13,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "Lux Soap",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 12,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 4,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -2,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 15,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Zayan Ahmed"
+            },
+            {
+              "id": 6,
+              "date": "2026-10-27T18:24:51.000Z",
+              "product": "Lux Soap",
+              "type": "SALE",
+              "qty": -12,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
               "id": 8,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -3,
@@ -4508,98 +4674,18 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 14,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
               "reason": "Sale",
               "channel": "both",
               "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_OUT",
-              "qty": -2,
-              "reason": "Damage",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
             },
             {
               "id": 9,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
-              "type": "SALE",
-              "qty": -2,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 7,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "Lux Soap",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 1,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_IN",
-              "qty": 50,
-              "reason": "Purchase",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 12,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 15,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 11,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 4,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -2,
               "reason": "Sale",
@@ -4608,7 +4694,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 10,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "product": "Lux Soap",
               "type": "REFUND",
               "qty": 12,
@@ -4617,18 +4703,8 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 13,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "Lux Soap",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 2,
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:50.000Z",
               "product": "Lux Soap",
               "type": "STOCK_IN",
               "qty": 24,
@@ -4637,43 +4713,53 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Zayan Ahmed"
             },
             {
-              "id": 6,
-              "date": "2026-10-26T18:49:44.000Z",
-              "product": "Lux Soap",
-              "type": "SALE",
-              "qty": -12,
-              "reason": "Sale",
+              "id": 1,
+              "date": "2026-10-27T18:24:50.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_IN",
+              "qty": 50,
+              "reason": "Purchase",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Zayan Ahmed"
+            },
+            {
+              "id": 3,
+              "date": "2026-10-27T18:24:50.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_OUT",
+              "qty": -2,
+              "reason": "Damage",
+              "channel": "both",
+              "cashier": "Zayan Ahmed"
             }
           ]
         },
         "refund_void": {
           "rows": [
             {
-              "id": 1,
+              "id": 5,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 2,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 1,
               "channel": "pos",
-              "amount": 136.88,
-              "reason": "Full return",
+              "amount": 147.2,
+              "reason": "Customer return",
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 2,
+              "id": 6,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 2,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 1,
               "channel": "pos",
-              "amount": 164.26,
-              "reason": "Full return",
+              "amount": 169.37,
+              "reason": "Damaged item",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 6,
               "type": "void",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "order_number": 6,
               "channel": "pos",
               "amount": 147.2,
@@ -4681,19 +4767,29 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 4,
+              "id": 2,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 3,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 2,
               "channel": "pos",
-              "amount": 146.46,
-              "reason": "Customer changed mind",
+              "amount": 164.26,
+              "reason": "Full return",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 1,
+              "type": "refund",
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 2,
+              "channel": "pos",
+              "amount": 136.88,
+              "reason": "Full return",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 3,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "order_number": 3,
               "channel": "pos",
               "amount": 1920.97,
@@ -4701,23 +4797,13 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 6,
+              "id": 4,
               "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 1,
+              "date": "2026-10-27T18:24:51.000Z",
+              "order_number": 3,
               "channel": "pos",
-              "amount": 169.36,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "type": "refund",
-              "date": "2026-10-26T18:49:44.000Z",
-              "order_number": 1,
-              "channel": "pos",
-              "amount": 147.2,
-              "reason": "Customer return",
+              "amount": 146.46,
+              "reason": "Customer changed mind",
               "cashier": "Ameer Hamza"
             }
           ],
@@ -4725,27 +4811,38 @@ export const SAMPLE_RESPONSES = {
             "refunds": 6,
             "voids": 1,
             "cancelled": 0,
-            "amount": 2832.33
+            "amount": 2832.34
           }
         },
         "refunded_orders": {
           "rows": [
             {
-              "id": 1,
-              "order_number": 2,
-              "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "id": 5,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-27T18:24:51.000Z",
+              "amount": 90,
+              "tax": 57.2,
+              "total": 147.2,
+              "reason": "Customer return",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 6,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 100,
-              "tax": 36.88,
-              "total": 136.88,
-              "reason": "Full return",
+              "tax": 69.37,
+              "total": 169.37,
+              "reason": "Damaged item",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 2,
               "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 120,
               "tax": 44.26,
               "total": 164.26,
@@ -4753,21 +4850,21 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 4,
-              "order_number": 3,
+              "id": 1,
+              "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
-              "amount": 90,
-              "tax": 56.46,
-              "total": 146.46,
-              "reason": "Customer changed mind",
+              "date": "2026-10-27T18:24:51.000Z",
+              "amount": 100,
+              "tax": 36.88,
+              "total": 136.88,
+              "reason": "Full return",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 3,
               "order_number": 3,
               "refund_type": "complete",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 1140,
               "tax": 780.97,
               "total": 1920.97,
@@ -4775,25 +4872,14 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ameer Hamza"
             },
             {
-              "id": 6,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-26T18:49:44.000Z",
-              "amount": 100,
-              "tax": 69.36,
-              "total": 169.36,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-26T18:49:44.000Z",
+              "id": 4,
+              "order_number": 3,
+              "refund_type": "complete",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 90,
-              "tax": 57.2,
-              "total": 147.2,
-              "reason": "Customer return",
+              "tax": 56.46,
+              "total": 146.46,
+              "reason": "Customer changed mind",
               "cashier": "Ameer Hamza"
             }
           ],
@@ -4803,8 +4889,8 @@ export const SAMPLE_RESPONSES = {
             "partial": 2,
             "orders": 3,
             "amount": 1640,
-            "tax": 1045.13,
-            "total": 2685.13
+            "tax": 1045.14,
+            "total": 2685.14
           }
         },
         "cancelled_orders": {
@@ -4812,7 +4898,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 6,
               "status": "voided",
-              "date": "2026-10-26T18:49:44.000Z",
+              "date": "2026-10-27T18:24:51.000Z",
               "amount": 147.2,
               "reason": "Customer left",
               "cashier": "Ameer Hamza"
@@ -4834,8 +4920,8 @@ export const SAMPLE_RESPONSES = {
               "total_sales": 3905.55,
               "discounts": 190,
               "tax": 1465.55,
-              "refunds": 2685.13,
-              "net_sales": 1220.42
+              "refunds": 2685.14,
+              "net_sales": 1220.41
             }
           ]
         },
@@ -4843,31 +4929,31 @@ export const SAMPLE_RESPONSES = {
           "totals": {
             "orders": 3,
             "net_sales": 800,
-            "tax_collected": 420.42,
-            "total_sales": 1220.42,
+            "tax_collected": 420.41,
+            "total_sales": 1220.41,
             "taxes": {
               "sales_tax": 144,
               "product_tax": 88.2,
               "category_tax": 34.5,
               "payment_method_tax": {
-                "cash": 146.01,
+                "cash": 146,
                 "card": 0,
                 "jazzcash": 2.38,
                 "easypaisa": 5.33,
-                "total": 153.72
+                "total": 153.71
               },
-              "total": 420.42
+              "total": 420.41
             },
             "tax_collection": {
               "product_tax": 88.2,
               "category_tax": 34.5,
               "default_store_tax": 144,
-              "payment_gst": 153.72,
-              "payment_gst_cash": 146.01,
+              "payment_gst": 153.71,
+              "payment_gst_cash": 146,
               "payment_gst_card": 0,
               "payment_gst_jazzcash": 2.38,
               "payment_gst_easypaisa": 5.33,
-              "total": 420.42
+              "total": 420.41
             },
             "fbr_reported": 0
           },
@@ -4890,7 +4976,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": "payment_tax_cash",
               "tax_rule": "Payment Method Tax (Cash)",
-              "tax_collected": 146.01
+              "tax_collected": 146
             },
             {
               "id": "payment_tax_card",
@@ -4910,12 +4996,12 @@ export const SAMPLE_RESPONSES = {
             {
               "id": "payment_tax",
               "tax_rule": "Payment Method Tax (total)",
-              "tax_collected": 153.72
+              "tax_collected": 153.71
             },
             {
               "id": "total",
               "tax_rule": "Total Tax",
-              "tax_collected": 420.42
+              "tax_collected": 420.41
             }
           ]
         }
@@ -4932,10 +5018,10 @@ export const SAMPLE_RESPONSES = {
         "period": "monthly",
         "totals": {
           "orders": 3,
-          "sales_collected": 1220.42,
+          "sales_collected": 1220.41,
           "cost": 350,
           "discounts": 0,
-          "refunds": 316.56,
+          "refunds": 316.57,
           "tax_collection": {
             "product_tax": 88.2,
             "category_tax": 34.5,
@@ -4974,16 +5060,16 @@ export const SAMPLE_RESPONSES = {
           },
           "status": "closed",
           "opening_amount": 5000,
-          "opening_at": "2026-10-26T18:49:44.000Z",
-          "cash_sales": 958.54,
-          "card_sales": 100,
+          "opening_at": "2026-10-27T18:24:50.000Z",
+          "cash_sales": 1058.53,
+          "card_sales": 0,
           "jazzcash_sales": 50,
           "easypaisa_sales": 111.88,
-          "total_sales": 1220.42,
-          "expected_cash": 5958.54,
+          "total_sales": 1220.41,
+          "expected_cash": 6058.53,
           "total_cash": 10000,
-          "cash_variance": 4041.46,
-          "closing_at": "2026-10-26T18:49:45.000Z"
+          "cash_variance": 3941.47,
+          "closing_at": "2026-10-27T18:24:51.000Z"
         }
       ],
       "pagination": {
@@ -5063,7 +5149,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Customer left",
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5154,7 +5240,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5239,7 +5325,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5330,7 +5416,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 1032.57,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5406,7 +5492,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 198.86,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5488,7 +5574,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-26T18:49:44.000Z",
+          "placed_at": "2026-10-27T18:24:51.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -5618,7 +5704,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 20.3,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 8,
@@ -5636,7 +5722,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 74.79,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 7,
@@ -5654,7 +5740,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 5.33,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 6,
@@ -5672,7 +5758,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 50.91,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 5,
@@ -5690,7 +5776,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 2.38,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 4,
@@ -5708,7 +5794,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 271.37,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 3,
@@ -5726,7 +5812,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 4.76,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 2,
@@ -5744,7 +5830,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 41.54,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         },
         {
           "id": 1,
@@ -5762,7 +5848,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 63.97,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-26T18:49:44.000Z"
+          "paid_at": "2026-10-27T18:24:51.000Z"
         }
       ],
       "pagination": {
@@ -5790,9 +5876,20 @@ export const SAMPLE_RESPONSES = {
           "name": "Ameer Hamza",
           "role": "cashier"
         },
+        "customer": null,
         "order": {
           "id": 1,
-          "status": "completed"
+          "status": "completed",
+          "channel": "pos",
+          "is_custom": false,
+          "batch": {
+            "id": 1,
+            "status": "closed"
+          },
+          "payment_method": "cash",
+          "payment_status": "paid",
+          "placed_at": "2026-10-27T18:24:51.000Z",
+          "cancel_reason": null
         },
         "transaction": {
           "id": 1,
@@ -5802,11 +5899,139 @@ export const SAMPLE_RESPONSES = {
         "discount_amount": 0,
         "tax_breakdown": {
           "payment_gst": "16%",
-          "fbr_fee": 0
+          "fbr_fee": 0,
+          "product_tax": 50.4,
+          "category_tax": 19,
+          "sales_tax_rate": 18,
+          "sales_tax": 50.4,
+          "payment_gst_amount": 63.97
         },
         "tax_amount": 183.77,
         "total": 463.77,
-        "issued_at": "2026-10-26T18:49:44.000Z",
+        "items": [
+          {
+            "id": 1,
+            "item_type": "product",
+            "product_id": 1,
+            "title": "1 Litre Pepsi",
+            "sku": "1-LITRE-PEPSI",
+            "unit": "bottle",
+            "category": "Beverages",
+            "is_weight_based": false,
+            "weight": null,
+            "qty_packs": null,
+            "qty": 2,
+            "refunded_qty": 1,
+            "unit_price": 100,
+            "gross_amount": 200,
+            "discount_amount": 20,
+            "taxable_amount": 180,
+            "taxes": [
+              {
+                "source": "product",
+                "name": "GST",
+                "type": "percentage",
+                "value": 18,
+                "amount": 32.4
+              },
+              {
+                "source": "category",
+                "name": "GST",
+                "type": "percentage",
+                "value": 5,
+                "amount": 9
+              },
+              {
+                "source": "sales_tax",
+                "name": "Sales Tax",
+                "type": "percentage",
+                "value": 18,
+                "amount": 32.4
+              }
+            ],
+            "tax_amount": 73.8,
+            "total": 253.8
+          },
+          {
+            "id": 2,
+            "item_type": "product",
+            "product_id": 2,
+            "title": "Lux Soap",
+            "sku": "LUX-SOAP",
+            "unit": "piece",
+            "category": "Soap",
+            "is_weight_based": false,
+            "weight": null,
+            "qty_packs": 0,
+            "qty": 1,
+            "refunded_qty": 1,
+            "unit_price": 100,
+            "gross_amount": 100,
+            "discount_amount": 0,
+            "taxable_amount": 100,
+            "taxes": [
+              {
+                "source": "product",
+                "name": "GST",
+                "type": "percentage",
+                "value": 18,
+                "amount": 18
+              },
+              {
+                "source": "category",
+                "name": "GST",
+                "type": "percentage",
+                "value": 10,
+                "amount": 10
+              },
+              {
+                "source": "sales_tax",
+                "name": "Sales Tax",
+                "type": "percentage",
+                "value": 18,
+                "amount": 18
+              }
+            ],
+            "tax_amount": 46,
+            "total": 146
+          }
+        ],
+        "payments": [
+          {
+            "transaction_id": 1,
+            "method": "cash",
+            "bill_share": 399.8,
+            "payment_tax_percent": 16,
+            "payment_tax_amount": 63.97,
+            "amount": 463.77,
+            "paid": 1000,
+            "change": 536.23,
+            "status": "success"
+          }
+        ],
+        "summary": {
+          "gross_amount": 300,
+          "items_discount": 20,
+          "order_discount": 0,
+          "coupon_code": null,
+          "coupon_discount": 0,
+          "total_discount": 20,
+          "subTotal": 280,
+          "product_tax": 50.4,
+          "category_tax": 19,
+          "sales_tax_rate": 18,
+          "sales_tax": 50.4,
+          "items_tax": 119.8,
+          "payment_gst": 63.97,
+          "fbr_invoice_enabled": false,
+          "fbr_fee": 0,
+          "shipping_fee": 0,
+          "tax_amount": 183.77,
+          "total": 463.77,
+          "amount_paid": 1000,
+          "change_due": 536.23
+        },
+        "issued_at": "2026-10-27T18:24:51.000Z",
         "currency": "PKR"
       }
     }
@@ -5839,7 +6064,7 @@ export const SAMPLE_RESPONSES = {
         "subTotal": 100,
         "tax_amount": 36.88,
         "total": 136.88,
-        "issued_at": "2026-10-26T18:49:44.000Z"
+        "issued_at": "2026-10-27T18:24:51.000Z"
       }
     }
   }],
