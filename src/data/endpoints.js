@@ -1684,7 +1684,7 @@ export const endpoints = [
     path: "/api/v1/orders/:id/receipt",
     summary: "Receipt by Order Id",
     description:
-      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order. { id, location, staff, order, transaction { id, method }, subTotal, discount_amount, tax_breakdown { payment_gst, fbr_fee }, tax_amount, total, issued_at, currency }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order. Only what is printed on the receipt, each figure once: { id (receipt number), order_id, store { name, ntn, strn }, issued_at, channel, status, payment_status, payment_method, location { id, name }, cashier { id, name }, customer { id, name } | null, currency, items: [{ id, title, sku, qty, unit_price, discount_amount, refunded_qty, total (with tax) }], subtotal (before tax), discount_amount (order discount + coupon), tax_amount, total, amount_paid (handed over), change_due, payments: [{ method, status, amount }], tax_breakdown { product_tax, category_tax, sales_tax, payment_tax } — only on an FBR invoice, else null }.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -1694,7 +1694,7 @@ export const endpoints = [
     path: "/api/v1/orders/refunds/:refundId/receipt",
     summary: "Receipt by Refund Id",
     description:
-      "The receipt of a refund — :refundId is the refund number (the id in the refund replies) or UUID. Created automatically with the refund. { id, location, staff, order, refundId, refund_type, currency, reason, subTotal, tax_amount, total, issued_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "The receipt of a refund — :refundId is the refund number (the id in the refund replies) or UUID. Created automatically with the refund. What came back and where the money went: { id (receipt number), refund_id, order_id, refund_type, reason, store { name, ntn, strn }, issued_at, location { id, name }, cashier { id, name }, currency, items: [{ id (order item number), title, sku, qty, unit_price, total (with tax) }], subtotal (before tax), tax_amount, total, payments: [{ method, amount }] }. payments is paid back the way the sale was paid: card / wallet back to the card, cash from the drawer, credit = taken off the customer's udhaar.",
     pathParams: [{ name: "refundId", default: "1", required: true }],
   }),
   ep({
