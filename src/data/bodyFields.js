@@ -240,6 +240,22 @@ function allOptional(spec, extra = {}) {
   }
 }
 
+
+// ---- Bulk updates (PATCH .../bulk): items[] = [{ id (the row's number), ...fields }] ----
+
+/** A bulk update body: items[] with the row's number as id; every other field optional. */
+function bulkUpdateOf(label, spec, extra = {}) {
+  return {
+    ...extra,
+    items: must("One row per record to change; a row that fails is listed in failed[], the rest still save"),
+    "items[].id": must(`The ${label}'s number (1, 2, 3…), not the UUID`),
+    ...prefixed("items[].", spec),
+  }
+}
+
+const UPDATE_STAFF_ID = note("The staff member doing it (user number, e.g. 3), sent once; a row may carry its own. Leave out = the signed-in admin / manager")
+const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager / cashier: their own location")
+
 export const BODY_FIELDS = {
   // Plans
   "plans-create": PLAN_CREATE,
@@ -503,6 +519,132 @@ export const BODY_FIELDS = {
     manager_password: note("Leave blank to keep the current password"),
     manager_is_active: O,
   }),
+
+  // Bulk updates (PATCH)
+  "prod-bulk-patch": bulkUpdateOf("product", {
+    ...allOptional(PRODUCT_CREATE, {
+      category_id: note("The category's number (e.g. 2)"),
+      cost: note("Loose Item: cost of one unit (cost_price also works)"),
+      price: note("Loose Item: selling price of one unit (selling_price also works)"),
+      pack_cost: note("Pack Product: whole-pack cost"),
+      pack_price: note("Pack Product: whole-pack selling price"),
+    }),
+    sku: O,
+  }),
+  "prod-bulk-weight-patch": bulkUpdateOf("product", { is_weight_based: must("true = sold by weight (kg / g), false = by unit") }),
+  "prod-bulk-price-patch": bulkUpdateOf("product", {
+    price: note("Loose Item: selling price of one unit (selling_price also works). Send at least one price"),
+    cost: note("Loose Item: cost of one unit (cost_price also works)"),
+    pack_price: note("Pack Product: whole-pack selling price; unit price = pack_price ÷ pack_size"),
+    pack_cost: note("Pack Product: whole-pack cost"),
+  }),
+  "prod-bulk-status-patch": bulkUpdateOf("product", { is_active: must("false = off sale (record and history stay), true = back on sale") }),
+  "prod-bulk-visibility-patch": bulkUpdateOf("product", { is_pos_visible: note("Shown on the POS"), is_web_visible: note("Shown on the website") }),
+  "cat-bulk-patch": bulkUpdateOf("category", allOptional(CATEGORY_CREATE, {
+    parent_category_id: note("The parent category's number, or null for a top-level category"),
+    sort_order: O,
+  })),
+  "cat-bulk-status-patch": bulkUpdateOf("category", { is_active: R }),
+  "stock-bulk-patch": {
+    locationId: UPDATE_LOCATION,
+    staff_id: UPDATE_STAFF_ID,
+    items: R,
+    "items[].product_id": must("The product's number (e.g. 1)"),
+    "items[].qty": note("The new stock (e.g. after a physical count). Send qty or delta"),
+    "items[].delta": note("+ adds / − takes away from the current stock"),
+    "items[].reason": note("purchase | opening_balance | count | damage | expiry | waste | theft | return_to_supplier | customer_return | other"),
+    "items[].movement_type": note("stock_in | stock_out | adjustment — must match the direction (stock_in cannot lower the stock). Default from the change"),
+    "items[].note": note("Saved on the stock movement"),
+    "items[].expiry_date": note("YYYY-MM-DD. null clears it"),
+    "items[].low_stock_threshold": note("This location's low-stock alert level"),
+    "items[].staff_id": O,
+  },
+  "stock-bulk-qty-patch": {
+    locationId: UPDATE_LOCATION,
+    staff_id: UPDATE_STAFF_ID,
+    movement_type: must("stock_in (adds qty) | stock_out (takes qty away) | adjustment (sets the stock to qty) — for every item"),
+    reason: must("One reason for every item, e.g. purchase"),
+    note: note("Saved on every stock movement"),
+    items: R,
+    "items[].product_id": must("The product's number (e.g. 1)"),
+    "items[].qty": must("Above 0 (adjustment: 0 or more)"),
+  },
+  "transfer-bulk-patch": bulkUpdateOf("transfer", {
+    qty: note("The source must have it"),
+    to_location_id: note("The destination's location number"),
+    note: O,
+  }),
+  "transfer-bulk-qty-patch": bulkUpdateOf("transfer", { qty: must("Above 0; the source must have it") }),
+  "transfer-bulk-status-patch": bulkUpdateOf("transfer", { status: must("completed (everything arrived) | cancelled (nothing moves)") }, { staff_id: UPDATE_STAFF_ID }),
+  "transfer-bulk-receive-patch": bulkUpdateOf(
+    "transfer",
+    { received_qty: must("What arrived: 0 to the transfer's qty"), note: note("e.g. why some is short") },
+    { staff_id: UPDATE_STAFF_ID }
+  ),
+  "order-bulk-patch": bulkUpdateOf("order", { customer_id: must("The customer's number; only an order with no customer yet") }, { locationId: UPDATE_LOCATION }),
+  "order-bulk-status-patch": bulkUpdateOf(
+    "order",
+    {
+      status: must("completed (pending web / COD order paid) | cancelled (pending order) | voided (completed sale)"),
+      reason: note("Shown on the order"),
+      approval_request_id: note("A cashier voiding: the approved void_order request"),
+      staff_id: O,
+    },
+    { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
+  ),
+  "order-bulk-payment-method-patch": bulkUpdateOf(
+    "order",
+    { payment_method: must("cash | card | jazzcash | easypaisa — same payment tax as the old method") },
+    { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
+  ),
+  "sup-bulk-patch": bulkUpdateOf("supplier", { ...allOptional(SUPPLIER_CREATE), is_active: O }),
+  "staff-bulk-patch": bulkUpdateOf("staff member", {
+    name: O,
+    phone: O,
+    role: note("manager | cashier. Store admin only"),
+    location_id: note("The location number"),
+    is_active: O,
+    password: note("Min 6 characters"),
+    pin: note("4–6 digits, unique at the location"),
+  }),
+  "staff-bulk-status-patch": bulkUpdateOf("staff member", { is_active: must("false = left the job: cannot log in or use a PIN") }),
+  "staff-bulk-location-patch": bulkUpdateOf("staff member", { location_id: must("The new location number") }),
+  "staff-bulk-password-patch": bulkUpdateOf("staff member", {
+    password: note("New password, min 6 characters. Send password and / or pin"),
+    pin: note("New PIN, 4–6 digits, unique at the location"),
+  }),
+  "staff-session-bulk-patch": bulkUpdateOf("session", {
+    clock_in_at: note("ISO date-time"),
+    clock_out_at: note("ISO date-time, after clock_in_at. Closes the session"),
+  }),
+  "customer-bulk-patch": bulkUpdateOf("customer", {
+    name: O,
+    phone: O,
+    email: O,
+    location_id: note("The location number"),
+    debt_notes: O,
+    is_active: O,
+  }),
+  "offer-bulk-patch": bulkUpdateOf("offer", {
+    name: O,
+    type: note("promotional | flash_sale | bulk_discount | bogo"),
+    apply_to: note("category | product"),
+    discount_type: note("percentage | fixed"),
+    discount_value: O,
+    min_qty: note("bulk_discount: the discount starts at this quantity"),
+    buy_qty: note("bogo: items paid for in each group"),
+    get_qty: note("bogo: items free in each group"),
+    start_at: O,
+    end_at: note("e.g. extend a sale"),
+    is_active: O,
+    location_scope: note("Store admin only: all | selected"),
+    location_ids: note("Store admin only, with selected: location numbers"),
+  }),
+  "offer-bulk-status-patch": bulkUpdateOf("offer", { is_active: R }),
+  "location-bulk-patch": bulkUpdateOf(
+    "location",
+    allOptional(LOCATION_CREATE, { manager_password: note("Leave blank to keep the current password"), manager_is_active: O })
+  ),
 }
 
 /** Rules for a body: explicit entry, or the generic `ids` rule of the data bulk-delete routes. */

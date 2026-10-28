@@ -1936,11 +1936,11 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk",
     summary: "Bulk Update Products",
-    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost_price, selling_price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible. Reply: the updated products (same shape as create).`,
+    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible. Reply: the updated products (same shape as create).`,
     body: {
       items: [
-        { id: 1, title: "1.5 Litre Pepsi", selling_price: 160, taxes: [{ name: "GST", type: "percentage", value: 18 }] },
-        { id: 2, category_id: 2, discount_name: "Eid Sale", discount_type: "percentage", discount_value: 10 },
+        { id: 1, title: "1 Litre Pepsi", price: 110, discount_name: "Eid Shopping", discount_type: "percentage", discount_value: 10 },
+        { id: 2, low_stock_threshold: 24, sell_loose: true },
       ],
     },
   }),
@@ -1950,8 +1950,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk/weight",
     summary: "Bulk Weight Based Products",
-    description: `${BULK_UPDATE_NOTE} { id, is_weight_based }: sold by weight (kg / g) or by unit. A pack product cannot be weight based.`,
-    body: { items: [{ id: 3, is_weight_based: true }, { id: 4, is_weight_based: false }] },
+    description: `${BULK_UPDATE_NOTE} { id, is_weight_based }: sold by weight (kg / g) or by unit. Can be combined with a pack product (e.g. a 25 kg rice bag sold by the kg).`,
+    body: { items: [{ id: 3, is_weight_based: true }, { id: 1, is_weight_based: false }] },
   }),
   ep({
     id: "prod-bulk-price-patch",
@@ -1959,11 +1959,11 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk/price",
     summary: "Bulk Update Prices",
-    description: `${BULK_UPDATE_NOTE} { id, selling_price?, cost_price?, pack_selling_price?, pack_cost_price? } — at least one price. A pack product's unit prices are worked out from its pack prices. Sales already made keep the price they were sold at.`,
+    description: `${BULK_UPDATE_NOTE} { id, price?, cost?, pack_price?, pack_cost? } (same names as create; selling_price / cost_price / pack_selling_price / pack_cost_price also work) — at least one price. A pack product's unit prices are worked out from its pack prices. Sales already made keep the price they were sold at.`,
     body: {
       items: [
-        { id: 1, selling_price: 160, cost_price: 120 },
-        { id: 2, selling_price: 110 },
+        { id: 1, price: 110, cost: 55 },
+        { id: 2, pack_price: 1260, pack_cost: 950 },
       ],
     },
   }),
@@ -1974,7 +1974,7 @@ export const endpoints = [
     path: "/api/v1/products/bulk/status",
     summary: "Bulk Product Status",
     description: `${BULK_UPDATE_NOTE} { id, is_active }: false takes the product off sale without deleting it (old sales and stock history stay); true puts it back.`,
-    body: { items: [{ id: 1, is_active: true }, { id: 2, is_active: false }] },
+    body: { items: [{ id: 1, is_active: true }, { id: 3, is_active: false }] },
   }),
   ep({
     id: "prod-bulk-visibility-patch",
@@ -1983,7 +1983,7 @@ export const endpoints = [
     path: "/api/v1/products/bulk/visibility",
     summary: "Bulk Product Visibility",
     description: `${BULK_UPDATE_NOTE} { id, is_pos_visible?, is_web_visible? }: show the product on the POS, the website, or both.`,
-    body: { items: [{ id: 1, is_pos_visible: true, is_web_visible: false }, { id: 2, is_web_visible: true }] },
+    body: { items: [{ id: 1, is_pos_visible: true, is_web_visible: true }, { id: 3, is_web_visible: false }] },
   }),
   ep({
     id: "cat-bulk-patch",
@@ -1994,8 +1994,8 @@ export const endpoints = [
     description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible.`,
     body: {
       items: [
-        { id: 1, name: "Cold Drinks", tax_name: "GST", tax_type: "percentage", tax_value: 5 },
-        { id: 2, discount_name: "Soap Week", discount_type: "percentage", discount_value: 10 },
+        { id: 1, name: "Beverages", tax_name: "GST", tax_type: "percentage", tax_value: 5 },
+        { id: 3, discount_name: "Ramzan Sale", discount_type: "percentage", discount_value: 15 },
       ],
     },
   }),
@@ -2006,7 +2006,7 @@ export const endpoints = [
     path: "/api/v1/categories/bulk/status",
     summary: "Bulk Category Status",
     description: `${BULK_UPDATE_NOTE} { id, is_active }.`,
-    body: { items: [{ id: 1, is_active: true }, { id: 2, is_active: false }] },
+    body: { items: [{ id: 2, is_active: true }, { id: 3, is_active: true }] },
   }),
   ep({
     id: "stock-bulk-patch",
@@ -2019,9 +2019,8 @@ export const endpoints = [
       locationId: 1,
       staff_id: 3,
       items: [
-        { product_id: 1, qty: 80, reason: "count", movement_type: "adjustment", note: "Physical count", expiry_date: "2027-01-31" },
-        { product_id: 2, delta: -2, reason: "damage", movement_type: "stock_out", note: "2 broken" },
-        { product_id: 3, low_stock_threshold: 10 },
+        { product_id: 1, qty: 40, reason: "count", movement_type: "adjustment", note: "Physical count", expiry_date: "2026-12-31" },
+        { product_id: 2, delta: -2, reason: "damage", movement_type: "stock_out", note: "2 soaps damaged", low_stock_threshold: 12 },
       ],
     },
   }),
@@ -2037,10 +2036,10 @@ export const endpoints = [
       staff_id: 3,
       movement_type: "stock_in",
       reason: "purchase",
-      note: "Pepsi Co delivery",
+      note: "Nestle Distributor delivery",
       items: [
         { product_id: 1, qty: 24 },
-        { product_id: 2, qty: 48 },
+        { product_id: 3, qty: 50 },
       ],
     },
   }),
@@ -2051,7 +2050,7 @@ export const endpoints = [
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Update Stock Transfers",
     description: `${BULK_UPDATE_NOTE} A transfer still on the way: qty, to_location_id (location number), note. The source must have the qty. Store admin.`,
-    body: { items: [{ id: 1, qty: 12, note: "One more box" }, { id: 2, to_location_id: 3 }] },
+    body: { items: [{ id: 1, qty: 24, note: "Weekly refill + 4" }, { id: 3, to_location_id: 3 }] },
   }),
   ep({
     id: "transfer-bulk-qty-patch",
@@ -2060,7 +2059,7 @@ export const endpoints = [
     path: "/api/v1/stock-transfers/bulk/qty",
     summary: "Bulk Transfer Qty",
     description: `${BULK_UPDATE_NOTE} { id, qty } of transfers still on the way. Store admin.`,
-    body: { items: [{ id: 1, qty: 10 }, { id: 2, qty: 5 }] },
+    body: { items: [{ id: 2, qty: 10 }] },
   }),
   ep({
     id: "transfer-bulk-status-patch",
@@ -2069,7 +2068,7 @@ export const endpoints = [
     path: "/api/v1/stock-transfers/bulk/status",
     summary: "Bulk Transfer Status",
     description: `${BULK_UPDATE_NOTE} { id, status: completed | cancelled }. completed = everything arrived: stock leaves the source and reaches the destination. cancelled = nothing moves.`,
-    body: { items: [{ id: 1, status: "completed" }, { id: 2, status: "cancelled" }] },
+    body: { items: [{ id: 3, status: "cancelled" }] },
   }),
   ep({
     id: "transfer-bulk-receive-patch",
@@ -2078,7 +2077,7 @@ export const endpoints = [
     path: "/api/v1/stock-transfers/bulk/receive",
     summary: "Bulk Transfer Receive",
     description: `${BULK_UPDATE_NOTE} { id, received_qty, note? }: what actually arrived. The source gives up the full qty that left; the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Received 10 of 12 (2 short)"). Reply: the transfers with received_qty and status completed.`,
-    body: { items: [{ id: 1, received_qty: 10, note: "2 bottles broken" }, { id: 2, received_qty: 5 }] },
+    body: { items: [{ id: 1, received_qty: 22, note: "2 bottles broken" }, { id: 2, received_qty: 10 }] },
   }),
   ep({
     id: "order-bulk-patch",
@@ -2087,7 +2086,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Update Orders",
     description: "POS offline sync: { locationId?, items: [{ id (order number), customer_id (customer number) }] } — attach the customer the cashier forgot to pick (an order that has no customer yet). A sale's items, prices and taxes never change: a wrong / swapped item is a refund of that item plus a new sale, so the cash drawer, stock and tax stay right.",
-    body: { locationId: 1, items: [{ id: 1, customer_id: 2 }] },
+    body: { locationId: 1, items: [{ id: 4, customer_id: 1 }] },
   }),
   ep({
     id: "order-bulk-status-patch",
@@ -2096,15 +2095,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk/status",
     summary: "Bulk Order Status",
     description: "POS / web: { locationId?, staff_id?, items: [{ id, status, reason?, approval_request_id? }] }. completed — a pending (web / COD) order delivered and paid. cancelled — a pending order. voided — a completed sale: stock goes back and the drawer is reversed (a cashier needs an approval_request_id).",
-    body: {
-      locationId: 1,
-      staff_id: 2,
-      items: [
-        { id: 12, status: "completed" },
-        { id: 13, status: "cancelled", reason: "Customer not reachable" },
-        { id: 7, status: "voided", reason: "Rung up twice" },
-      ],
-    },
+    body: { locationId: 1, staff_id: 2, items: [{ id: 8, status: "voided", reason: "Rung up twice" }] },
   }),
   ep({
     id: "order-bulk-payment-method-patch",
@@ -2113,7 +2104,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk/payment-method",
     summary: "Bulk Payment Method",
     description: "The cashier pressed the wrong method: { locationId?, items: [{ id, payment_method }] }. Only a one-method sale with no refund while its batch is open, and only between methods with the same payment tax (e.g. easypaisa 5% → card 5%). The drawer moves the amount to the new method. cash 16% → card 5% would change the bill, so it is refused (409): void it and ring it up again. Store admin / manager.",
-    body: { locationId: 1, items: [{ id: 2, payment_method: "card" }] },
+    body: { locationId: 1, items: [{ id: 7, payment_method: "card" }] },
   }),
   ep({
     id: "sup-bulk-patch",
@@ -2122,7 +2113,7 @@ export const endpoints = [
     path: "/api/v1/suppliers/bulk",
     summary: "Bulk Update Suppliers",
     description: `${BULK_UPDATE_NOTE} Any supplier field, as in create: name, phone, email, address, payment_terms, is_active, location_scope / location_ids (location numbers).`,
-    body: { items: [{ id: 1, phone: "02134567890", payment_terms: "30 days" }, { id: 2, is_active: false }] },
+    body: { items: [{ id: 1, phone: "03006666667", payment_terms: "Net 30" }, { id: 2, location_scope: "all" }] },
   }),
   ep({
     id: "staff-bulk-patch",
@@ -2131,7 +2122,7 @@ export const endpoints = [
     path: "/api/v1/staff/bulk",
     summary: "Bulk Update Staff",
     description: `${BULK_UPDATE_NOTE} Any staff field, as in create: name, phone, role (store admin only), location_id (location number), is_active, password, pin. The store admin is edited from My Account.`,
-    body: { items: [{ id: 2, name: "Ahmed Malik Khan", phone: "03001112222" }, { id: 3, role: "manager" }] },
+    body: { items: [{ id: 3, name: "Ameer Hamza", phone: "03001112222" }, { id: 4, phone: "03004445555" }] },
   }),
   ep({
     id: "staff-bulk-status-patch",
@@ -2140,7 +2131,7 @@ export const endpoints = [
     path: "/api/v1/staff/bulk/status",
     summary: "Bulk Staff Status",
     description: `${BULK_UPDATE_NOTE} { id, is_active }: false = left the job — cannot log in or use a PIN; their sales and history stay.`,
-    body: { items: [{ id: 3, is_active: false }] },
+    body: { items: [{ id: 4, is_active: false }] },
   }),
   ep({
     id: "staff-bulk-location-patch",
@@ -2149,7 +2140,7 @@ export const endpoints = [
     path: "/api/v1/staff/bulk/location",
     summary: "Bulk Staff Location",
     description: `${BULK_UPDATE_NOTE} { id, location_id (location number) }: moved to another branch (store admin; a manager only within their own). The PIN must be free at the new branch.`,
-    body: { items: [{ id: 3, location_id: 2 }] },
+    body: { items: [{ id: 4, location_id: 2 }] },
   }),
   ep({
     id: "staff-bulk-password-patch",
@@ -2158,7 +2149,7 @@ export const endpoints = [
     path: "/api/v1/staff/bulk/password",
     summary: "Bulk Reset Password / PIN",
     description: `${BULK_UPDATE_NOTE} { id, password?, pin? }: a manager resets a forgotten password (min 6) or PIN (unique at the branch). Staff can also use POST /auth/forgot-password with their email.`,
-    body: { items: [{ id: 3, password: "newpass123", pin: "5555" }] },
+    body: { items: [{ id: 4, password: "yasirali123", pin: "4545" }] },
   }),
   ep({
     id: "staff-session-bulk-patch",
@@ -2167,7 +2158,7 @@ export const endpoints = [
     path: "/api/v1/staff-sessions/bulk",
     summary: "Bulk Update Staff Sessions",
     description: `${BULK_UPDATE_NOTE} A manager corrects attendance: { id (session number), clock_in_at?, clock_out_at? } (ISO date-time). Setting clock_out_at closes the session (e.g. the cashier forgot to clock out). Store admin / manager.`,
-    body: { items: [{ id: 4, clock_out_at: "2026-10-28T22:00:00.000Z" }, { id: 5, clock_in_at: "2026-10-28T09:00:00.000Z" }] },
+    body: { items: [{ id: 1, clock_out_at: "2026-10-24T18:30:00.000Z" }] },
   }),
   ep({
     id: "customer-bulk-patch",
@@ -2176,7 +2167,7 @@ export const endpoints = [
     path: "/api/v1/customers/bulk",
     summary: "Bulk Update Customers",
     description: `${BULK_UPDATE_NOTE} name, email, phone, location_id (location number), debt_notes, is_active. Udhaar payments go through POST /customers/:id/credit, not here.`,
-    body: { items: [{ id: 1, name: "Ali Khan", phone: "03009998888" }, { id: 2, is_active: false }] },
+    body: { items: [{ id: 1, phone: "03009998888", debt_notes: "Pays every Friday" }] },
   }),
   ep({
     id: "offer-bulk-patch",
@@ -2185,7 +2176,7 @@ export const endpoints = [
     path: "/api/v1/offers/bulk",
     summary: "Bulk Update Offers",
     description: `${BULK_UPDATE_NOTE} name, type, apply_to, discount_type / discount_value, min_qty, buy_qty / get_qty, start_at / end_at (e.g. extend a sale), location_scope / location_ids, is_active. Targets: PUT /offers/:id/targets.`,
-    body: { items: [{ id: 1, discount_value: 15, end_at: "2026-11-15T23:59:59.000Z" }] },
+    body: { items: [{ id: 1, discount_value: 15, end_at: "2027-01-15T23:59:59.000Z" }, { id: 2, min_qty: 6 }] },
   }),
   ep({
     id: "offer-bulk-status-patch",
@@ -2194,7 +2185,7 @@ export const endpoints = [
     path: "/api/v1/offers/bulk/status",
     summary: "Bulk Offer Status",
     description: `${BULK_UPDATE_NOTE} { id, is_active }: switch sales on or off at once.`,
-    body: { items: [{ id: 1, is_active: false }, { id: 2, is_active: true }] },
+    body: { items: [{ id: 3, is_active: false }] },
   }),
   ep({
     id: "location-bulk-patch",
@@ -2203,7 +2194,7 @@ export const endpoints = [
     path: "/api/v1/locations/bulk",
     summary: "Bulk Update Locations",
     description: `${BULK_UPDATE_NOTE} name, address_line, city, postal_code, phone, is_active, is_default, manager_* (a manager only their own branch).`,
-    body: { items: [{ id: 1, phone: "02134561234" }, { id: 2, name: "Gulshan e Iqbal Block 13 D" }] },
+    body: { items: [{ id: 3, phone: "03001234568", postal_code: "75300" }] },
   }),
   ...dataModuleDeleteEndpoints(),
 ]
