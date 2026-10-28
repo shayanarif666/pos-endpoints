@@ -553,11 +553,11 @@ export const BODY_FIELDS = {
     "items[].qty": note("The new stock (e.g. after a physical count). Send qty or delta"),
     "items[].delta": note("+ adds / − takes away from the current stock"),
     "items[].reason": note("purchase | opening_balance | count | damage | expiry | waste | theft | return_to_supplier | customer_return | other"),
-    "items[].movement_type": note("stock_in | stock_out | adjustment — must match the direction (stock_in cannot lower the stock). Default from the change"),
+    "items[].movement_type": note("stock_in | stock_out | adjustment — must match the direction (stock_in cannot lower the stock). Leave out = worked out from the change"),
     "items[].note": note("Saved on the stock movement"),
     "items[].expiry_date": note("YYYY-MM-DD. null clears it"),
     "items[].low_stock_threshold": note("This location's low-stock alert level"),
-    "items[].staff_id": O,
+    "items[].staff_id": note("This row's staff member (user number), if not the one sent once"),
   },
   "stock-bulk-qty-patch": {
     locationId: UPDATE_LOCATION,
@@ -588,7 +588,7 @@ export const BODY_FIELDS = {
       status: must("completed (pending web / COD order paid) | cancelled (pending order) | voided (completed sale)"),
       reason: note("Shown on the order"),
       approval_request_id: note("A cashier voiding: the approved void_order request"),
-      staff_id: O,
+      staff_id: note("This row's staff member (user number), if not the one sent once"),
     },
     { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
   ),
@@ -684,6 +684,8 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const NUMBER_SUFFIX_RE =
   /_(number|int|count|qty|quantity|price|cash|amount|percent|value|values|days|threshold|size|total|pkr|rate)$/
+// Known numbers that don't end in a number suffix.
+const KNOWN_NUMBER_KEYS = new Set(["cost", "price", "pack_cost", "pack_price", "qty", "delta", "sort_order", "min_qty", "buy_qty", "get_qty"])
 // Known booleans that don't follow the is_/has_ naming convention.
 const KNOWN_BOOLEAN_KEYS = new Set([
   "sell_loose",
@@ -706,8 +708,12 @@ const KNOWN_BOOLEAN_KEYS = new Set([
 export function typeOf(path, rule, bodyValue) {
   const { note: noteText } = ruleOf(rule)
   // References that take the short number or the UUID (location_id, product_id...).
-  if (/(^|_)id$|[a-z]Id$/.test(path.split(".").pop()) && /number/i.test(noteText) && /UUID/.test(noteText)) {
+  if (/(^|_)id$|[a-z]Id$/.test(path.split(".").pop()) && /number/i.test(noteText) && /UUID/.test(noteText.replace(/not the UUID/i, ""))) {
     return "number | UUID"
+  }
+  // References that take only the short number (bulk updates: id, category_id, location_id...).
+  if (/(^|_)id$|[a-z]Id$/.test(path.split(".").pop()) && /number/i.test(noteText) && !/UUID/.test(noteText.replace(/not the UUID/i, ""))) {
+    return "number"
   }
   if (bodyValue !== undefined) {
     if (typeof bodyValue === "boolean") return "boolean"
@@ -725,7 +731,7 @@ export function typeOf(path, rule, bodyValue) {
   if (/(^|_)id$/.test(key)) return "UUID"
   if (/_at$/.test(key)) return "date-time"
   if (/^(is_|has_)/.test(key) || KNOWN_BOOLEAN_KEYS.has(key)) return "boolean"
-  if (NUMBER_SUFFIX_RE.test(key)) return "number"
+  if (NUMBER_SUFFIX_RE.test(key) || KNOWN_NUMBER_KEYS.has(key)) return "number"
   if (key === "items" || key === "features" || key === "targets" || key === "rates") return "array"
   return "string"
 }

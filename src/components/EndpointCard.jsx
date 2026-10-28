@@ -480,7 +480,7 @@ export function EndpointCard({
         <Modal title="Attributes" wide onClose={() => setModal(null)}>
           <BodyFields
             fields={shownFields}
-            bulk={Boolean(builder?.bulk) || endpoint.id.endsWith("-bulk")}
+            bulk={Boolean(builder?.bulk) || endpoint.id.endsWith("-bulk") || Array.isArray(activeBody?.items)}
             body={builder ? buildBody(builder, variantId, allToggles(builder), scopeId) : activeBody}
           />
         </Modal>
@@ -642,14 +642,17 @@ function KeyValueInputs({ rows, values, onChange }) {
 
 /** Example value at "a.b" / "items[].product_id" (first row of an array). */
 function exampleAt(body, path) {
-  let value = body
-  for (const part of path.split(".")) {
-    if (value == null) return undefined
-    const isRows = part.endsWith("[]")
-    value = value[isRows ? part.slice(0, -2) : part]
-    if (isRows) value = Array.isArray(value) ? value[0] : undefined
+  const [head, ...rest] = path.split(".")
+  if (body == null) return undefined
+  if (!head.endsWith("[]")) return rest.length ? exampleAt(body[head], rest.join(".")) : body[head]
+  // Array rows: the first row that has the field (rows of a bulk body may differ).
+  const rows = Array.isArray(body[head.slice(0, -2)]) ? body[head.slice(0, -2)] : []
+  if (!rest.length) return rows[0]
+  for (const row of rows) {
+    const value = exampleAt(row, rest.join("."))
+    if (value !== undefined) return value
   }
-  return value
+  return undefined
 }
 
 const BODY_FIELDS_GRID =
