@@ -20,7 +20,7 @@ if (import.meta.env.DEV) {
 import { getByPath, loadSession, saveSession } from "./lib/storage.js"
 import { AuthorizeBar } from "./components/AuthorizeBar.jsx"
 import { EndpointCard } from "./components/EndpointCard.jsx"
-import { Sidebar } from "./components/Sidebar.jsx"
+import { Sidebar, sectionKey } from "./components/Sidebar.jsx"
 
 const SECTION_LISTS = { post: postSections, get: getSections, "put-patch": patchSections }
 
@@ -39,7 +39,7 @@ function sectionsOf(sections, items) {
 export default function App() {
   const [session, setSession] = useState(loadSession)
   const [authOpen, setAuthOpen] = useState(true)
-  const [activeTag, setActiveTag] = useState(tags[0].id)
+  const [activeSection, setActiveSection] = useState(null)
   const [query, setQuery] = useState("")
 
   function updateSession(patch) {
@@ -87,7 +87,7 @@ export default function App() {
   const METHOD_GROUPS = [
     { key: "post", label: "POST", test: (m) => m === "POST" },
     { key: "get", label: "GET", test: (m) => m === "GET" },
-    { key: "put-patch", label: "PUT & PATCH", test: (m) => m === "PUT" || m === "PATCH" },
+    { key: "put-patch", label: "PUT / PATCH", test: (m) => m === "PUT" || m === "PATCH" },
     { key: "delete", label: "DELETE", test: (m) => m === "DELETE" },
   ]
 
@@ -108,21 +108,19 @@ export default function App() {
     [filtered]
   )
 
-  // The sidebar still navigates by resource (tag) — jump to that tag's first appearance, which
-  // is in whichever method group comes first for it (usually POST).
-  function scrollToTag(id) {
-    document.querySelector(`[data-tag="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+  // The sidebar links to one section of one method group (e.g. GET → Products).
+  function scrollToSection(key) {
+    document.querySelector(`[data-section="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   return (
     <div className="flex min-h-screen">
       <Sidebar
-        tags={tags}
-        endpoints={endpoints}
-        activeTag={activeTag}
-        onSelect={(id) => {
-          setActiveTag(id)
-          scrollToTag(id)
+        groups={groupedSections}
+        activeKey={activeSection}
+        onSelect={(key) => {
+          setActiveSection(key)
+          scrollToSection(key)
         }}
         query={query}
         setQuery={setQuery}
@@ -164,7 +162,7 @@ export default function App() {
                 <div className="space-y-8">
                   {tagSections.map(({ tag, items }) => {
                     return (
-                      <div key={tag.id} data-tag={tag.navTag || tag.id}>
+                      <div key={tag.id} data-tag={tag.navTag || tag.id} data-section={sectionKey(group.key, tag.id)} className="scroll-mt-4">
                         <h2 className="mb-3 text-xl font-semibold text-slate-800">{tag.name}</h2>
                         <div className="space-y-3">
                           {items.map((item) => (
