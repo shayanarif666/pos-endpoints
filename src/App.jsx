@@ -38,7 +38,6 @@ function sectionsOf(sections, items) {
 
 export default function App() {
   const [session, setSession] = useState(loadSession)
-  const [authOpen, setAuthOpen] = useState(true)
   const [activeSection, setActiveSection] = useState(null)
   const [query, setQuery] = useState("")
 
@@ -48,10 +47,6 @@ export default function App() {
       saveSession(next)
       return next
     })
-  }
-
-  function clearTokens() {
-    updateSession({ accessToken: "", refreshToken: "", licenseKey: "", role: "" })
   }
 
   function onCapture(payload, map) {
@@ -127,31 +122,7 @@ export default function App() {
       />
 
       <div className="min-w-0 flex-1">
-        <header className="border-b border-slate-200 bg-[#1b1b1b] px-4 py-4 text-white">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#89bf04]">
-                Multi Tenant Ecommerce
-              </div>
-              <h1 className="mt-1 text-2xl font-semibold">POS web API</h1>
-              <p className="mt-1 max-w-3xl text-sm text-slate-300">
-                Only routes the POS web app calls, plus Plans and Authentication (including store
-                register). Coupons, approvals, transfers, backup, and unused admin extras are omitted.
-              </p>
-            </div>
-            <div className="rounded border border-[#333] bg-[#111] px-3 py-2 font-mono text-xs text-slate-300">
-              {filtered.length} operations
-            </div>
-          </div>
-        </header>
-
-        <AuthorizeBar
-          session={session}
-          onChange={updateSession}
-          onClear={clearTokens}
-          open={authOpen}
-          setOpen={setAuthOpen}
-        />
+        <AuthorizeBar session={session} onChange={updateSession} />
 
         <main className="mx-auto max-w-5xl space-y-10 px-4 py-6">
           {(() => {
