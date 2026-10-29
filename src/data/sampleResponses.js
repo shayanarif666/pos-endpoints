@@ -15,8 +15,8 @@ export const SAMPLE_RESPONSES = {
         "license_key": "LIC-0931-3965-76DF-21E2",
         "device_id": 1,
         "status": "trial",
-        "starts_at": "2026-10-28T18:46:02.000Z",
-        "expires_at": "2026-10-31T18:46:02.000Z",
+        "starts_at": "2026-10-29T06:53:01.000Z",
+        "expires_at": "2026-11-01T06:53:01.000Z",
         "already_registered": false,
         "suspended_at": null,
         "suspended_reason": null,
@@ -43,8 +43,8 @@ export const SAMPLE_RESPONSES = {
         "is_default": false,
         "is_active": true,
         "manager": null,
-        "created_at": "2026-10-28T18:46:02.805Z",
-        "updated_at": "2026-10-28T18:46:02.805Z"
+        "created_at": "2026-10-29T06:53:02.099Z",
+        "updated_at": "2026-10-29T06:53:02.099Z"
       }
     }
   }],
@@ -118,7 +118,7 @@ export const SAMPLE_RESPONSES = {
           "id": 1,
           "name": "Acadex",
           "status": "trial",
-          "trial_ended_at": "2026-10-31T18:46:02.000Z"
+          "trial_ended_at": "2026-11-01T06:53:01.000Z"
         },
         "locations": [
           {
@@ -195,20 +195,36 @@ export const SAMPLE_RESPONSES = {
     "body": {
       "success": true,
       "message": "Clock In Session",
-      "data": {
-        "id": 1,
-        "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
-        },
-        "location": {
+      "data": [
+        {
           "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
+          "staff": {
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "status": "clock_in",
+          "opening_at": "2026-10-24T09:00:00.000Z"
         },
-        "status": "clock_in",
-        "opening_at": "2026-10-24T09:00:00.000Z"
-      }
+        {
+          "id": 2,
+          "staff": {
+            "id": 4,
+            "name": "Yasir Ali Khan",
+            "role": "cashier"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "status": "clock_in",
+          "opening_at": "2026-10-24T09:15:00.000Z"
+        }
+      ]
     }
   }],
   "batch-open": [{
@@ -217,20 +233,22 @@ export const SAMPLE_RESPONSES = {
     "body": {
       "success": true,
       "message": "Batch Open",
-      "data": {
-        "id": 1,
-        "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
-        },
-        "location": {
+      "data": [
+        {
           "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
-        },
-        "opening_amount": 5000,
-        "opening_at": "2026-10-28T18:46:03.257Z"
-      }
+          "staff": {
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "opening_amount": 5000,
+          "opening_at": "2026-10-24T09:00:00.000Z"
+        }
+      ]
     }
   }],
   "cat-bulk": [{
@@ -447,9 +465,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": null,
           "movement_type": "stock_in",
@@ -458,7 +476,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 50,
           "qty_after": 50,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 2,
@@ -474,9 +492,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": null,
           "movement_type": "stock_in",
@@ -485,7 +503,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 24,
           "qty_after": 24,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -501,9 +519,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": null,
           "movement_type": "stock_out",
@@ -512,7 +530,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 48,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -545,11 +563,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": "Weekly refill",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.398Z"
+          "created_at": "2026-10-29T06:53:02.695Z"
         },
         {
           "id": 2,
@@ -572,11 +590,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.406Z"
+          "created_at": "2026-10-29T06:53:02.702Z"
         },
         {
           "id": 3,
@@ -599,11 +617,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": "Weekend stock",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.417Z"
+          "created_at": "2026-10-29T06:53:02.711Z"
         }
       ]
     }
@@ -789,9 +807,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -858,7 +876,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T10:05:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -871,9 +889,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -934,7 +952,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 198.86,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T10:20:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -947,9 +965,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -1025,7 +1043,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 1032.57,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T11:40:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1038,9 +1056,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -1110,7 +1128,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T12:15:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1123,9 +1141,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -1201,7 +1219,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T13:30:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -1224,9 +1242,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 2,
@@ -1265,7 +1283,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -1275,9 +1293,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 3,
@@ -1333,7 +1351,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -1353,9 +1371,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -1391,7 +1409,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 6,
@@ -1401,9 +1419,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -1439,7 +1457,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:03.000Z"
         }
       ]
     }
@@ -2114,11 +2132,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": "Weekly refill + 4",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -2141,11 +2159,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": "Weekend stock",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -2178,11 +2196,11 @@ export const SAMPLE_RESPONSES = {
           "status": "on_the_way",
           "note": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -2215,11 +2233,11 @@ export const SAMPLE_RESPONSES = {
           "status": "completed",
           "note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 2,
@@ -2242,11 +2260,11 @@ export const SAMPLE_RESPONSES = {
           "status": "completed",
           "note": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -2279,11 +2297,11 @@ export const SAMPLE_RESPONSES = {
           "status": "cancelled",
           "note": "Weekend stock",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ]
     }
@@ -2303,9 +2321,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": {
             "id": 1,
@@ -2379,7 +2397,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T12:15:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2402,9 +2420,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -2456,7 +2474,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 0,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2479,9 +2497,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -2533,7 +2551,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Rung up twice",
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2849,9 +2867,9 @@ export const SAMPLE_RESPONSES = {
       "data": {
         "id": 1,
         "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
+          "id": 2,
+          "name": "Ahmed Malik",
+          "role": "manager"
         },
         "location": {
           "id": 1,
@@ -2859,7 +2877,7 @@ export const SAMPLE_RESPONSES = {
         },
         "status": "open",
         "opening_amount": 5000,
-        "opening_at": "2026-10-28T18:46:03.000Z",
+        "opening_at": "2026-10-24T09:00:00.000Z",
         "cash_sales": 1058.53,
         "card_sales": 133.24,
         "jazzcash_sales": 50,
@@ -2873,47 +2891,65 @@ export const SAMPLE_RESPONSES = {
     }
   }],
   "batch-close": [{
-    "label": "200 OK",
-    "status": 200,
+    "label": "201 Created",
+    "status": 201,
     "body": {
       "success": true,
       "message": "Batch Closed",
-      "data": {
-        "id": 1,
-        "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
-        },
-        "location": {
+      "data": [
+        {
           "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
-        },
-        "total_cash": 10000,
-        "closing_at": "2026-10-28T18:46:04.700Z"
-      }
+          "staff": {
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "total_cash": 10000,
+          "closing_at": "2026-10-24T17:00:00.000Z"
+        }
+      ]
     }
   }],
   "staff-clock-out": [{
-    "label": "200 OK",
-    "status": 200,
+    "label": "201 Created",
+    "status": 201,
     "body": {
       "success": true,
       "message": "Clock Out Session",
-      "data": {
-        "id": 1,
-        "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
-        },
-        "location": {
+      "data": [
+        {
           "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
+          "staff": {
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "status": "clock_out",
+          "closing_at": "2026-10-24T17:00:00.000Z"
         },
-        "status": "clock_out",
-        "closing_at": "2026-10-24T17:00:00.000Z"
-      }
+        {
+          "id": 2,
+          "staff": {
+            "id": 4,
+            "name": "Yasir Ali Khan",
+            "role": "cashier"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "status": "clock_out",
+          "closing_at": "2026-10-24T17:15:00.000Z"
+        }
+      ]
     }
   }],
   "staff-session-bulk-patch": [{
@@ -2926,9 +2962,9 @@ export const SAMPLE_RESPONSES = {
         {
           "id": 1,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "location": {
             "id": 1,
@@ -2950,10 +2986,10 @@ export const SAMPLE_RESPONSES = {
         "storeId": 1,
         "license_key": "LIC-0931-3965-76DF-21E2",
         "status": "active",
-        "starts_at": "2026-10-28T18:46:04.737Z",
-        "expires_at": "2026-11-28T18:46:04.737Z",
+        "starts_at": "2026-10-29T06:53:04.039Z",
+        "expires_at": "2026-11-29T06:53:04.039Z",
         "planId": 1,
-        "renew_at": "2026-10-28T18:46:04.737Z"
+        "renew_at": "2026-10-29T06:53:04.039Z"
       }
     }
   }],
@@ -2965,7 +3001,7 @@ export const SAMPLE_RESPONSES = {
       "message": "OK",
       "data": [
         {
-          "id": "613ef2f6-d1cc-471b-acec-c6e1956b7b7f",
+          "id": "7255238d-25d8-4e02-887e-e1fa6d1285ef",
           "code": "solo-pos",
           "type": "monthly",
           "name": "Solo",
@@ -2984,8 +3020,8 @@ export const SAMPLE_RESPONSES = {
           "remote_access": false,
           "features": [],
           "is_active": true,
-          "created_at": "2026-10-28T18:46:02.000Z",
-          "updated_at": "2026-10-28T18:46:02.000Z"
+          "created_at": "2026-10-29T06:53:01.000Z",
+          "updated_at": "2026-10-29T06:53:01.000Z"
         }
       ]
     }
@@ -3030,7 +3066,7 @@ export const SAMPLE_RESPONSES = {
         "is_active": true,
         "status": "active",
         "trial_ends_at": null,
-        "created_at": "2026-10-28T18:46:02.000Z",
+        "created_at": "2026-10-29T06:53:01.000Z",
         "account_manager_name": null,
         "account_manager_phone": null,
         "suspend_reason": null,
@@ -3069,8 +3105,8 @@ export const SAMPLE_RESPONSES = {
             "pin": "2222",
             "is_active": true
           },
-          "created_at": "2026-10-28T18:46:02.000Z",
-          "updated_at": "2026-10-28T18:46:02.000Z"
+          "created_at": "2026-10-29T06:53:01.000Z",
+          "updated_at": "2026-10-29T06:53:01.000Z"
         },
         {
           "id": 2,
@@ -3084,8 +3120,8 @@ export const SAMPLE_RESPONSES = {
           "is_default": false,
           "is_active": true,
           "manager": null,
-          "created_at": "2026-10-28T18:46:02.000Z",
-          "updated_at": "2026-10-28T18:46:02.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z",
+          "updated_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -3099,8 +3135,8 @@ export const SAMPLE_RESPONSES = {
           "is_default": false,
           "is_active": true,
           "manager": null,
-          "created_at": "2026-10-28T18:46:02.000Z",
-          "updated_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z",
+          "updated_at": "2026-10-29T06:53:03.000Z"
         }
       ]
     }
@@ -3128,11 +3164,26 @@ export const SAMPLE_RESPONSES = {
       "message": "OK",
       "data": [
         {
+          "id": 2,
+          "staff": {
+            "id": 4,
+            "name": "Yasir Ali Khan",
+            "role": "cashier"
+          },
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "status": "clock_out",
+          "opening_at": "2026-10-24T09:15:00.000Z",
+          "closing_at": "2026-10-24T17:15:00.000Z"
+        },
+        {
           "id": 1,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "location": {
             "id": 1,
@@ -3146,7 +3197,7 @@ export const SAMPLE_RESPONSES = {
       "pagination": {
         "page": 1,
         "limit": 20,
-        "total": 1,
+        "total": 2,
         "total_pages": 1
       }
     }
@@ -3530,9 +3581,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -3584,7 +3635,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 0,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -3597,9 +3648,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -3675,7 +3726,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T13:30:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -3688,9 +3739,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": {
             "id": 1,
@@ -3764,7 +3815,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T12:15:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -3777,9 +3828,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -3846,7 +3897,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T10:05:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -3890,9 +3941,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -3944,7 +3995,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Rung up twice",
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -3957,9 +4008,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -4011,7 +4062,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Customer left",
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -4039,9 +4090,9 @@ export const SAMPLE_RESPONSES = {
         },
         "is_custom": false,
         "staff": {
-          "id": 3,
-          "name": "Ameer Hamza",
-          "role": "cashier"
+          "id": 2,
+          "name": "Ahmed Malik",
+          "role": "manager"
         },
         "customer": null,
         "batch": {
@@ -4108,7 +4159,7 @@ export const SAMPLE_RESPONSES = {
         "change_due": 536.23,
         "cancel_reason": null,
         "cancelled_by": null,
-        "placed_at": "2026-10-28T18:46:03.000Z",
+        "placed_at": "2026-10-24T10:05:00.000Z",
         "channel": "pos",
         "is_pos_visible": true,
         "is_web_visible": false
@@ -4130,9 +4181,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 3,
@@ -4188,7 +4239,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 1,
@@ -4198,9 +4249,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 2,
@@ -4239,7 +4290,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:02.000Z"
         }
       ],
       "pagination": {
@@ -4265,9 +4316,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -4303,7 +4354,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 5,
@@ -4313,9 +4364,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -4351,7 +4402,7 @@ export const SAMPLE_RESPONSES = {
               "payment_tax_percent": 16
             }
           ],
-          "refunded_at": "2026-10-28T18:46:03.000Z"
+          "refunded_at": "2026-10-29T06:53:03.000Z"
         }
       ],
       "pagination": {
@@ -4397,7 +4448,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 41,
           "unit_sold": 5,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 25,
@@ -4424,7 +4475,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 10,
           "qty_after": 10,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 24,
@@ -4451,7 +4502,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -10,
           "qty_after": 10,
           "unit_sold": 2,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 23,
@@ -4478,7 +4529,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 22,
           "qty_after": 22,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 22,
@@ -4505,7 +4556,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -24,
           "qty_after": 40,
           "unit_sold": 6,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 21,
@@ -4532,7 +4583,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 50,
           "qty_after": 50,
           "unit_sold": 0,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 20,
@@ -4559,7 +4610,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 24,
           "qty_after": 64,
           "unit_sold": 6,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 19,
@@ -4586,7 +4637,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 20,
           "unit_sold": 2,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 18,
@@ -4613,7 +4664,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 40,
           "unit_sold": 6,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 17,
@@ -4629,9 +4680,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 8,
@@ -4643,7 +4694,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 42,
           "unit_sold": 6,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 16,
@@ -4659,9 +4710,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 7,
@@ -4673,7 +4724,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 43,
           "unit_sold": 5,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 15,
@@ -4703,7 +4754,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 44,
           "unit_sold": 4,
-          "created_at": "2026-10-28T18:46:04.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 14,
@@ -4719,9 +4770,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 6,
@@ -4733,7 +4784,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 43,
           "unit_sold": 5,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 13,
@@ -4749,9 +4800,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -4763,7 +4814,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 22,
           "unit_sold": 2,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 12,
@@ -4779,9 +4830,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 1,
@@ -4793,7 +4844,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 44,
           "unit_sold": 4,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 11,
@@ -4809,9 +4860,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 3,
@@ -4823,7 +4874,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 1,
           "qty_after": 43,
           "unit_sold": 5,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 10,
@@ -4839,9 +4890,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 3,
@@ -4853,7 +4904,7 @@ export const SAMPLE_RESPONSES = {
           "qty": 12,
           "qty_after": 21,
           "unit_sold": 3,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 9,
@@ -4869,9 +4920,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 5,
@@ -4883,7 +4934,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -2,
           "qty_after": 9,
           "unit_sold": 15,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 8,
@@ -4899,9 +4950,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 5,
@@ -4913,7 +4964,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -3,
           "qty_after": 42,
           "unit_sold": 6,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 7,
@@ -4929,9 +4980,9 @@ export const SAMPLE_RESPONSES = {
           },
           "supplier": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "order": {
             "id": 3,
@@ -4943,7 +4994,7 @@ export const SAMPLE_RESPONSES = {
           "qty": -1,
           "qty_after": 45,
           "unit_sold": 3,
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ],
       "pagination": {
@@ -4982,11 +5033,11 @@ export const SAMPLE_RESPONSES = {
           "status": "completed",
           "note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 2,
@@ -5009,11 +5060,11 @@ export const SAMPLE_RESPONSES = {
           "status": "completed",
           "note": null,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -5036,11 +5087,11 @@ export const SAMPLE_RESPONSES = {
           "status": "cancelled",
           "note": "Weekend stock",
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
-          "created_at": "2026-10-28T18:46:03.000Z"
+          "created_at": "2026-10-29T06:53:02.000Z"
         }
       ],
       "pagination": {
@@ -5286,9 +5337,14 @@ export const SAMPLE_RESPONSES = {
           },
           "trend": [
             {
-              "bucket": "2026-10-28",
-              "sales": 1353.65,
-              "orders": 4
+              "bucket": "2026-10-24",
+              "sales": 1220.41,
+              "orders": 3
+            },
+            {
+              "bucket": "2026-10-29",
+              "sales": 133.24,
+              "orders": 1
             }
           ],
           "payments": [
@@ -5502,10 +5558,10 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "session_id": 1,
-              "date_time": "2026-10-28T18:46:03.000Z",
-              "closed_at": "2026-10-28T18:46:04.000Z",
+              "date_time": "2026-10-24T09:00:00.000Z",
+              "closed_at": "2026-10-24T17:00:00.000Z",
               "status": "CLOSED",
-              "cashier": "Ameer Hamza",
+              "cashier": "Ahmed Malik",
               "opening_amount": 5000,
               "orders": 6,
               "gross_sales": 1010,
@@ -5579,8 +5635,48 @@ export const SAMPLE_RESPONSES = {
         "stock_movement": {
           "rows": [
             {
+              "id": 11,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 12,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 13,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "Lux Soap",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 14,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
               "id": 15,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -5590,27 +5686,27 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 16,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 17,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 18,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "ADJUSTMENT",
               "qty": -2,
@@ -5620,7 +5716,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 19,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "Lux Soap",
               "type": "STOCK_OUT",
               "qty": -2,
@@ -5630,7 +5726,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 20,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "STOCK_IN",
               "qty": 24,
@@ -5640,7 +5736,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 21,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "Basmati Rice",
               "type": "STOCK_IN",
               "qty": 50,
@@ -5650,7 +5746,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 22,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "TRANSFER_OUT",
               "qty": -24,
@@ -5660,7 +5756,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 23,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "TRANSFER_IN",
               "qty": 22,
@@ -5670,7 +5766,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 24,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "Lux Soap",
               "type": "TRANSFER_OUT",
               "qty": -10,
@@ -5680,7 +5776,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 25,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "Lux Soap",
               "type": "TRANSFER_IN",
               "qty": 10,
@@ -5690,7 +5786,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 26,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -5700,227 +5796,187 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 1,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "STOCK_IN",
               "qty": 50,
               "reason": "Purchase",
               "channel": "both",
-              "cashier": "Zayan Ahmed"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 2,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "STOCK_IN",
               "qty": 24,
               "reason": "Opening Balance",
               "channel": "both",
-              "cashier": "Zayan Ahmed"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 3,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "STOCK_OUT",
               "qty": -2,
               "reason": "Damage",
               "channel": "both",
-              "cashier": "Zayan Ahmed"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 4,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -2,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 5,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -1,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 6,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -12,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 7,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -1,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 8,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "SALE",
               "qty": -3,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 9,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -2,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 10,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "REFUND",
               "qty": 12,
               "reason": "Refund",
               "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 11,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 12,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 13,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "Lux Soap",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 14,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             }
           ]
         },
         "refund_void": {
           "rows": [
             {
-              "id": 8,
-              "type": "void",
-              "date": "2026-10-28T18:46:04.000Z",
-              "order_number": 8,
-              "channel": "pos",
-              "amount": 147.2,
-              "reason": "Rung up twice",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 4,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 3,
-              "channel": "pos",
-              "amount": 146.46,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 3,
-              "channel": "pos",
-              "amount": 1920.97,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 6,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 1,
-              "channel": "pos",
-              "amount": 169.37,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 5,
               "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "order_number": 1,
               "channel": "pos",
               "amount": 147.2,
               "reason": "Customer return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 6,
+              "type": "refund",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 1,
+              "channel": "pos",
+              "amount": 169.37,
+              "reason": "Damaged item",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 4,
+              "type": "refund",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 3,
+              "channel": "pos",
+              "amount": 146.46,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 8,
+              "type": "void",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 8,
+              "channel": "pos",
+              "amount": 147.2,
+              "reason": "Rung up twice",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 6,
               "type": "void",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "order_number": 6,
               "channel": "pos",
               "amount": 147.2,
               "reason": "Customer left",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 1,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 2,
-              "channel": "pos",
-              "amount": 136.88,
-              "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 2,
               "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "order_number": 2,
               "channel": "pos",
               "amount": 164.26,
               "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 1,
+              "type": "refund",
+              "date": "2026-10-29T06:53:02.000Z",
+              "order_number": 2,
+              "channel": "pos",
+              "amount": 136.88,
+              "reason": "Full return",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 3,
+              "type": "refund",
+              "date": "2026-10-29T06:53:02.000Z",
+              "order_number": 3,
+              "channel": "pos",
+              "amount": 1920.97,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -5933,70 +5989,70 @@ export const SAMPLE_RESPONSES = {
         "refunded_orders": {
           "rows": [
             {
-              "id": 4,
-              "order_number": 3,
-              "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
+              "id": 5,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 90,
-              "tax": 56.46,
-              "total": 146.46,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "order_number": 3,
-              "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 1140,
-              "tax": 780.97,
-              "total": 1920.97,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
+              "tax": 57.2,
+              "total": 147.2,
+              "reason": "Customer return",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 6,
               "order_number": 1,
               "refund_type": "partial",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 100,
               "tax": 69.37,
               "total": 169.37,
               "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
-              "id": 5,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 90,
-              "tax": 57.2,
-              "total": 147.2,
-              "reason": "Customer return",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 1,
-              "order_number": 2,
+              "id": 4,
+              "order_number": 3,
               "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 100,
-              "tax": 36.88,
-              "total": 136.88,
-              "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "date": "2026-10-29T06:53:03.000Z",
+              "amount": 90,
+              "tax": 56.46,
+              "total": 146.46,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 2,
               "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "amount": 120,
               "tax": 44.26,
               "total": 164.26,
               "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 1,
+              "order_number": 2,
+              "refund_type": "complete",
+              "date": "2026-10-29T06:53:02.000Z",
+              "amount": 100,
+              "tax": 36.88,
+              "total": 136.88,
+              "reason": "Full return",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 3,
+              "order_number": 3,
+              "refund_type": "complete",
+              "date": "2026-10-29T06:53:02.000Z",
+              "amount": 1140,
+              "tax": 780.97,
+              "total": 1920.97,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -6012,20 +6068,20 @@ export const SAMPLE_RESPONSES = {
         "cancelled_orders": {
           "rows": [
             {
-              "id": 6,
-              "status": "voided",
-              "date": "2026-10-28T18:46:04.000Z",
-              "amount": 147.2,
-              "reason": "Customer left",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 8,
               "status": "voided",
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 147.2,
               "reason": "Rung up twice",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 6,
+              "status": "voided",
+              "date": "2026-10-29T06:53:03.000Z",
+              "amount": 147.2,
+              "reason": "Customer left",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -6038,8 +6094,8 @@ export const SAMPLE_RESPONSES = {
         "by_cashier": {
           "rows": [
             {
-              "id": 3,
-              "cashier": "Ameer Hamza",
+              "id": 2,
+              "cashier": "Ahmed Malik",
               "orders": 6,
               "total_sales": 4038.79,
               "discounts": 200,
@@ -6212,9 +6268,14 @@ export const SAMPLE_RESPONSES = {
           },
           "trend": [
             {
-              "bucket": "2026-10-28",
-              "sales": 1353.65,
-              "orders": 4
+              "bucket": "2026-10-24",
+              "sales": 1220.41,
+              "orders": 3
+            },
+            {
+              "bucket": "2026-10-29",
+              "sales": 133.24,
+              "orders": 1
             }
           ],
           "payments": [
@@ -6428,10 +6489,10 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "session_id": 1,
-              "date_time": "2026-10-28T18:46:03.000Z",
-              "closed_at": "2026-10-28T18:46:04.000Z",
+              "date_time": "2026-10-24T09:00:00.000Z",
+              "closed_at": "2026-10-24T17:00:00.000Z",
               "status": "CLOSED",
-              "cashier": "Ameer Hamza",
+              "cashier": "Ahmed Malik",
               "opening_amount": 5000,
               "orders": 6,
               "gross_sales": 1010,
@@ -6487,28 +6548,8 @@ export const SAMPLE_RESPONSES = {
         "stock_movement": {
           "rows": [
             {
-              "id": 24,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "Lux Soap",
-              "type": "TRANSFER_OUT",
-              "qty": -10,
-              "reason": "Transfer",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 20,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_IN",
-              "qty": 24,
-              "reason": "Purchase",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 15,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -6518,7 +6559,7 @@ export const SAMPLE_RESPONSES = {
             },
             {
               "id": 26,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
@@ -6527,48 +6568,18 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Ahmed Malik"
             },
             {
-              "id": 17,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 16,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 18,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "ADJUSTMENT",
+              "id": 19,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "Lux Soap",
+              "type": "STOCK_OUT",
               "qty": -2,
-              "reason": "Count",
+              "reason": "Damage",
               "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 21,
-              "date": "2026-10-28T18:46:04.000Z",
-              "product": "Basmati Rice",
-              "type": "STOCK_IN",
-              "qty": 50,
-              "reason": "Purchase",
-              "channel": "pos",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 22,
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "TRANSFER_OUT",
               "qty": -24,
@@ -6577,238 +6588,288 @@ export const SAMPLE_RESPONSES = {
               "cashier": "Zayan Ahmed"
             },
             {
-              "id": 19,
-              "date": "2026-10-28T18:46:04.000Z",
+              "id": 24,
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "Lux Soap",
-              "type": "STOCK_OUT",
-              "qty": -2,
-              "reason": "Damage",
+              "type": "TRANSFER_OUT",
+              "qty": -10,
+              "reason": "Transfer",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Zayan Ahmed"
             },
             {
-              "id": 7,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 14,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 8,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -3,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 11,
-              "date": "2026-10-28T18:46:03.000Z",
+              "id": 12,
+              "date": "2026-10-29T06:53:03.000Z",
               "product": "1 Litre Pepsi",
               "type": "REFUND",
               "qty": 1,
               "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 16,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 20,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_IN",
+              "qty": 24,
+              "reason": "Purchase",
+              "channel": "both",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 17,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 21,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "Basmati Rice",
+              "type": "STOCK_IN",
+              "qty": 50,
+              "reason": "Purchase",
+              "channel": "pos",
+              "cashier": "Ameer Hamza"
+            },
+            {
+              "id": 14,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 11,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 13,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "Lux Soap",
+              "type": "REFUND",
+              "qty": 1,
+              "reason": "Refund",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 18,
+              "date": "2026-10-29T06:53:03.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "ADJUSTMENT",
+              "qty": -2,
+              "reason": "Count",
               "channel": "both",
               "cashier": "Ameer Hamza"
             },
             {
               "id": 6,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "SALE",
               "qty": -12,
               "reason": "Sale",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 4,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -2,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 1,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "1 Litre Pepsi",
               "type": "STOCK_IN",
               "qty": 50,
               "reason": "Purchase",
               "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 2,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "Lux Soap",
-              "type": "STOCK_IN",
-              "qty": 24,
-              "reason": "Opening Balance",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 13,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "Lux Soap",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 12,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "REFUND",
-              "qty": 1,
-              "reason": "Refund",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 5,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "Lux Soap",
-              "type": "SALE",
-              "qty": -1,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 4,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "SALE",
-              "qty": -2,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "1 Litre Pepsi",
-              "type": "STOCK_OUT",
-              "qty": -2,
-              "reason": "Damage",
-              "channel": "both",
-              "cashier": "Zayan Ahmed"
-            },
-            {
-              "id": 9,
-              "date": "2026-10-28T18:46:03.000Z",
-              "product": "Lux Soap",
-              "type": "SALE",
-              "qty": -2,
-              "reason": "Sale",
-              "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 10,
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "product": "Lux Soap",
               "type": "REFUND",
               "qty": 12,
               "reason": "Refund",
               "channel": "both",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 2,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "Lux Soap",
+              "type": "STOCK_IN",
+              "qty": 24,
+              "reason": "Opening Balance",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 9,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "Lux Soap",
+              "type": "SALE",
+              "qty": -2,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 3,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "STOCK_OUT",
+              "qty": -2,
+              "reason": "Damage",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 8,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -3,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 5,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "Lux Soap",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 7,
+              "date": "2026-10-29T06:53:02.000Z",
+              "product": "1 Litre Pepsi",
+              "type": "SALE",
+              "qty": -1,
+              "reason": "Sale",
+              "channel": "both",
+              "cashier": "Ahmed Malik"
             }
           ]
         },
         "refund_void": {
           "rows": [
             {
-              "id": 8,
-              "type": "void",
-              "date": "2026-10-28T18:46:04.000Z",
-              "order_number": 8,
-              "channel": "pos",
-              "amount": 147.2,
-              "reason": "Rung up twice",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 4,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 3,
-              "channel": "pos",
-              "amount": 146.46,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 3,
-              "channel": "pos",
-              "amount": 1920.97,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 6,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 1,
-              "channel": "pos",
-              "amount": 169.37,
-              "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 5,
               "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "order_number": 1,
               "channel": "pos",
               "amount": 147.2,
               "reason": "Customer return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 6,
+              "type": "refund",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 1,
+              "channel": "pos",
+              "amount": 169.37,
+              "reason": "Damaged item",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 4,
+              "type": "refund",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 3,
+              "channel": "pos",
+              "amount": 146.46,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 8,
+              "type": "void",
+              "date": "2026-10-29T06:53:03.000Z",
+              "order_number": 8,
+              "channel": "pos",
+              "amount": 147.2,
+              "reason": "Rung up twice",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 6,
               "type": "void",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "order_number": 6,
               "channel": "pos",
               "amount": 147.2,
               "reason": "Customer left",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 1,
-              "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
-              "order_number": 2,
-              "channel": "pos",
-              "amount": 136.88,
-              "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 2,
               "type": "refund",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "order_number": 2,
               "channel": "pos",
               "amount": 164.26,
               "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 1,
+              "type": "refund",
+              "date": "2026-10-29T06:53:02.000Z",
+              "order_number": 2,
+              "channel": "pos",
+              "amount": 136.88,
+              "reason": "Full return",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 3,
+              "type": "refund",
+              "date": "2026-10-29T06:53:02.000Z",
+              "order_number": 3,
+              "channel": "pos",
+              "amount": 1920.97,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -6821,70 +6882,70 @@ export const SAMPLE_RESPONSES = {
         "refunded_orders": {
           "rows": [
             {
-              "id": 4,
-              "order_number": 3,
-              "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
+              "id": 5,
+              "order_number": 1,
+              "refund_type": "partial",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 90,
-              "tax": 56.46,
-              "total": 146.46,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 3,
-              "order_number": 3,
-              "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 1140,
-              "tax": 780.97,
-              "total": 1920.97,
-              "reason": "Customer changed mind",
-              "cashier": "Ameer Hamza"
+              "tax": 57.2,
+              "total": 147.2,
+              "reason": "Customer return",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 6,
               "order_number": 1,
               "refund_type": "partial",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 100,
               "tax": 69.37,
               "total": 169.37,
               "reason": "Damaged item",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
             },
             {
-              "id": 5,
-              "order_number": 1,
-              "refund_type": "partial",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 90,
-              "tax": 57.2,
-              "total": 147.2,
-              "reason": "Customer return",
-              "cashier": "Ameer Hamza"
-            },
-            {
-              "id": 1,
-              "order_number": 2,
+              "id": 4,
+              "order_number": 3,
               "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
-              "amount": 100,
-              "tax": 36.88,
-              "total": 136.88,
-              "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "date": "2026-10-29T06:53:03.000Z",
+              "amount": 90,
+              "tax": 56.46,
+              "total": 146.46,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             },
             {
               "id": 2,
               "order_number": 2,
               "refund_type": "complete",
-              "date": "2026-10-28T18:46:03.000Z",
+              "date": "2026-10-29T06:53:02.000Z",
               "amount": 120,
               "tax": 44.26,
               "total": 164.26,
               "reason": "Full return",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 1,
+              "order_number": 2,
+              "refund_type": "complete",
+              "date": "2026-10-29T06:53:02.000Z",
+              "amount": 100,
+              "tax": 36.88,
+              "total": 136.88,
+              "reason": "Full return",
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 3,
+              "order_number": 3,
+              "refund_type": "complete",
+              "date": "2026-10-29T06:53:02.000Z",
+              "amount": 1140,
+              "tax": 780.97,
+              "total": 1920.97,
+              "reason": "Customer changed mind",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -6900,20 +6961,20 @@ export const SAMPLE_RESPONSES = {
         "cancelled_orders": {
           "rows": [
             {
-              "id": 6,
-              "status": "voided",
-              "date": "2026-10-28T18:46:04.000Z",
-              "amount": 147.2,
-              "reason": "Customer left",
-              "cashier": "Ameer Hamza"
-            },
-            {
               "id": 8,
               "status": "voided",
-              "date": "2026-10-28T18:46:04.000Z",
+              "date": "2026-10-29T06:53:03.000Z",
               "amount": 147.2,
               "reason": "Rung up twice",
-              "cashier": "Ameer Hamza"
+              "cashier": "Ahmed Malik"
+            },
+            {
+              "id": 6,
+              "status": "voided",
+              "date": "2026-10-29T06:53:03.000Z",
+              "amount": 147.2,
+              "reason": "Customer left",
+              "cashier": "Ahmed Malik"
             }
           ],
           "totals": {
@@ -6926,8 +6987,8 @@ export const SAMPLE_RESPONSES = {
         "by_cashier": {
           "rows": [
             {
-              "id": 3,
-              "cashier": "Ameer Hamza",
+              "id": 2,
+              "cashier": "Ahmed Malik",
               "orders": 6,
               "total_sales": 4038.79,
               "discounts": 200,
@@ -7062,9 +7123,9 @@ export const SAMPLE_RESPONSES = {
         {
           "id": 1,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "location": {
             "id": 1,
@@ -7072,7 +7133,7 @@ export const SAMPLE_RESPONSES = {
           },
           "status": "closed",
           "opening_amount": 5000,
-          "opening_at": "2026-10-28T18:46:03.000Z",
+          "opening_at": "2026-10-24T09:00:00.000Z",
           "cash_sales": 1058.53,
           "card_sales": 133.24,
           "jazzcash_sales": 50,
@@ -7081,7 +7142,7 @@ export const SAMPLE_RESPONSES = {
           "expected_cash": 6058.53,
           "total_cash": 10000,
           "cash_variance": 3941.47,
-          "closing_at": "2026-10-28T18:46:04.000Z"
+          "closing_at": "2026-10-24T17:00:00.000Z"
         }
       ],
       "pagination": {
@@ -7107,9 +7168,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7161,7 +7222,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Rung up twice",
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7174,9 +7235,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7228,7 +7289,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 0,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:04.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7241,9 +7302,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7295,7 +7356,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 352.8,
           "cancel_reason": "Customer left",
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-29T06:53:03.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7308,9 +7369,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7386,7 +7447,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 457.76,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T13:30:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7399,9 +7460,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": {
             "id": 1,
@@ -7475,7 +7536,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 130.91,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T12:15:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7488,9 +7549,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7566,7 +7627,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 1032.57,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T11:40:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7579,9 +7640,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": true,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7642,7 +7703,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 198.86,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T10:20:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7655,9 +7716,9 @@ export const SAMPLE_RESPONSES = {
           },
           "is_custom": false,
           "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
           },
           "customer": null,
           "batch": {
@@ -7724,7 +7785,7 @@ export const SAMPLE_RESPONSES = {
           "change_due": 536.23,
           "cancel_reason": null,
           "cancelled_by": null,
-          "placed_at": "2026-10-28T18:46:03.000Z",
+          "placed_at": "2026-10-24T10:05:00.000Z",
           "channel": "pos",
           "is_pos_visible": true,
           "is_web_visible": false
@@ -7854,7 +7915,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 20.3,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:04.000Z"
+          "paid_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 10,
@@ -7872,7 +7933,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 6.34,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:04.000Z"
+          "paid_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 9,
@@ -7890,7 +7951,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 20.3,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:03.000Z"
         },
         {
           "id": 8,
@@ -7908,7 +7969,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 74.79,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 7,
@@ -7926,7 +7987,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 5.33,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 6,
@@ -7944,7 +8005,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 50.91,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 5,
@@ -7962,7 +8023,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 2.38,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 4,
@@ -7980,7 +8041,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 271.37,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 3,
@@ -7998,7 +8059,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 4.76,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 2,
@@ -8016,7 +8077,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 41.54,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         },
         {
           "id": 1,
@@ -8034,7 +8095,7 @@ export const SAMPLE_RESPONSES = {
           "tax_amount": 63.97,
           "currency": "PKR",
           "status": "success",
-          "paid_at": "2026-10-28T18:46:03.000Z"
+          "paid_at": "2026-10-29T06:53:02.000Z"
         }
       ],
       "pagination": {
@@ -8059,7 +8120,7 @@ export const SAMPLE_RESPONSES = {
           "ntn": "1234567-8",
           "strn": "3277876123456"
         },
-        "issued_at": "2026-10-28T18:46:03.000Z",
+        "issued_at": "2026-10-29T06:53:02.000Z",
         "channel": "pos",
         "status": "completed",
         "payment_status": "paid",
@@ -8069,8 +8130,8 @@ export const SAMPLE_RESPONSES = {
           "name": "Gulshan e Iqbal Block 13 D"
         },
         "cashier": {
-          "id": 3,
-          "name": "Ameer Hamza"
+          "id": 2,
+          "name": "Ahmed Malik"
         },
         "customer": null,
         "currency": "PKR",
@@ -8130,14 +8191,14 @@ export const SAMPLE_RESPONSES = {
           "ntn": "1234567-8",
           "strn": "3277876123456"
         },
-        "issued_at": "2026-10-28T18:46:03.000Z",
+        "issued_at": "2026-10-29T06:53:02.000Z",
         "location": {
           "id": 1,
           "name": "Gulshan e Iqbal Block 13 D"
         },
         "cashier": {
-          "id": 3,
-          "name": "Ameer Hamza"
+          "id": 2,
+          "name": "Ahmed Malik"
         },
         "currency": "PKR",
         "items": [

@@ -162,7 +162,7 @@ function productBuilder() {
 }
 
 const movementRow = (productId, type, reason, qty, expiry) => [
-  ["staffId", 1],
+  ["staffId", 2],
   ["product_id", productId],
   ["movement_type", type],
   ["reason", reason],
@@ -208,7 +208,7 @@ const OFFER_ROWS = [
     ["discount_value", 10],
     ["category_id", 1],
     ...OFFER_DATES,
-    ["staff_id", 3, "optional"],
+    ["staff_id", 2, "optional"],
   ],
   [
     ["name", "Buy 3 save 5%"],
@@ -219,7 +219,7 @@ const OFFER_ROWS = [
     ["product_id", 2],
     ["min_qty", 3],
     ...OFFER_DATES,
-    ["staff_id", 3, "optional"],
+    ["staff_id", 2, "optional"],
   ],
   [
     ["name", "Buy 2 get 1 free"],
@@ -230,7 +230,7 @@ const OFFER_ROWS = [
     ["get_qty", 1],
     ...OFFER_DATES,
     ["free_product_id", 1, "optional"],
-    ["staff_id", 3, "optional"],
+    ["staff_id", 2, "optional"],
   ],
 ]
 
@@ -262,16 +262,14 @@ function offerBuilder() {
   }
 }
 
-const ORDER_OPTIONAL = [
-  ["customer_id", null, "optional"],
-  ["placed_at", "2026-10-26T10:05:00.000Z", "optional"],
-]
+const ORDER_OPTIONAL = [["customer_id", null, "optional"]]
 
 // One order row: till staff and batch, the lines and the payments (channel defaults to pos).
-const orderRow = ({ custom = false, items, payments, extra = [] }) => [
+const orderRow = ({ custom = false, items, payments, placed_at, extra = [] }) => [
   ...(custom ? [["is_custom", true]] : []),
-  ["staff_id", 3],
+  ["staff_id", 2],
   ["batch_id", 1],
+  ["placed_at", placed_at],
   ["items", items],
   ["payments", payments],
   ...ORDER_OPTIONAL,
@@ -283,6 +281,7 @@ const orderRow = ({ custom = false, items, payments, extra = [] }) => [
 // over (only cash may be more — the rest is change). Cash with only paid covers the rest of the bill.
 const ORDER_ROWS = [
   orderRow({
+    placed_at: "2026-10-24T10:05:00.000Z",
     items: [{ productId: 1, qty: 2 }, { productId: 2, qty: 1 }],
     payments: [{ method: "cash", paid: 1000 }],
     extra: [
@@ -292,6 +291,7 @@ const ORDER_ROWS = [
     ],
   }),
   orderRow({
+    placed_at: "2026-10-24T10:20:00.000Z",
     custom: true,
     items: [
       { category: "Stationary", title: "SP10 Blue Pen", price: 50, qty: 2 },
@@ -300,10 +300,12 @@ const ORDER_ROWS = [
     payments: [{ method: "cash", paid: 500 }],
   }),
   orderRow({
+    placed_at: "2026-10-24T11:40:00.000Z",
     items: [{ productId: 2, qty: 12 }, { productId: 1, qty: 1 }],
     payments: [{ method: "card", amount: 100 }, { method: "cash", paid: 3000 }],
   }),
   orderRow({
+    placed_at: "2026-10-24T12:15:00.000Z",
     custom: true,
     items: [
       { category: "Household", title: "Tissue Box", price: 150, qty: 1 },
@@ -313,6 +315,7 @@ const ORDER_ROWS = [
   }),
   // The full form: every figure worked out by the till (Pepsi × 3, Lux × 2, sales tax off).
   orderRow({
+    placed_at: "2026-10-24T13:30:00.000Z",
     items: [{ productId: 1, qty: 3 }, { productId: 2, qty: 2 }],
     payments: [
       { method: "cash", bill_share: 500, amount: 580, paid: 1000 },
@@ -1067,8 +1070,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-in",
     summary: "User Session Clock In",
-    description: "Attendance. staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    body: { location_id: 1, staffId: 3, clocked_at: "2026-10-24T09:00:00.000Z" },
+    description: "Attendance (clock in)."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: {
+      location_id: 1,
+      items: [
+        { staffId: 2, clocked_at: "2026-10-24T09:00:00.000Z" },
+        { staffId: 4, clocked_at: "2026-10-24T09:15:00.000Z" },
+      ],
+    },
     adminOnly: ["location_id"],
   }),
   ep({
@@ -1077,8 +1086,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-out",
     summary: "User Session Clock Out",
-    description: "Ends the staff member's open attendance session. Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    body: { location_id: 1, staffId: 3, clocked_at: "2026-10-24T17:00:00.000Z" },
+    description: "Ends the staff member's open attendance session."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: {
+      location_id: 1,
+      items: [
+        { staffId: 2, clocked_at: "2026-10-24T17:00:00.000Z" },
+        { staffId: 4, clocked_at: "2026-10-24T17:15:00.000Z" },
+      ],
+    },
     adminOnly: ["location_id"],
   }),
   ep({
@@ -1087,8 +1102,13 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/batches/open",
     summary: "Batch Opening",
-    description: "Opens the cash drawer for a staff member; sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    body: { location_id: 1, staffId: 3, opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
+    description: "Opens the cash drawer for a staff member. One counter (device) holds one open batch: several items at once need their own device_id (one per counter)."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: {
+      location_id: 1,
+      items: [
+        { staffId: 2, opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
+      ],
+    },
     adminOnly: ["location_id"],
   }),
   ep({
@@ -1097,8 +1117,13 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/batches/close",
     summary: "Batch Closing",
-    description: "Closes the staff member's open batch with the counted cash. Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    body: { location_id: 1, staffId: 3, total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
+    description: "Closes the staff member's open batch with the counted cash. Several items = several staff members, each closing their own open batch."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    body: {
+      location_id: 1,
+      items: [
+        { staffId: 2, total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
+      ],
+    },
     adminOnly: ["location_id"],
   }),
 
@@ -1258,9 +1283,9 @@ export const endpoints = [
     description: "Store admin. { items: [ ...transfers ] } — each sends stock of one product from one location to another (location / product numbers or UUIDs) and stays on_the_way until the destination completes it (POST /stock-transfers/:id/complete). staff_id may be sent once next to items[] or on each transfer. On channel=pos the response data is [ { id, from_location, to_location, product, qty, status, note, staff }, ... ], in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       items: [
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill", staff_id: 3 },
-        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "", staff_id: 3 },
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock", staff_id: 3 },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill", staff_id: 2 },
+        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "", staff_id: 2 },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock", staff_id: 2 },
       ],
     },
   }),
@@ -1495,8 +1520,8 @@ export const endpoints = [
     body: {
       locationId: 1,
       items: [
-        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return", staff_id: 3 },
-        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item", staff_id: 3 },
+        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return", staff_id: 2 },
+        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item", staff_id: 2 },
       ],
     },
   }),
@@ -1511,8 +1536,8 @@ export const endpoints = [
     body: {
       locationId: 1,
       items: [
-        { order_id: 2, reason: "Full return", staff_id: 3 },
-        { order_id: 3, reason: "Customer changed mind", staff_id: 3 },
+        { order_id: 2, reason: "Full return", staff_id: 2 },
+        { order_id: 3, reason: "Customer changed mind", staff_id: 2 },
       ],
     },
   }),
