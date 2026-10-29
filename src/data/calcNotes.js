@@ -33,6 +33,8 @@ const ORDER_CALCULATION = {
         "Only ACTIVE offers (is_active true / status active), inside start_at–end_at, at this location, on this product or its category.",
         "flash_sale: unit = min(price, promo_price) · promotional: unit = price − discount · bulk_discount: same, only when qty ≥ min_qty (also the product's bulk tiers) · bogo: free = floor(qty ÷ (buy_qty + get_qty)) × get_qty.",
         "Each offer's saving = (price − unit) × qty (bogo: price × free). The line takes whichever is biggest: step 2's discount OR one offer — never both.",
+        "offer_exempt: true on the order (or on one line) = no offer is considered there; the product / category discount still applies. tax_exempt: true = no tax of any kind (steps 6 and 10 are 0).",
+        "GET orders shows what priced each line, as it was at the sale: category { id, name }, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, amount }] and free_qty (BOGO).",
       ],
     },
     {

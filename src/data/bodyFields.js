@@ -174,6 +174,7 @@ const OFFER_CREATE = {
 const ORDER_ITEM = {
   "items[].productId": note("Catalog line: the product number (e.g. 1) or UUID. Leave out on custom sale lines"),
   "items[].qty": R,
+  "items[].offer_exempt": note("true = no offer on this line only. Default false"),
   "items[].weight": note("Weight-based products (kg)"),
   "items[].category": note("Custom sale lines only: the category typed at the till"),
   "items[].title": note("Custom sale lines only"),
@@ -188,7 +189,8 @@ const ORDER_CREATE = {
   batch_id: note("The open batch (its number). Defaults to the staff member's open batch"),
   device_id: note("Defaults to the device in your POS token"),
   customer_id: note("Customer number. Required when part of the bill is credit / udhaar"),
-  tax_exempt: O,
+  tax_exempt: note("true = no tax of any kind on this order (product, category, sales tax and payment GST). Default false"),
+  offer_exempt: note("true = no offer on any line of this order (product / category discounts still apply). Default false — active offers apply automatically"),
   placed_at: must("When the sale happened on the till (ISO date-time) — offline sales sync later, so the sale keeps its real time. Left out = when the server receives it"),
   coupon_code: O,
   order_discount_type: note("percentage | fixed. Cashiers need an approval"),
