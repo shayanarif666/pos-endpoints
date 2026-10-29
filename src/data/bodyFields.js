@@ -164,7 +164,7 @@ const OFFER_CREATE = {
   get_qty: note("Required for bogo: items free in each group"),
   start_at: O,
   end_at: O,
-  is_active: note("Default true"),
+  is_active: note("Default true (active). false = inactive: never applied to any product or category. status: active | inactive also works"),
   promo_price: note("flash_sale: fixed sale price (used when below the selling price). Saved on the offer target"),
   free_product_id: note("bogo: the free item, if not the same product. Number or UUID. Saved on the offer target"),
   location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). Ignored for manager / cashier"),
@@ -640,11 +640,14 @@ export const BODY_FIELDS = {
     get_qty: note("bogo: items free in each group"),
     start_at: O,
     end_at: note("e.g. extend a sale"),
-    is_active: O,
+    status: note("active | inactive — inactive = never applied to any product or category"),
+    is_active: note("true / false — same as status"),
     location_scope: note("Store admin only: all | selected"),
     location_ids: note("Store admin only, with selected: location numbers"),
   }),
-  "offer-bulk-status-patch": bulkUpdateOf("offer", { is_active: R }),
+  "offer-bulk-status-patch": bulkUpdateOf("offer", {
+    status: must("active | inactive — an inactive offer is never applied. is_active (true / false) also works"),
+  }),
   "location-bulk-patch": bulkUpdateOf(
     "location",
     allOptional(LOCATION_CREATE, { manager_password: note("Leave blank to keep the current password"), manager_is_active: O })

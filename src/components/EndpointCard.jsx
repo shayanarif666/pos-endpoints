@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { CALC_NOTES } from "../data/calcNotes.js"
 import { defaultHeaders, migrateLegacyPlanBody } from "../lib/storage.js"
 import { buildUrl, sendRequest } from "../lib/request.js"
 import { defaultOf, noteWithoutDefault, ruleOf, typeOf } from "../data/bodyFields.js"
@@ -392,6 +393,8 @@ export function EndpointCard({
               ) : null}
             </div>
           ) : null}
+
+          {CALC_NOTES[endpoint.id] ? <CalcNote note={CALC_NOTES[endpoint.id]} /> : null}
 
           {endpoint.body != null ? (
             <section>
@@ -795,5 +798,31 @@ function ResponsePanel({ result }) {
         </pre>
       )}
     </section>
+  )
+}
+
+/** The backend's calculation, step by step, in a collapsible yellow note above the request body. */
+function CalcNote({ note }) {
+  return (
+    <details className="group rounded-md border border-[#e6c200] bg-[#fff7c2] text-black">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold">
+        <span>📒 {note.title}</span>
+        <span className="text-xs font-normal text-black/70 group-open:hidden">Show</span>
+        <span className="hidden text-xs font-normal text-black/70 group-open:inline">Hide</span>
+      </summary>
+      <div className="space-y-3 border-t border-[#e6c200] px-4 py-3 text-sm leading-6">
+        <p>{note.intro}</p>
+        {note.sections.map((section) => (
+          <div key={section.heading}>
+            <p className="font-bold">{section.heading}</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+              {section.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </details>
   )
 }

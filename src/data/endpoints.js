@@ -1075,7 +1075,6 @@ export const endpoints = [
       location_id: 1,
       items: [
         { staffId: 2, clocked_at: "2026-10-24T09:00:00.000Z" },
-        { staffId: 4, clocked_at: "2026-10-24T09:15:00.000Z" },
       ],
     },
     adminOnly: ["location_id"],
@@ -1091,7 +1090,6 @@ export const endpoints = [
       location_id: 1,
       items: [
         { staffId: 2, clocked_at: "2026-10-24T17:00:00.000Z" },
-        { staffId: 4, clocked_at: "2026-10-24T17:15:00.000Z" },
       ],
     },
     adminOnly: ["location_id"],
@@ -1668,6 +1666,27 @@ export const endpoints = [
       "Super Admin. Deletes every row in every table except SequelizeMeta. You will need to register a Super Admin again.",
     auth: "superadmin",
   }),
+  ep({
+    id: "data-orders-all",
+    tag: "data",
+    method: "DELETE",
+    path: "/api/v1/admin/data/orders",
+    summary: "Delete all orders",
+    description:
+      "Super Admin, for testing. Deletes every order with its items, refunds, payments, receipts and coupon uses (every store). Stock and batch totals are not put back.",
+    auth: "superadmin",
+  }),
+  ep({
+    id: "data-orders-one",
+    tag: "data",
+    method: "DELETE",
+    path: "/api/v1/admin/data/orders/:id",
+    summary: "Delete one order",
+    description:
+      "Super Admin, for testing. Deletes one order (its UUID — the id in GET /orders?channel=web) with its items, refunds, payments, receipts and coupon uses. Stock and batch totals are not put back.",
+    auth: "superadmin",
+    pathParams: [{ name: "id", default: UUID, required: true }],
+  }),
   // ---- Bulk updates (PATCH): POS offline sync — updates queue on the till and go in one request ----
   ep({
     id: "prod-bulk-patch",
@@ -1923,8 +1942,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/offers/bulk/status",
     summary: "Bulk Offer Status",
-    description: `${BULK_UPDATE_NOTE} { id, is_active }: switch sales on or off at once.`,
-    body: { items: [{ id: 3, is_active: false }] },
+    description: `${BULK_UPDATE_NOTE} { id, status: active | inactive } (is_active true / false also works). An inactive offer is never applied to any product or category until it is active again.`,
+    body: { items: [{ id: 3, status: "inactive" }] },
   }),
   ep({
     id: "location-bulk-patch",
