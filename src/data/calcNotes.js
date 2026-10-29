@@ -30,7 +30,12 @@ const ORDER_CALCULATION = {
     {
       heading: "3. Offers — the biggest saving wins (offers never stack)",
       lines: [
-        "Only ACTIVE offers (is_active true / status active), inside start_at–end_at, at this location, on this product or its category.",
+        "Offers apply automatically — the order body does not name them. The server takes every offer of the store that is live right now:",
+        "  ✔ active (is_active true / status \"active\") — an INACTIVE offer is skipped completely, as if it did not exist; switch it on again and it applies to the next order",
+        "  ✔ inside its start_at – end_at dates (before the start or after the end = skipped)",
+        "  ✔ at this location (location_scope all, or this location in location_ids)",
+        "  ✔ on this product (apply_to product) or on this product's category (apply_to category)",
+        "  ✔ the order / line is not offer_exempt",
         "flash_sale: unit = min(price, promo_price) · promotional: unit = price − discount · bulk_discount: same, only when qty ≥ min_qty (also the product's bulk tiers) · bogo: free = floor(qty ÷ (buy_qty + get_qty)) × get_qty.",
         "Each offer's saving = (price − unit) × qty (bogo: price × free). The line takes whichever is biggest: step 2's discount OR one offer — never both.",
         "offer_exempt: true on the order (or on one line) = no offer is considered there; the product / category discount still applies. tax_exempt: true = no tax of any kind (steps 6 and 10 are 0).",
@@ -90,6 +95,14 @@ const ORDER_CALCULATION = {
         "tax_amount = Σ line tax + payment GST",
         "total_amount = preGst + payment GST",
         "change_due = Σ paid − total_amount (0 if less) · fbr_tax_amount = tax_amount when the FBR invoice is on",
+      ],
+    },
+    {
+      heading: "Offer example",
+      lines: [
+        "\"Weekend 10% off\" (promotional, category Beverages, active): Pepsi 100 × 2 → offer saving 20 vs product 5% + category 5% = 19.50 → offer wins: discount 20, discount_source offer, offers [Weekend 10% off, 20].",
+        "Same offer set to inactive (PATCH /offers/bulk/status { id, status: \"inactive\" }): it is skipped → discount 19.50, discount_source product+category, offers [].",
+        "\"Buy 2 get 1 free\" (bogo) on Lux, qty 3: free = floor(3 ÷ 3) × 1 = 1 → saving 100 → free_qty 1.",
       ],
     },
     {
