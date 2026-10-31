@@ -26,7 +26,21 @@ const VISIBILITY_OPTIONAL = [
   ["channel", "both", "optional"],
 ]
 
-function categoryRow(name, taxValue, discountValue) {
+// Where each example row is sold (store admin only; stripped for a manager / cashier): every
+// location, two locations, one location.
+const CATALOG_LOCATIONS = [
+  [["location_scope", "all"]],
+  [
+    ["location_scope", "selected"],
+    ["location_ids", [1, 2]],
+  ],
+  [
+    ["location_scope", "selected"],
+    ["location_ids", [1]],
+  ],
+]
+
+function categoryRow(name, taxValue, discountValue, locations = CATALOG_LOCATIONS[0]) {
   return [
     ["name", name],
     ...TAX("GST", "percentage", taxValue),
@@ -34,6 +48,7 @@ function categoryRow(name, taxValue, discountValue) {
     ["description", "", "optional"],
     ["parent_category_id", null, "optional"],
     ...VISIBILITY_OPTIONAL,
+    ...locations,
   ]
 }
 
@@ -44,7 +59,7 @@ const CATEGORY_TOGGLES = [
 ]
 
 // Shared tail of a product row; tax / discount differ per example item.
-const productTail = ({ taxes, discount, weight }) => [
+const productTail = ({ taxes, discount, weight, locations = CATALOG_LOCATIONS[0] }) => [
   ["taxes", taxes, "tax"],
   ...DISCOUNT("Eid Shopping", "percentage", discount),
   ["low_stock_threshold", 10],
@@ -53,6 +68,7 @@ const productTail = ({ taxes, discount, weight }) => [
   ["image", ""],
   ["is_published", false, "optional"],
   ...VISIBILITY_OPTIONAL,
+  ...locations,
 ]
 
 // Loose item: sold one by one.
@@ -76,7 +92,7 @@ const PRODUCT_PACK_ROW = [
   ["pack_size", 12],
   ["pack_cost", 900],
   ["pack_price", 1200],
-  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 0, weight: false }),
+  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 0, weight: false, locations: CATALOG_LOCATIONS[1] }),
 ]
 
 // Loose + pack + weight: a 25 kg bag, also sold loose by the kg on the scale.
@@ -96,6 +112,7 @@ const PRODUCT_PACK_WEIGHT_ROW = [
     ],
     discount: 10,
     weight: true,
+    locations: CATALOG_LOCATIONS[2],
   }),
 ]
 
@@ -376,11 +393,13 @@ export const RESOURCE_ENUMS = {
     status: ["clock_in", "clock_out"],
   },
   categories: {
+    location_scope: ["all", "selected"],
     tax_type: ["percentage", "fixed"],
     discount_type: ["percentage", "fixed"],
     channel: ["web", "pos", "both"],
   },
   products: {
+    location_scope: ["all", "selected"],
     unit: [
       "piece",
       "kg",
@@ -1135,13 +1154,14 @@ export const endpoints = [
     path: "/api/v1/categories",
     summary: "Categories",
     description:
-      "Every category of the store, in the same shape as Bulk Categories: { id, name, slug, parent, image_url, description, tax_type, tax_value, tax_name, discount_type, discount_value, discount_name, is_active }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Every category of the store, in the same shape as Bulk Categories: { id, name, slug, parent, image_url, description, tax_type, tax_value, tax_name, discount_type, discount_value, discount_name, location_scope, locations, is_active }. A store admin sees every category (or the ones sold at one location with location_id = location number or UUID); a manager / cashier only the categories sold at their own location. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
       { name: "range", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
     ],
   }),
   ep({
@@ -1150,18 +1170,23 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Categories",
-    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. Where each category is sold is set on each row, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1, 2] and [1]. A manager or cashier sends no location; their categories are sold at their token's location. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: {
       bulk: true,
       variants: [
         {
           id: "default",
           label: null,
-          rows: [categoryRow("Beverages", 5, 5), categoryRow("Soap", 10, 0), categoryRow("Rice & Daal", 0, 10)],
+          rows: [
+            categoryRow("Beverages", 5, 5, CATALOG_LOCATIONS[0]),
+            categoryRow("Soap", 10, 0, CATALOG_LOCATIONS[1]),
+            categoryRow("Rice & Daal", 0, 10, CATALOG_LOCATIONS[2]),
+          ],
         },
       ],
       toggles: CATEGORY_TOGGLES,
     },
+    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
 
   ep({
@@ -1171,7 +1196,7 @@ export const endpoints = [
     path: "/api/v1/products",
     summary: "Products",
     description:
-      "Products in the same shape as Bulk Products, plus qty (stock at the location read, or every location for a store admin) and stocks [{ locationId, qty, expiry_date }]. Filters: q (title, SKU or barcode), categoryId (category number). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Products in the same shape as Bulk Products (with location_scope and locations), plus qty (stock at the location read, or every location for a store admin) and stocks [{ locationId, qty, expiry_date }]. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed: a product's location_scope / locations and its category's must both include it. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1190,9 +1215,10 @@ export const endpoints = [
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and only a store admin sends it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager or cashier sends no location; their products are sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
+    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "prod-expiry",
@@ -1721,13 +1747,14 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk",
     summary: "Bulk Update Products",
-    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible. Reply: the updated products (same shape as create).`,
+    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers; store admin only). Reply: the updated products (same shape as create).`,
     body: {
       items: [
         { id: 1, title: "1 Litre Pepsi", price: 110, discount_name: "Eid Shopping", discount_type: "percentage", discount_value: 10 },
-        { id: 2, low_stock_threshold: 24, sell_loose: true },
+        { id: 2, low_stock_threshold: 24, sell_loose: true, location_scope: "selected", location_ids: [1, 2] },
       ],
     },
+    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "prod-bulk-weight-patch",
@@ -1776,13 +1803,14 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Update Categories",
-    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible.`,
+    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers; store admin only).`,
     body: {
       items: [
-        { id: 1, name: "Beverages", tax_name: "GST", tax_type: "percentage", tax_value: 5 },
+        { id: 1, name: "Beverages", tax_name: "GST", tax_type: "percentage", tax_value: 5, location_scope: "all" },
         { id: 3, discount_name: "Ramzan Sale", discount_type: "percentage", discount_value: 15 },
       ],
     },
+    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "cat-bulk-status-patch",

@@ -14,8 +14,17 @@ const LEGACY_PLAN_FLAGS = [
 // over, and its tokens / license key (issued by the old server) are dropped.
 const OLD_BASE_URLS = ["https://pak-pos-backend-production.up.railway.app/", "https://pak-pos-backend-production.up.railway.app"]
 
+// `npm run dev` talks to the local API; the deployed build to production.
+const PRODUCTION_BASE_URL = "https://pak-pos-backend.onrender.com/"
+const LOCAL_BASE_URL = "http://localhost:5000/"
+const DEFAULT_BASE_URL = import.meta.env.DEV ? LOCAL_BASE_URL : PRODUCTION_BASE_URL
+// A session saved by the other mode moves to this mode's server (its tokens belong to the other one).
+const OTHER_BASE_URLS = import.meta.env.DEV
+  ? [PRODUCTION_BASE_URL, PRODUCTION_BASE_URL.slice(0, -1)]
+  : [LOCAL_BASE_URL, LOCAL_BASE_URL.slice(0, -1)]
+
 const defaults = {
-  baseUrl: "https://pak-pos-backend.onrender.com/",
+  baseUrl: DEFAULT_BASE_URL,
   accessToken: "",
   refreshToken: "",
   licenseKey: "",
@@ -63,7 +72,7 @@ export function loadSession() {
     const raw = localStorage.getItem(KEY)
     if (!raw) return { ...defaults }
     let parsed = { ...defaults, ...JSON.parse(raw) }
-    if (OLD_BASE_URLS.includes(parsed.baseUrl)) {
+    if (OLD_BASE_URLS.includes(parsed.baseUrl) || OTHER_BASE_URLS.includes(parsed.baseUrl)) {
       parsed = { ...parsed, baseUrl: defaults.baseUrl, accessToken: "", refreshToken: "", licenseKey: "", role: "" }
     }
     const bodies = {}
