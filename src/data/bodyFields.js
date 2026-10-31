@@ -226,6 +226,36 @@ const ORDER_CREATE = {
   payment_method: note("Required when payments is not sent"),
 }
 
+// POS-priced order: the till works out every figure and the server saves them as sent.
+const POS_PRICED_ORDER = {
+  client_local_id: note("The till's own id for this sale. Sending the same one again returns the order already saved (no double sale after a network drop)"),
+  placed_at: must("When the sale happened on the till (ISO date-time) — offline sales sync later, so the sale keeps its real time"),
+  customer_id: note("Customer number. Required when part of the bill is credit / udhaar"),
+  lines: must("Every line of the sale, priced by the till. A line without product_id is a custom line (title + category)"),
+  "lines[].product_id": note("Catalog line: the product number (e.g. 1) or UUID. Leave out on a custom line"),
+  "lines[].title": note("Custom line only: what was sold"),
+  "lines[].category": note("Custom line only: the category typed at the till"),
+  "lines[].qty": must("Units sold (kg for a weight-based product)"),
+  "lines[].unit_price": must("Price of one unit before any discount"),
+  "lines[].cost_price": note("Cost of one unit, for profit reports. Left out = the product's cost price"),
+  "lines[].discount": note("null = no discount, else { source, offer_id?, amount, free_qty? } — source: product | category | product+category | bulk_tier | offer | custom; offer_id: the offer number when source is offer; amount: the discount on the whole line; free_qty: BOGO free units"),
+  "lines[].taxes": note("Every tax on the line, worked out by the till. Empty = no tax"),
+  "lines[].taxes[].level": must("product | category | sales"),
+  "lines[].taxes[].name": note("Label on the receipt, e.g. GST"),
+  "lines[].taxes[].rate": note("The % (a fixed tax: its amount per unit)"),
+  "lines[].taxes[].amount": must("Tax on the whole line"),
+  order_discount: note("null, or { type: percentage | fixed, value, amount } — amount is what comes off the bill. Cashiers need an approval_request_id"),
+  coupon: note("null, or { code, amount } — amount is what the coupon takes off"),
+  payments: must("One row per payment method; several rows = split payment"),
+  "payments[].method": must("cash | card | jazzcash | easypaisa"),
+  "payments[].tax_rate": note("This method's payment tax %, e.g. cash 16, card 5"),
+  "payments[].tax_amount": must("This method's payment tax"),
+  "payments[].amount": must("What this method pays = its share of the bill + its payment tax"),
+  "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change. Left out = amount"),
+  "payments[].transaction_id": note("The card / wallet reference, if the till has one"),
+  total_amount: must("The order total as the till worked it out. Saved as sent; paid less than it = udhaar for the customer"),
+}
+
 const SUPPLIER_CREATE = {
   name: R,
   phone: O,
@@ -512,7 +542,7 @@ export const BODY_FIELDS = {
 
   // Orders
   "order-create": { ...ADMIN_LOCATION, ...ORDER_CREATE },
-  "order-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...TOP_STAFF, ...TOP_BATCH, ...bulkOf(without(ORDER_CREATE, ["staff_id", "batch_id"])) },
+  "order-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...TOP_STAFF, ...TOP_BATCH, ...bulkOf(POS_PRICED_ORDER) },
   "order-refund": {
     order_item_id: must("The line's item number in the order (1, 2, 3...) or its UUID"),
     qty: R,

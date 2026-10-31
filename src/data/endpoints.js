@@ -276,64 +276,75 @@ function offerBuilder() {
   }
 }
 
-const ORDER_OPTIONAL = [["customer_id", null, "optional"]]
-
-// One order row: till staff and batch, the lines and the payments (channel defaults to pos).
-const orderRow = ({ custom = false, items, payments, placed_at, extra = [] }) => [
-  ...(custom ? [["is_custom", true]] : []),
+// One sale as the till priced it: every figure is worked out on the POS and saved as sent.
+const orderRow = ({ id, placed_at, lines, payments, total }) => [
+  ["client_local_id", id],
   ["placed_at", placed_at],
-  ["offer_exempt", false],
-  ["items", items],
+  ["customer_id", null, "optional"],
+  ["lines", lines],
+  ["order_discount", null, "optional"],
+  ["coupon", null, "optional"],
   ["payments", payments],
-  ...ORDER_OPTIONAL,
-  ...extra,
+  ["total_amount", total],
 ]
 
-// Five sales: catalog and custom, cash and split (card / JazzCash / EasyPaisa + cash). Each
-// payment: amount = its share of the bill + its payment tax; paid = what the customer handed
-// over (only cash may be more — the rest is change). Cash with only paid covers the rest of the bill.
+const tax = (level, name, rate, amount) => ({ level, name, rate, amount })
+
+// Three sales, priced by the till: 2 Pepsi (offer 10%) + Lux paid cash; a custom sale; a split
+// card + cash payment. Store: sales tax 18% on, cash payment tax 16%, card 5%.
 const ORDER_ROWS = [
   orderRow({
+    id: "POS1-20261024-0001",
     placed_at: "2026-10-24T10:05:00.000Z",
-    items: [{ productId: 1, qty: 2 }, { productId: 2, qty: 1 }],
-    payments: [{ method: "cash", paid: 1000 }],
-    extra: [
-      ["order_discount_type", null, "optional"],
-      ["order_discount_value", null, "optional"],
-      ["tax_exempt", false, "optional"],
+    lines: [
+      {
+        product_id: 1,
+        qty: 2,
+        unit_price: 100,
+        cost_price: 50,
+        discount: { source: "offer", offer_id: 1, amount: 20 },
+        taxes: [tax("product", "GST", 18, 32.4), tax("category", "GST", 5, 9), tax("sales", "Sales Tax", 18, 32.4)],
+      },
+      {
+        product_id: 2,
+        qty: 1,
+        unit_price: 100,
+        cost_price: 75,
+        discount: null,
+        taxes: [tax("product", "GST", 18, 18), tax("category", "GST", 10, 10), tax("sales", "Sales Tax", 18, 18)],
+      },
     ],
+    payments: [{ method: "cash", tax_rate: 16, tax_amount: 63.97, amount: 463.77, paid: 1000 }],
+    total: 463.77,
   }),
   orderRow({
+    id: "POS1-20261024-0002",
     placed_at: "2026-10-24T10:20:00.000Z",
-    custom: true,
-    items: [
-      { category: "Stationary", title: "SP10 Blue Pen", price: 50, qty: 2 },
-      { category: "Stationary", title: "A4 Notebook", price: 120, qty: 1 },
+    lines: [
+      { title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount: null, taxes: [tax("sales", "Sales Tax", 18, 18)] },
+      { title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount: null, taxes: [tax("sales", "Sales Tax", 18, 21.6)] },
     ],
-    payments: [{ method: "cash", paid: 500 }],
+    payments: [{ method: "cash", tax_rate: 16, tax_amount: 41.54, amount: 301.14, paid: 500 }],
+    total: 301.14,
   }),
   orderRow({
+    id: "POS1-20261024-0003",
     placed_at: "2026-10-24T11:40:00.000Z",
-    items: [{ productId: 2, qty: 12 }, { productId: 1, qty: 1 }],
-    payments: [{ method: "card", amount: 100 }, { method: "cash", paid: 3000 }],
-  }),
-  orderRow({
-    placed_at: "2026-10-24T12:15:00.000Z",
-    custom: true,
-    items: [
-      { category: "Household", title: "Tissue Box", price: 150, qty: 1 },
-      { category: "Electronics", title: "AA Batteries (pair)", price: 80, qty: 2 },
+    lines: [
+      {
+        product_id: 1,
+        qty: 1,
+        unit_price: 100,
+        cost_price: 50,
+        discount: { source: "offer", offer_id: 1, amount: 10 },
+        taxes: [tax("product", "GST", 18, 16.2), tax("category", "GST", 5, 4.5), tax("sales", "Sales Tax", 18, 16.2)],
+      },
     ],
-    payments: [{ method: "jazzcash", amount: 50 }, { method: "cash", paid: 500 }],
-  }),
-  // The full form: every figure worked out by the till (Pepsi × 3, Lux × 2, sales tax off).
-  orderRow({
-    placed_at: "2026-10-24T13:30:00.000Z",
-    items: [{ productId: 1, qty: 3 }, { productId: 2, qty: 2 }],
     payments: [
-      { method: "cash", bill_share: 500, amount: 580, paid: 1000 },
-      { method: "easypaisa", bill_share: 106.55, amount: 111.88, paid: 111.88 },
+      { method: "card", tax_rate: 5, tax_amount: 2.38, amount: 50, paid: 50 },
+      { method: "cash", tax_rate: 16, tax_amount: 12.68, amount: 91.96, paid: 100 },
     ],
+    total: 141.96,
   }),
 ]
 
@@ -1389,7 +1400,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "How the server prices each order — the POS sends only products, qty and payments; every amount is rounded to 2 decimals. 1) Line price: the product's selling_price (pack product: pack_price ÷ pack_size; custom line: the price sent). 2) Line discount: product discount, then category discount on what is left — or, if bigger, the best live offer (active, inside its dates, at this location); never both. 3) Line subtotal = price × qty − discount. An order discount (if sent) comes off the subtotal and lowers the taxable amount too. 4) Line tax = product taxes + category tax + sales tax (when on), all on the same taxable amount (no tax on tax). 5) Coupon (if sent) comes off after tax. 6) Payment GST: each payment method adds its own rate on its share of the bill (default cash 16%, card / wallets 5%) — amount = bill_share × (1 + rate). 7) total_amount = subtotal − order discount − coupon + line taxes + payment GST. change_due = cash paid − its amount; paid less than the total = udhaar (payment_status partial, remaining_amount). Every formula with a worked example: 'How the backend calculates an order' below.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id | title + category, qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {

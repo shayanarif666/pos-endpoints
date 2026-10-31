@@ -6,11 +6,11 @@
  */
 
 const ORDER_CALCULATION = {
-  title: "How the backend calculates an order",
-  intro: "The server prices the order itself; the app sends only products, qty and payments. Every amount is rounded to 2 decimals.",
+  title: "How to calculate an order (the POS works it out, the server saves it as sent)",
+  intro: "The POS prices the order with these steps and sends every figure in lines[] and payments[]; the server does not price it again. Every amount is rounded to 2 decimals.",
   sections: [
     {
-      heading: "What the backend checks",
+      heading: "What goes into the price",
       lines: [
         "Price — the product's selling_price (pack product: pack_price ÷ pack_size; custom line: the price sent)",
         "Discount — product discount, then category discount on what is left",
