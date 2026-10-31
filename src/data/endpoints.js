@@ -173,12 +173,12 @@ function productBuilder() {
     variants: [
       { id: "default", label: null, rows: [PRODUCT_LOOSE_ROW, PRODUCT_PACK_ROW, PRODUCT_PACK_WEIGHT_ROW] },
     ],
+    bulkTop: [["storeId", 1]],
     toggles: PRODUCT_TOGGLES,
   }
 }
 
 const movementRow = (productId, type, reason, qty, expiry) => [
-  ["staffId", 2],
   ["product_id", productId],
   ["movement_type", type],
   ["reason", reason],
@@ -204,7 +204,7 @@ function movementBuilder() {
         ],
       },
     ],
-    bulkTop: [["locationId", 1]],
+    bulkTop: [["storeId", 1], ["locationId", 1], ["staffId", 2]],
     toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
@@ -224,7 +224,6 @@ const OFFER_ROWS = [
     ["discount_value", 10],
     ["category_id", 1],
     ...OFFER_DATES,
-    ["staff_id", 2, "optional"],
   ],
   [
     ["name", "Buy 3 save 5%"],
@@ -235,7 +234,6 @@ const OFFER_ROWS = [
     ["product_id", 2],
     ["min_qty", 3],
     ...OFFER_DATES,
-    ["staff_id", 2, "optional"],
   ],
   [
     ["name", "Buy 2 get 1 free"],
@@ -246,7 +244,6 @@ const OFFER_ROWS = [
     ["get_qty", 1],
     ...OFFER_DATES,
     ["free_product_id", 1, "optional"],
-    ["staff_id", 2, "optional"],
   ],
 ]
 
@@ -274,6 +271,7 @@ function offerBuilder() {
         rows: OFFER_ROWS.map((row, index) => [...row, ...OFFER_LOCATIONS[index % OFFER_LOCATIONS.length]]),
       },
     ],
+    bulkTop: [["storeId", 1], ["staffId", 2]],
     toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
@@ -283,8 +281,6 @@ const ORDER_OPTIONAL = [["customer_id", null, "optional"]]
 // One order row: till staff and batch, the lines and the payments (channel defaults to pos).
 const orderRow = ({ custom = false, items, payments, placed_at, extra = [] }) => [
   ...(custom ? [["is_custom", true]] : []),
-  ["staff_id", 2],
-  ["batch_id", 1],
   ["placed_at", placed_at],
   ["offer_exempt", false],
   ["items", items],
@@ -345,7 +341,7 @@ function orderBuilder() {
   return {
     bulk: true,
     variants: [{ id: "default", label: null, rows: ORDER_ROWS }],
-    bulkTop: [["locationId", 1]],
+    bulkTop: [["storeId", 1], ["locationId", 1], ["staffId", 2], ["batchId", 1]],
     toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
@@ -1091,14 +1087,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-in",
     summary: "User Session Clock In",
-    description: "Attendance (clock in)."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Attendance (clock in)."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
-      location_id: 1,
+      storeId: 1,
+      locationId: 1,
+      staffId: 2,
       items: [
-        { staffId: 2, clocked_at: "2026-10-24T09:00:00.000Z" },
+        { clocked_at: "2026-10-24T09:00:00.000Z" },
       ],
     },
-    adminOnly: ["location_id"],
   }),
   ep({
     id: "staff-clock-out",
@@ -1106,14 +1103,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-out",
     summary: "User Session Clock Out",
-    description: "Ends the staff member's open attendance session."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Ends the staff member's open attendance session."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
-      location_id: 1,
+      storeId: 1,
+      locationId: 1,
+      staffId: 2,
       items: [
-        { staffId: 2, clocked_at: "2026-10-24T17:00:00.000Z" },
+        { clocked_at: "2026-10-24T17:00:00.000Z" },
       ],
     },
-    adminOnly: ["location_id"],
   }),
   ep({
     id: "batch-open",
@@ -1121,14 +1119,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/batches/open",
     summary: "Batch Opening",
-    description: "Opens the cash drawer for a staff member. One counter (device) holds one open batch: several items at once need their own device_id (one per counter)."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Opens the cash drawer for a staff member. One counter (device) holds one open batch: several items at once need their own device_id (one per counter)."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
-      location_id: 1,
+      storeId: 1,
+      locationId: 1,
+      staffId: 2,
       items: [
-        { staffId: 2, opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
+        { opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
       ],
     },
-    adminOnly: ["location_id"],
   }),
   ep({
     id: "batch-close",
@@ -1136,14 +1135,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/batches/close",
     summary: "Batch Closing",
-    description: "Closes the staff member's open batch with the counted cash. Several items = several staff members, each closing their own open batch."+" POS offline sync: { location_id, items: [ ... ] } — clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Closes the staff member's open batch with the counted cash. Several items = several staff members, each closing their own open batch."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
-      location_id: 1,
+      storeId: 1,
+      locationId: 1,
+      staffId: 2,
       items: [
-        { staffId: 2, total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
+        { total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
       ],
     },
-    adminOnly: ["location_id"],
   }),
 
   ep({
@@ -1183,6 +1183,7 @@ export const endpoints = [
           ],
         },
       ],
+      bulkTop: [["storeId", 1]],
       toggles: CATEGORY_TOGGLES,
     },
   }),
@@ -1295,7 +1296,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk Stock Movements",
-    description: "POS sync: { locationId, items: [ ...movements ] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). product_id is the product number (UUID also works). qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment. On channel=pos the response is { success, message (\"Stock Successfully Created\"), data: [ ... ] } one per created movement, in order: { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "POS sync: { storeId, locationId, staffId, items: [ ...movements ] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). product_id is the product number (UUID also works). qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment. On channel=pos the response is { success, message (\"Stock Successfully Created\"), data: [ ... ] } one per created movement, in order: { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: movementBuilder(),
   }),
   ep({
@@ -1304,12 +1305,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Stock Transfer",
-    description: "Store admin. { items: [ ...transfers ] } — each sends stock of one product from one location to another (location / product numbers or UUIDs) and stays on_the_way until the destination completes it (POST /stock-transfers/:id/complete). staff_id may be sent once next to items[] or on each transfer. On channel=pos the response data is [ { id, from_location, to_location, product, qty, status, note, staff }, ... ], in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Store admin. { items: [ ...transfers ] } — each sends stock of one product from one location to another (location / product numbers or UUIDs) and stays on_the_way until the destination completes it (POST /stock-transfers/:id/complete). storeId and staffId are sent once, before items[]. On channel=pos the response data is [ { id, from_location, to_location, product, qty, status, note, staff }, ... ], in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
+      storeId: 1,
+      staffId: 2,
       items: [
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill", staff_id: 2 },
-        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "", staff_id: 2 },
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock", staff_id: 2 },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill" },
+        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "" },
+        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock" },
       ],
     },
   }),
@@ -1341,6 +1344,7 @@ export const endpoints = [
     summary: "Bulk Create Staff",
     description: "{ items: [ ...staff ] }. Every staff item carries its own locationId (location number, e.g. 1, or UUID) — whether a store admin or a manager is signed in. A store admin may put each one at any location; a manager can only use their own location (another one is refused). The PIN must be unique among the users of that location (another location or store may reuse it). On channel=pos the response is { success, message, data: [ { id, location, name, email, pin, role, phone, is_active }, ... ] } — the whole staff member (same shape as login users[] and GET Staff), one per created user, in order; id is the short user_number. The message is \"Cashiers Successfully Created\" / \"Managers Successfully Created\", or \"Staff Successfully Created\" when the roles are mixed. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
+      storeId: 1,
       items: [
         { locationId: 1, name: "Ahmed Malik", email: "ahmed@acadex.co", password: "ahmedmalik", pin: "2222", role: "manager" },
         { locationId: 1, name: "Ameer Hamza", email: "ameer@acadex.co", password: "ameerhamza", pin: "3333", role: "cashier" },
@@ -1374,9 +1378,8 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk Offer Creation",
-    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). Where it runs is set on each offer, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all and [1] (add more location numbers when the store has them, e.g. [1, 2]). A manager or cashier sends no location; their offers are for their token's location. On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). storeId and staffId are sent once, before items[]. Where it runs is set on each offer (any role): location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all and [1]. A manager / cashier sends their own location (left out = their token's location). On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: offerBuilder(),
-    adminOnly: ["location_scope", "location_ids"],
   }),
 
   ep({
@@ -1542,10 +1545,12 @@ export const endpoints = [
     description:
       "How the server works out a partial refund — never from today's price: it is a share of what the customer actually paid for that line, rounded to 2 decimals. 1) qty must be ≤ sold qty − qty already refunded on that line. 2) Line value = the line's subtotal after its share of the order discount / coupon + its line tax. 3) Refunded share = value of everything refunded on the order so far (this refund included) ÷ value of the whole order. 4) Each payment method of the sale gets back that share of what it paid, minus what it already got back; its payment tax is split out at the rate it was charged (e.g. cash 16%). Udhaar comes off the customer's credit. 5) total = Σ method refunds · amount = the line value before tax · tax = total − amount. The cash part leaves the drawer, the qty goes back to stock, and the order turns partial_refunded (refunded once every line is fully back). Every formula with a worked example: 'How the backend calculates a partial (item) refund' below.",
     body: {
+      storeId: 1,
       locationId: 1,
+      staffId: 2,
       items: [
-        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return", staff_id: 2 },
-        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item", staff_id: 2 },
+        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return" },
+        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item" },
       ],
     },
   }),
@@ -1556,12 +1561,14 @@ export const endpoints = [
     path: "/api/v1/orders/refunds/complete/bulk",
     summary: "Bulk Order Refund",
     description:
-      "POS sync: { locationId, items: [...] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds whole orders: the remaining qty on every line of each order. Response data: one refund per order, in order — { id, location, staff (user number), order, receiptId, currency, reason, amount (before tax), tax, total, payments }. payments[] says how the refund is paid back: the same way the sale was paid, each method getting its own part back with the payment tax it was charged — { method, bill_share, payment_tax_percent, payment_tax_amount, amount }. E.g. a sale paid card 600 + cash 937.25 for 12 units gives back card 50 + cash 78.10 per unit; method credit means it was taken off the customer's udhaar. Only the cash part leaves the cash drawer. Refunding unit by unit returns exactly what each method paid (any paisa from rounding comes back on a later unit). Failed orders are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sync: { storeId, locationId, staffId, items: [...] }. storeId, locationId and staffId are sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds whole orders: the remaining qty on every line of each order. Response data: one refund per order, in order — { id, location, staff (user number), order, receiptId, currency, reason, amount (before tax), tax, total, payments }. payments[] says how the refund is paid back: the same way the sale was paid, each method getting its own part back with the payment tax it was charged — { method, bill_share, payment_tax_percent, payment_tax_amount, amount }. E.g. a sale paid card 600 + cash 937.25 for 12 units gives back card 50 + cash 78.10 per unit; method credit means it was taken off the customer's udhaar. Only the cash part leaves the cash drawer. Refunding unit by unit returns exactly what each method paid (any paisa from rounding comes back on a later unit). Failed orders are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
+      storeId: 1,
       locationId: 1,
+      staffId: 2,
       items: [
-        { order_id: 2, reason: "Full return", staff_id: 2 },
-        { order_id: 3, reason: "Customer changed mind", staff_id: 2 },
+        { order_id: 2, reason: "Full return" },
+        { order_id: 3, reason: "Customer changed mind" },
       ],
     },
   }),
@@ -1670,15 +1677,15 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/suppliers/bulk",
     summary: "Bulk Suppliers",
-    description: "{ items: [ ...suppliers ] } — name, phone, email, address, payment_terms. Only a store admin chooses the locations per supplier: location_scope all = every branch; selected + location_ids = one or several branches (location numbers, UUIDs also work). A manager or cashier sends no location — their suppliers go to their token's location. On channel=pos the response is { success, message (\"Suppliers Successfully Created\"), data: [ { id }, ... ] } — one supplier_number per created supplier, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ items: [ ...suppliers ] } — name, phone, email, address, payment_terms. storeId is sent once, before items[]. Each supplier carries its location_scope: all = every branch; selected + location_ids = one or several branches (location numbers, UUIDs also work) — any role; a manager / cashier sends their own location (left out = their token's location). On channel=pos the response is { success, message (\"Suppliers Successfully Created\"), data: [ { id }, ... ] } — one supplier_number per created supplier, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
+      storeId: 1,
       items: [
         { name: "Nestle Distributor", phone: "03006666666", email: "sales@nestle-dist.local", address: "Industrial Area", payment_terms: "Net 15", location_scope: "all" },
         { name: "Unilever Wholesale", phone: "03007777777", email: "orders@unilever-ws.local", address: "Korangi", payment_terms: "Net 30", location_scope: "selected", location_ids: [1] },
         { name: "Rice Mills Co", phone: "03008888888", email: "info@ricemills.local", address: "Gujranwala", payment_terms: "Cash on delivery", location_scope: "selected", location_ids: [1] },
       ],
     },
-    adminOnly: ["location_scope", "location_ids"],
   }),
 
 
@@ -1731,6 +1738,8 @@ export const endpoints = [
     summary: "Bulk Customers",
     description: "POS offline sync: { items: [ ...customers ] }, each as in Create Customer. Failed rows are listed in failed[].",
     body: {
+      storeId: 1,
+      locationId: 1,
       items: [
         { name: "Ali Khan", phone: "03001231234" },
         { name: "Sana Tariq", phone: "03214567890", email: "sana@example.com" },

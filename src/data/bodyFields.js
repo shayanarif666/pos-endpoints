@@ -74,6 +74,13 @@ const PLAN_CREATE = {
   is_active: note("Default true"),
 }
 
+// Sent once at the top of a bulk body, before items[] (they apply to every item).
+const TOP_STORE = { storeId: note("Once, before items[]: your store number (e.g. 1) or UUID. Must be the store of your token (else 403)") }
+const TOP_LOCATION = { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID. A manager / cashier sends their own location") }
+const TOP_STAFF = { staffId: must("Once, before items[]: the staff member doing it (user number from PIN, e.g. 2) for every item. Leave out = the signed-in admin / manager") }
+const TOP_BATCH = { batchId: note("Once, before items[]: the open batch number for every order. Defaults to the staff member's open batch") }
+const without = (spec, keys) => Object.fromEntries(Object.entries(spec).filter(([key]) => !keys.includes(key)))
+
 const STAFF_ID = note("The staff member doing it — the cashier picked by PIN (their user number, e.g. 3). Leave out = the signed-in admin / manager")
 
 
@@ -176,8 +183,8 @@ const OFFER_CREATE = {
   is_active: note("Default true (active). false = inactive: never applied to any product or category. status: active | inactive also works"),
   promo_price: note("flash_sale: fixed sale price (used when below the selling price). Saved on the offer target"),
   free_product_id: note("bogo: the free item, if not the same product. Number or UUID. Saved on the offer target"),
-  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). Ignored for manager / cashier"),
-  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2, 3, 4] (UUIDs also work). Manager / cashier: token location is used"),
+  location_scope: note("all (every location, default) | selected (only location_ids). Manager / cashier: send selected + their own location; left out = their token's location"),
+  location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2, 3, 4] (UUIDs also work)"),
 }
 
 const ORDER_ITEM = {
@@ -223,8 +230,8 @@ const SUPPLIER_CREATE = {
   email: O,
   address: O,
   payment_terms: O,
-  location_scope: note("Store admin only: all (every branch, default) | selected (only location_ids). Ignored for manager / cashier"),
-  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2, 3] (UUIDs also work). Manager / cashier: token location is used"),
+  location_scope: note("all (every branch, default) | selected (only location_ids). Manager / cashier: send selected + their own location; left out = their token's location"),
+  location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2, 3] (UUIDs also work)"),
 }
 
 const LOCATION_CREATE = {
@@ -269,7 +276,7 @@ const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager
 
 export const BODY_FIELDS = {
   "customer-create": { name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O },
-  "customer-bulk": bulkOf({ name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O }),
+  "customer-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...bulkOf({ name: R, phone: O, email: O, debt_notes: O }) },
   // Plans
   "plans-create": PLAN_CREATE,
   "plans-patch": allOptional(PLAN_CREATE),
@@ -380,30 +387,38 @@ export const BODY_FIELDS = {
 
   // Staff sessions (attendance) and batches (cash drawer)
   "staff-clock-in": {
-    ...ADMIN_LOCATION,
-    items: must("One row per staff member; each saved on its own (POS offline sync). Leave out to send a single object"),
-    "items[].staffId": must("The staff member clocking in (user number, e.g. 2)"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
+    items: must("One row per clock-in; each saved on its own (POS offline sync). Leave out to send a single object"),
+    "items[].staffId": note("Only when a row is a different staff member than the one on top"),
     "items[].clocked_at": note("Offline sync: when it actually happened. Defaults to now"),
   },
   "staff-clock-out": {
-    ...ADMIN_LOCATION,
-    items: must("One row per staff member; each saved on its own (POS offline sync). Leave out to send a single object"),
-    "items[].staffId": must("The staff member clocking out (user number)"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
+    items: must("One row per clock-out; each saved on its own (POS offline sync). Leave out to send a single object"),
+    "items[].staffId": note("Only when a row is a different staff member than the one on top"),
     "items[].clocked_at": note("Offline sync: when it actually happened. Defaults to now"),
   },
   "batch-open": {
-    ...ADMIN_LOCATION,
-    items: must("One row per staff member; each saved on its own (POS offline sync). Leave out to send a single object"),
-    "items[].staffId": must("The staff member the batch belongs to (user number). staff_id also works"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
+    items: must("One row per batch; each saved on its own (POS offline sync). Leave out to send a single object"),
+    "items[].staffId": note("Only when a row belongs to a different staff member than the one on top"),
     "items[].opening_amount": must("Cash put in the drawer"),
     "items[].device_id": note("This PC's hardware id or pos_devices id. Defaults to the device in your POS token"),
     "items[].note": O,
     "items[].opening_at": note("When the batch opened (ISO date-time). Defaults to now"),
   },
   "batch-close": {
-    ...ADMIN_LOCATION,
-    items: must("One row per staff member; each saved on its own (POS offline sync). Leave out to send a single object"),
-    "items[].staffId": must("The staff member whose open batch is closed (user number). staff_id also works"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
+    items: must("One row per batch; each saved on its own (POS offline sync). Leave out to send a single object"),
+    "items[].staffId": note("Only when a row is a different staff member's batch than the one on top"),
     "items[].total_cash": must("Cash counted in the drawer (or send the note counts below instead)"),
     "items[].note_5000_count": O,
     "items[].note_1000_count": O,
@@ -418,12 +433,12 @@ export const BODY_FIELDS = {
 
   // Categories
   "cat-create": CATEGORY_CREATE,
-  "cat-bulk": bulkOf(CATEGORY_CREATE),
+  "cat-bulk": { ...TOP_STORE, ...bulkOf(CATEGORY_CREATE) },
   "cat-patch": allOptional(CATEGORY_CREATE),
 
   // Products
   "prod-create": PRODUCT_CREATE,
-  "prod-bulk": bulkOf(PRODUCT_CREATE),
+  "prod-bulk": { ...TOP_STORE, ...bulkOf(PRODUCT_CREATE) },
   // category_id here is UUID-only, unlike create/bulk's flexible id-or-category_number.
   "prod-patch": allOptional({ ...PRODUCT_CREATE, category_id: note("UUID only on PATCH") }),
   "prod-weight-patch": { is_weight_based: R },
@@ -439,7 +454,7 @@ export const BODY_FIELDS = {
     ...VISIBILITY,
   },
   "movement-create": { ...ADMIN_LOCATION, ...MOVEMENT_CREATE },
-  "movement-bulk": { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID whose stock changes. Any role — a manager / cashier only their own location"), ...bulkOf(MOVEMENT_CREATE) },
+  "movement-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...TOP_STAFF, ...bulkOf(without(MOVEMENT_CREATE, ["staffId"])) },
 
   // Customers
   "cust-create": CUSTOMER_CREATE,
@@ -448,10 +463,10 @@ export const BODY_FIELDS = {
 
   // Staff
   "staff-create": STAFF_CREATE,
-  "staff-bulk": bulkOf({
+  "staff-bulk": { ...TOP_STORE, ...bulkOf({
     locationId: must("On every staff item: the location number (e.g. 1) or UUID they work at. A manager can only use their own location"),
     ...Object.fromEntries(Object.entries(STAFF_CREATE).filter(([key]) => key !== "location_id")),
-  }),
+  }) },
 
   // Stock transfers
   "transfer-create": {
@@ -464,19 +479,19 @@ export const BODY_FIELDS = {
   },
 
   "transfer-bulk": {
+    ...TOP_STORE,
+    ...TOP_STAFF,
     items: R,
     "items[].from_location_id": must("Location number (e.g. 1) or UUID the stock leaves from"),
     "items[].to_location_id": must("Location number or UUID it goes to"),
     "items[].product_id": must("Product number (e.g. 1) or UUID"),
     "items[].qty": R,
     "items[].note": O,
-    "items[].staff_id": STAFF_ID,
-    staff_id: note("Once for every transfer instead of on each item"),
   },
 
   // Offers
   "offer-create": OFFER_CREATE,
-  "offer-bulk": bulkOf(OFFER_CREATE),
+  "offer-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(without(OFFER_CREATE, ["staff_id"])) },
   "offer-targets-put": {
     targets: R,
     "targets[].product_id": note("Send product_id or category_id (not both). Number or UUID"),
@@ -495,7 +510,7 @@ export const BODY_FIELDS = {
 
   // Orders
   "order-create": { ...ADMIN_LOCATION, ...ORDER_CREATE },
-  "order-bulk": { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID where the sales happened. Any role — a manager / cashier only their own location"), ...bulkOf(ORDER_CREATE) },
+  "order-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...TOP_STAFF, ...TOP_BATCH, ...bulkOf(without(ORDER_CREATE, ["staff_id", "batch_id"])) },
   "order-refund": {
     order_item_id: must("The line's item number in the order (1, 2, 3...) or its UUID"),
     qty: R,
@@ -504,20 +519,22 @@ export const BODY_FIELDS = {
   },
   "order-refund-complete": { reason: R, staff_id: STAFF_ID },
   "order-refund-bulk": {
-    locationId: must("Once, before items[]: the location number (e.g. 1) or UUID of the orders refunded. Any role — a manager / cashier only their own location"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
     items: R,
     "items[].order_id": must("Order number (e.g. 1) or UUID"),
     "items[].order_item_id": must("The line's item number in that order, or its UUID"),
     "items[].qty": R,
     "items[].reason": R,
-    "items[].staff_id": STAFF_ID,
   },
   "order-refund-complete-bulk": {
-    locationId: must("Once, before items[]: the location number (e.g. 1) or UUID of the orders refunded. Any role — a manager / cashier only their own location"),
+    ...TOP_STORE,
+    ...TOP_LOCATION,
+    ...TOP_STAFF,
     items: R,
     "items[].order_id": must("Order number (e.g. 1) or UUID"),
     "items[].reason": R,
-    "items[].staff_id": STAFF_ID,
   },
   "receipt-generate": { order_id: must("Order number (e.g. 1) or UUID") },
   "order-void": {
@@ -527,7 +544,7 @@ export const BODY_FIELDS = {
 
   // Suppliers
   "sup-create": SUPPLIER_CREATE,
-  "sup-bulk": bulkOf(SUPPLIER_CREATE),
+  "sup-bulk": { ...TOP_STORE, ...bulkOf(SUPPLIER_CREATE) },
   "sup-patch": allOptional(SUPPLIER_CREATE, { is_active: note("false = deactivate") }),
 
   // Locations
@@ -655,8 +672,8 @@ export const BODY_FIELDS = {
     end_at: note("e.g. extend a sale"),
     status: note("active | inactive — inactive = never applied to any product or category"),
     is_active: note("true / false — same as status"),
-    location_scope: note("Store admin only: all | selected"),
-    location_ids: note("Store admin only, with selected: location numbers"),
+    location_scope: note("all | selected (any role)"),
+    location_ids: note("With selected: location numbers"),
   }),
   "offer-bulk-status-patch": bulkUpdateOf("offer", {
     status: must("active | inactive — an inactive offer is never applied. is_active (true / false) also works"),
