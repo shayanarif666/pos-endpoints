@@ -75,10 +75,12 @@ const PLAN_CREATE = {
 }
 
 // Sent once at the top of a bulk body, before items[] (they apply to every item).
-const TOP_STORE = { storeId: note("Once, before items[]: your store number (e.g. 1) or UUID. Must be the store of your token (else 403)") }
-const TOP_LOCATION = { locationId: must("Once, before items[]: the location number (e.g. 1) or UUID. A manager / cashier sends their own location") }
-const TOP_STAFF = { staffId: must("Once, before items[]: the staff member doing it (user number from PIN, e.g. 2) for every item. Leave out = the signed-in admin / manager") }
-const TOP_BATCH = { batchId: note("Once, before items[]: the open batch number for every order. Defaults to the staff member's open batch") }
+// Each may also be sent on the items instead; when both are sent, the top one is kept (staffId /
+// batchId: the item's own wins for that item). Unknown fields are ignored, never an error.
+const TOP_STORE = { storeId: note("Once, before items[] (or on each item): your store number (e.g. 1) or UUID. Must be the store of your token (else 403)") }
+const TOP_LOCATION = { locationId: must("Once, before items[] (or on each item — all the same location): the location number (e.g. 1) or UUID. A manager / cashier sends their own location") }
+const TOP_STAFF = { staffId: must("Once, before items[]: the staff member doing it (user number from PIN, e.g. 2). An item may carry its own staffId, which wins for that item. Leave out = the signed-in admin / manager") }
+const TOP_BATCH = { batchId: note("Once, before items[]: the open batch number for every order (an item's own batchId wins). Defaults to the staff member's open batch") }
 const without = (spec, keys) => Object.fromEntries(Object.entries(spec).filter(([key]) => !keys.includes(key)))
 
 const STAFF_ID = note("The staff member doing it — the cashier picked by PIN (their user number, e.g. 3). Leave out = the signed-in admin / manager")
