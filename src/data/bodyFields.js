@@ -77,6 +77,13 @@ const PLAN_CREATE = {
 const STAFF_ID = note("The staff member doing it — the cashier picked by PIN (their user number, e.g. 3). Leave out = the signed-in admin / manager")
 
 
+// Where a category / product is sold (store admin only; a manager's / cashier's row is for their
+// token's location and their edits never move it).
+const CATALOG_LOCATIONS = {
+  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). Manager / cashier: ignored — what they create is sold at their token's location"),
+  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2] (UUIDs also work)"),
+}
+
 const CATEGORY_CREATE = {
   name: must("A name that already exists is accepted — the slug gets a -2, -3... suffix"),
   tax_name: note("Label for the tax, e.g. GST"),
@@ -89,6 +96,7 @@ const CATEGORY_CREATE = {
   parent_category_id: O,
   is_active: note("Default true"),
   ...VISIBILITY,
+  ...CATALOG_LOCATIONS,
 }
 
 const PRODUCT_CREATE = {
@@ -116,6 +124,8 @@ const PRODUCT_CREATE = {
   is_published: note("Default false"),
   is_active: note("Default true"),
   ...VISIBILITY,
+  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). The product shows at a location only when its category is sold there too. Manager / cashier: ignored — their product is sold at their token's location"),
+  location_ids: CATALOG_LOCATIONS.location_ids,
 }
 
 const MOVEMENT_CREATE = {
