@@ -6,112 +6,39 @@
  */
 
 const ORDER_CALCULATION = {
-  title: "How the backend calculates an order (read before building the POS cart)",
-  intro:
-    "The server prices every order itself from the catalog — the app sends only products, qty and payments. Money is rounded to 2 decimals at every step: round(x) = Number(x.toFixed(2)). Do the same steps in this order to show the same total the server saves.",
+  title: "How the backend calculates an order",
+  intro: "The server prices the order itself; the app sends only products, qty and payments. Every amount is rounded to 2 decimals.",
   sections: [
     {
-      heading: "1. Unit price of each line",
+      heading: "What the backend checks",
       lines: [
-        "Catalog line: unit price = the product's selling_price (a pack product's unit price = pack_price ÷ pack_size). Weight-based: qty = weight in kg.",
-        "Custom line (is_custom): unit price = the price sent; discount_amount if sent.",
+        "Price — the product's selling_price (pack product: pack_price ÷ pack_size; custom line: the price sent)",
+        "Discount — product discount, then category discount on what is left",
+        "Offers — active, inside start_at–end_at, at this location, on the product or its category. If an offer saves more than the discount, the offer is used instead (never both)",
+        "Taxes — product taxes + category tax + sales tax (only when the store's sales tax is on)",
+        "Order discount / coupon — only when sent",
+        "Payment GST — each payment method's rate (default cash 16%, card / wallets 5%)",
       ],
     },
     {
-      heading: "2. Discount of each line — product, then category (both apply)",
+      heading: "Formula",
       lines: [
-        "productDisc = product discount on the price (only when the product has one)",
-        "categoryDisc = category discount on (price − productDisc)",
-        "percentage → round(base × value ÷ 100) · fixed → value · never more than the base",
-        "unitDisc = productDisc + categoryDisc   →   discount = round(unitDisc × qty)",
-        "e.g. 100 Rs, product 5% + category 5% → 5 + 4.75 = 9.75 off → 90.25",
+        "line subtotal = price × qty − line discount",
+        "S = Σ line subtotals",
+        "line tax = taxable × (product tax % + category tax % + sales tax %)   where taxable = line subtotal × (S − order discount) ÷ S",
+        "bill = S − order discount − coupon + Σ line tax",
+        "payment GST = bill × method rate   (split payment: each method on its own share of the bill)",
+        "total_amount = bill + payment GST   ·   change_due = cash paid − total_amount",
       ],
     },
     {
-      heading: "3. Offers — the biggest saving wins (offers never stack)",
+      heading: "Example — 2 × Pepsi (100) + 1 × Lux Soap (100), paid 1000 cash",
       lines: [
-        "Offers apply automatically — the order body does not name them. The server takes every offer of the store that is live right now:",
-        "  ✔ active (is_active true / status \"active\") — an INACTIVE offer is skipped completely, as if it did not exist; switch it on again and it applies to the next order",
-        "  ✔ inside its start_at – end_at dates (before the start or after the end = skipped)",
-        "  ✔ at this location (location_scope all, or this location in location_ids)",
-        "  ✔ on this product (apply_to product) or on this product's category (apply_to category)",
-        "  ✔ the order / line is not offer_exempt",
-        "flash_sale: unit = min(price, promo_price) · promotional: unit = price − discount · bulk_discount: same, only when qty ≥ min_qty (also the product's bulk tiers) · bogo: free = floor(qty ÷ (buy_qty + get_qty)) × get_qty.",
-        "Each offer's saving = (price − unit) × qty (bogo: price × free). The line takes whichever is biggest: step 2's discount OR one offer — never both.",
-        "offer_exempt: true on the order (or on one line) = no offer is considered there; the product / category discount still applies. tax_exempt: true = no tax of any kind (steps 6 and 10 are 0).",
-        "GET orders shows what priced each line, as it was at the sale: category { id, name }, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, amount }] and free_qty (BOGO).",
-      ],
-    },
-    {
-      heading: "4. Line subtotal (before tax)",
-      lines: ["subtotal = round(price × qty − discount)", "S = Σ line subtotals"],
-    },
-    {
-      heading: "5. Order discount (optional — order_discount_type + order_discount_value)",
-      lines: [
-        "orderDiscount = percentage → round(S × value ÷ 100) · fixed → value (max S). A cashier needs an approval_request_id.",
-        "It lowers tax too: share = round((S − orderDiscount) ÷ S) (2 decimals, e.g. 0.95) and each line's taxable amount = round(subtotal × share).",
-      ],
-    },
-    {
-      heading: "6. Line taxes — all on the same taxable amount (no tax on tax)",
-      lines: [
-        "Product taxes: every tax in the product's list (GST, excise…) — percentage → round(taxable × value ÷ 100), fixed → round(value × qty)",
-        "Category tax: the category's tax, same rule",
-        "Sales tax: round(taxable × sales_tax_rate ÷ 100) — only when the store's sales_tax_enabled is on",
-        "line tax = product taxes + category tax + sales tax · line total = subtotal + line tax",
-        "No tax at all when the store's charge_tax_on_sales is off, or the order is tax_exempt.",
-      ],
-    },
-    {
-      heading: "7. Coupon (optional — coupon_code)",
-      lines: [
-        "coupon = percentage → round((S − orderDiscount) × value ÷ 100) · fixed → value (max S − orderDiscount)",
-        "A coupon does NOT lower tax (tax stays as in step 6).",
-      ],
-    },
-    {
-      heading: "8. Shipping fee",
-      lines: ["Web orders only (store's flat fee; free over its free_over_amount). POS orders: 0."],
-    },
-    {
-      heading: "9. Bill before payment tax",
-      lines: ["preGst = round((S − orderDiscount − coupon) + Σ line tax + shipping)"],
-    },
-    {
-      heading: "10. Payment GST — each method on its own share (split payment)",
-      lines: [
-        "Rates from GET /tax-rates (defaults: cash 16%, card / jazzcash / easypaisa 5%). Only when charge_tax_on_sales and payment_tax_enabled are on.",
-        "Card / wallet row with amount: bill_share = round(amount ÷ (1 + rate)), its tax = amount − bill_share",
-        "Row with bill_share: tax = round(bill_share × rate)",
-        "Rest row (first cash row without bill_share, or the only row): bill_share = preGst − the other shares, tax = round(bill_share × rate), amount = bill_share + tax",
-        "paid = what was handed over. Only cash may be more than its amount → change = paid − amount. Cash handed over below its amount → the rest is udhaar (credit) and needs customer_id.",
-        "Paid less than the total (udhaar): payment_status = partial and remaining_amount = total − what the payments covered (− udhaar refunded later). Fully paid: payment_status = paid, remaining_amount = 0.",
-      ],
-    },
-    {
-      heading: "11. Totals saved on the order",
-      lines: [
-        "payment GST = Σ row taxes",
-        "tax_amount = Σ line tax + payment GST",
-        "total_amount = preGst + payment GST",
-        "change_due = Σ paid − total_amount (0 if less) · fbr_tax_amount = tax_amount when the FBR invoice is on",
-      ],
-    },
-    {
-      heading: "Offer example",
-      lines: [
-        "\"Weekend 10% off\" (promotional, category Beverages, active): Pepsi 100 × 2 → offer saving 20 vs product 5% + category 5% = 19.50 → offer wins: discount 20, discount_source offer, offers [Weekend 10% off, 20].",
-        "Same offer set to inactive (PATCH /offers/bulk/status { id, status: \"inactive\" }): it is skipped → discount 19.50, discount_source product+category, offers [].",
-        "\"Buy 2 get 1 free\" (bogo) on Lux, qty 3: free = floor(3 ÷ 3) × 1 = 1 → saving 100 → free_qty 1.",
-      ],
-    },
-    {
-      heading: "Example — the first order of this body (default docs store: sales tax 18% on, offer \"Weekend 10% off\" on Beverages)",
-      lines: [
-        "1 Litre Pepsi × 2: discount 5% + 5% = 19.50 vs the offer 10% = 20 → offer wins → subtotal 180 · tax 180 × (18% GST + 5% category + 18% sales) = 73.80 · line 253.80",
-        "Lux Soap × 1: no discount → 100 · tax 100 × (18% + 10% + 18%) = 46 · line 146",
-        "preGst = 253.80 + 146 = 399.80 · cash GST 16% = 63.97 · total 463.77 · paid 1000 → change 536.23",
+        "Pepsi: offer 10% (saves 20) beats product 5% + category 5% (saves 19.50) → subtotal 200 − 20 = 180 · tax 180 × (18% + 5% + 18%) = 73.80",
+        "Lux Soap: no discount → subtotal 100 · tax 100 × (18% + 10% + 18%) = 46",
+        "bill = 180 + 100 + 73.80 + 46 = 399.80",
+        "payment GST = 399.80 × 16% (cash) = 63.97",
+        "total_amount = 399.80 + 63.97 = 463.77 · change_due = 1000 − 463.77 = 536.23",
       ],
     },
   ],
@@ -119,49 +46,34 @@ const ORDER_CALCULATION = {
 
 const REFUND_CALCULATION = {
   title: "How the backend calculates a partial (item) refund",
-  intro:
-    "A refund is never priced again from today's price, discount or tax: it is a share of what the customer actually paid for that line, paid back the way the sale was paid (each method with the payment tax it was charged). Rounded to 2 decimals at every step. A complete refund (refunds/complete) runs the same steps for every line's remaining qty.",
+  intro: "Never priced from today's price: the customer gets back a share of what they paid for that line, the same way they paid. Every amount is rounded to 2 decimals.",
   sections: [
     {
-      heading: "1. Qty check",
-      lines: ["qty ≤ the line's sold qty − qty already refunded on it (else 'Only X remaining to refund')"],
-    },
-    {
-      heading: "2. Line value before payment tax",
+      heading: "What the backend checks",
       lines: [
-        "kept = (S − orderDiscount − coupon) ÷ S   (1 when the order had neither; not rounded)",
-        "lineValue = line subtotal × kept + line tax",
+        "qty ≤ sold qty − qty already refunded on that line",
+        "What each payment method paid on the sale (udhaar counts as a credit method)",
+        "Each method's payment tax rate on the sale (e.g. cash 16%)",
+        "What was already refunded on the order and to each method",
       ],
     },
     {
-      heading: "3. Refunded fraction F — cumulative (earlier refunds + this one)",
+      heading: "Formula",
       lines: [
-        "F = Σ over all lines [ lineValue × refundedQtyAfterThis ÷ soldQty ]  ÷  Σ lineValue",
-        "Cumulative on purpose: the paisa lost to rounding on one unit comes back on the next, so a fully refunded order returns exactly what each method paid.",
+        "line value = line subtotal × (S − order discount − coupon) ÷ S + line tax",
+        "refunded share = Σ value of everything refunded so far (this one included) ÷ Σ line values",
+        "method refund = method paid × refunded share − already refunded to that method",
+        "payment tax = method refund × rate ÷ (100 + rate)",
+        "total = Σ method refunds · amount = line subtotal × qty ÷ sold qty · tax = total − amount",
       ],
     },
     {
-      heading: "4. Paid back per method",
+      heading: "Example — 1 Pepsi of the order above (total 463.77 cash, bill 399.80)",
       lines: [
-        "Each payment method of the sale is a bucket = what it paid (its amount, payment tax included). The udhaar left on the sale is a 'credit' bucket (no payment tax).",
-        "method refund = max(0, round(bucket × F) − already refunded to that method)   (shipping is left out: × (preGst − shipping) ÷ preGst)",
-        "its payment tax = round(refund × p ÷ (100 + p))   ·   its bill_share = refund − payment tax   (p = that method's rate on the sale, e.g. card 5%, cash 16%)",
-      ],
-    },
-    {
-      heading: "5. Refund totals",
-      lines: [
-        "amount (before tax) = round(line subtotal × kept × qty ÷ soldQty)",
-        "total = Σ method refunds · tax = total − amount (line taxes + payment tax)",
-        "Cash part leaves the drawer · card / wallet part goes back to the card / wallet · credit part comes off the customer's udhaar · the qty goes back to stock.",
-        "Order status: partial_refunded after a partial refund; refunded once every line is fully back. payment_status does not change on a partial refund (paid stays paid, partial stays partial).",
-      ],
-    },
-    {
-      heading: "Example — this body on order 1 (total 463.77, cash; preGst 399.80)",
-      lines: [
-        "Pepsi, 1 of 2: lineValue 253.80 → F = 126.90 ÷ 399.80 → cash = round(463.77 × F) = 147.20 · amount 90 · tax 57.20",
-        "Lux Soap, 1 of 1: F = (126.90 + 146) ÷ 399.80 → round(463.77 × F) = 316.57 − 147.20 already = 169.37 · amount 100 · tax 69.37",
+        "line value of Pepsi = 180 + 73.80 = 253.80 → 1 of 2 = 126.90",
+        "refunded share = 126.90 ÷ 399.80",
+        "cash refund = 463.77 × 126.90 ÷ 399.80 = 147.20",
+        "amount = 180 × 1 ÷ 2 = 90 · tax = 147.20 − 90 = 57.20",
       ],
     },
   ],
