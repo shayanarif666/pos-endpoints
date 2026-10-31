@@ -105,15 +105,6 @@ export const SAMPLE_RESPONSES = {
       "message": "Successfully Login",
       "data": {
         "token": "<token>",
-        "user": {
-          "id": 1,
-          "name": "Zayan Ahmed",
-          "email": "zayan@acadex.co",
-          "pin": "1111",
-          "role": "store_admin",
-          "phone": "03162196345",
-          "is_active": true
-        },
         "store": {
           "id": 1,
           "name": "Acadex",
@@ -138,6 +129,16 @@ export const SAMPLE_RESPONSES = {
           }
         ],
         "users": [
+          {
+            "id": 1,
+            "locationId": null,
+            "name": "Zayan Ahmed",
+            "email": "zayan@acadex.co",
+            "pin": "1111",
+            "role": "store_admin",
+            "phone": "03162196345",
+            "is_active": true
+          },
           {
             "id": 2,
             "locationId": 1,

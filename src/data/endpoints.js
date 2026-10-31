@@ -890,7 +890,7 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login",
     description:
-      "Store admin or manager only — a cashier never signs in, the till verifies them with POST /auth/pin/verify (cashier email login returns 403). channel=pos returns { token, user, store, locations | location, users }: user { id (user number), name, email, pin, role, phone, status (store trial | active), is_active }; store { id, name, status (trial | active), trial_ended_at }; a store admin gets locations[] ({ id, name, address }) and users[] (every manager and cashier, with locationId); a manager gets location{} and users[] (the cashiers of that location). The token gives the store and location (and the store admin picks a location with location_id in the body). channel=web returns the dashboard's access_token + refresh_token.",
+      "Store admin or manager only — a cashier never signs in, the till verifies them with POST /auth/pin/verify (cashier email login returns 403). channel=pos returns { token, store, locations | location, users }: the signed-in user is the first row of users[] (no separate user object) — each row { id (user number), name, email, pin, role, phone, is_active }; store { id, name, status (trial | active), trial_ended_at }; a store admin gets locations[] ({ id, name, address }) and users[] (the store admin first with locationId null, then every manager and cashier, with locationId); a manager gets location{} and users[] (the manager first, then the cashiers of that location). The token gives the store and location (and the store admin picks a location with location_id in the body). channel=web returns the dashboard's access_token + refresh_token.",
     auth: "public",
     body: {
       email: "zayan@acadex.co",
@@ -899,7 +899,8 @@ export const endpoints = [
     capture: {
       accessToken: ["data.token", "data.access_token"],
       refreshToken: "data.refresh_token",
-      role: "data.user.role",
+      // channel=pos: the signed-in user is users[0]; channel=web: data.user.
+      role: ["data.users.0.role", "data.user.role"],
     },
   }),
   ep({
