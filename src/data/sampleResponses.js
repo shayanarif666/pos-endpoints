@@ -259,7 +259,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 5,
           "discount_name": "Eid Shopping",
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true
         },
         {
@@ -276,16 +276,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 0,
           "discount_name": "Eid Shopping",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true
         },
         {
@@ -302,12 +293,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 10,
           "discount_name": "Eid Shopping",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true
         }
       ]
@@ -358,7 +344,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 112.1,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -401,16 +387,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 118,
           "total_pack_price": 1416,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -458,12 +435,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 384.32,
           "total_pack_price": 9608,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1652,7 +1624,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1695,16 +1667,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 118,
           "total_pack_price": 1416,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1762,12 +1725,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 384.32,
           "total_pack_price": 9608,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1810,7 +1768,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1863,7 +1821,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1906,16 +1864,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 123.9,
           "total_pack_price": 1486.8,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -1968,7 +1917,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -2016,12 +1965,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 384.32,
           "total_pack_price": 9608,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": false,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -2074,7 +2018,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true
@@ -2122,12 +2066,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 384.32,
           "total_pack_price": 9608,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": false
@@ -2156,7 +2095,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 5,
           "discount_name": "Eid Shopping",
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true
         },
         {
@@ -2173,12 +2112,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 15,
           "discount_name": "Ramzan Sale",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true
         }
       ]
@@ -2205,16 +2139,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 0,
           "discount_name": "Eid Shopping",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true
         },
         {
@@ -2231,12 +2156,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 15,
           "discount_name": "Ramzan Sale",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true
         }
       ]
@@ -3464,7 +3384,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 5,
           "discount_name": "Eid Shopping",
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true
         },
         {
@@ -3481,12 +3401,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 15,
           "discount_name": "Ramzan Sale",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true
         },
         {
@@ -3503,16 +3418,7 @@ export const SAMPLE_RESPONSES = {
           "discount_value": 0,
           "discount_name": "Eid Shopping",
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true
         }
       ],
@@ -3569,7 +3475,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 116.82,
           "total_pack_price": null,
           "location_scope": "all",
-          "locations": [],
+          "location_ids": [],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true,
@@ -3636,12 +3542,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 384.32,
           "total_pack_price": 9608,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
+          "location_ids": [1],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": false,
@@ -3695,16 +3596,7 @@ export const SAMPLE_RESPONSES = {
           "total_price_each_unit": 123.9,
           "total_pack_price": 1486.8,
           "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            {
-              "id": 2,
-              "name": "Branch 2"
-            }
-          ],
+          "location_ids": [1, 2],
           "is_active": true,
           "is_pos_visible": true,
           "is_web_visible": true,
