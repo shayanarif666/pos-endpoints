@@ -259,6 +259,8 @@ const UPDATE_STAFF_ID = note("The staff member doing it (user number, e.g. 3), s
 const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager / cashier: their own location")
 
 export const BODY_FIELDS = {
+  "customer-create": { name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O },
+  "customer-bulk": bulkOf({ name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O }),
   // Plans
   "plans-create": PLAN_CREATE,
   "plans-patch": allOptional(PLAN_CREATE),

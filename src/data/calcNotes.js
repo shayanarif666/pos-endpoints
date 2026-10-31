@@ -86,6 +86,7 @@ const ORDER_CALCULATION = {
         "Row with bill_share: tax = round(bill_share × rate)",
         "Rest row (first cash row without bill_share, or the only row): bill_share = preGst − the other shares, tax = round(bill_share × rate), amount = bill_share + tax",
         "paid = what was handed over. Only cash may be more than its amount → change = paid − amount. Cash handed over below its amount → the rest is udhaar (credit) and needs customer_id.",
+        "Paid less than the total (udhaar): payment_status = partial and remaining_amount = total − what the payments covered (− udhaar refunded later). Fully paid: payment_status = paid, remaining_amount = 0.",
       ],
     },
     {
@@ -152,7 +153,8 @@ const REFUND_CALCULATION = {
       lines: [
         "amount (before tax) = round(line subtotal × kept × qty ÷ soldQty)",
         "total = Σ method refunds · tax = total − amount (line taxes + payment tax)",
-        "Cash part leaves the drawer · card / wallet part goes back to the card / wallet · credit part comes off the customer's udhaar · the qty goes back to stock · the order turns refunded when every line is fully refunded.",
+        "Cash part leaves the drawer · card / wallet part goes back to the card / wallet · credit part comes off the customer's udhaar · the qty goes back to stock.",
+        "Order status: partial_refunded after a partial refund; refunded once every line is fully back. payment_status does not change on a partial refund (paid stays paid, partial stays partial).",
       ],
     },
     {

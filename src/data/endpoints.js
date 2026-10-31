@@ -244,7 +244,7 @@ const OFFER_LOCATIONS = [
   ],
   [
     ["location_scope", "selected"],
-    ["location_ids", [1, 2]],
+    ["location_ids", [1]],
   ],
 ]
 
@@ -717,6 +717,7 @@ export const postSections = [
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "offers", name: "Offers", tag: "offers", ids: ["offer-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
+  { id: "customers", name: "Customers", tag: "customers", ids: ["customer-create", "customer-bulk"] },
   { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
 ]
 
@@ -804,7 +805,7 @@ export const endpoints = [
     path: "/api/v1/plans",
     summary: "Plans",
     description:
-      "Super Admin. Every active plan — its id is the plan_id for Store Register and Renew License.",
+      "Super Admin only (a store admin / manager / cashier gets 403). Every active plan — its id is the plan_id for Store Register and Renew License.",
     auth: "superadmin",
   }),
 
@@ -909,7 +910,7 @@ export const endpoints = [
     summary: "PIN Verification",
     description:
       "On a signed-in till (store admin / manager token). Checks the PIN of a cashier, manager or the store admin at this location and returns { id, name, email, role, pin, phone, status, is_active } — no token. The POS then sends that id as staff_id (or id) on the cashier's clock in, batch, orders, refunds and stock.",
-    body: { pin: "3333" },
+    body: { pin: "2222" },
   }),
 
   ep({
@@ -1042,7 +1043,7 @@ export const endpoints = [
     description:
       "The open batch of a staff member at the location — staffId (user number) or, left out, the signed-in user; a store admin may name location_id. Same shape as a Batch History row { id, staff, location, status, opening_amount, opening_at, cash_sales, …, closing_at }; data is null when no batch is open. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
-      { name: "staffId", default: "3", required: false },
+      { name: "staffId", default: "2", required: false },
       { name: "location_id", default: "", required: false },
     ],
   }),
@@ -1349,7 +1350,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk Offer Creation",
-    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). Where it runs is set on each offer, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1] and [1, 2]. A manager or cashier sends no location; their offers are for their token's location. On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). Where it runs is set on each offer, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all and [1] (add more location numbers when the store has them, e.g. [1, 2]). A manager or cashier sends no location; their offers are for their token's location. On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: offerBuilder(),
     adminOnly: ["location_scope", "location_ids"],
   }),
@@ -1381,7 +1382,7 @@ export const endpoints = [
     path: "/api/v1/orders",
     summary: "Orders Completed",
     description:
-      "Completed sales (status=completed), newest first. Each order in the Bulk Order Creation shape { id, location, is_custom, offer_exempt, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Each order_items row: { id, product, category { id, name }, qty, unit_price, discount_amount, subtotal, tax_amount, total, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, min_qty, buy_qty, get_qty, promo_price, amount }], free_qty } — as it was at the sale (lines sold before this was kept: discount_source null, offers []). Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Completed sales (status=completed — also the partly refunded ones, status partial_refunded), newest first. Each row is short: { id (order number), is_custom, location_name, items (number of lines), currency, total_amount, status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status (paid | partial | pending | refunded), remaining_amount (udhaar still owed; 0 when paid), placed_at, channel }. GET /orders/:id has the full detail. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1402,7 +1403,7 @@ export const endpoints = [
     path: "/api/v1/orders",
     summary: "Orders Pending",
     description:
-      "Pending sales — not paid yet (status=pending). Each order in the Bulk Order Creation shape { id, location, is_custom, offer_exempt, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Each order_items row: { id, product, category { id, name }, qty, unit_price, discount_amount, subtotal, tax_amount, total, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, min_qty, buy_qty, get_qty, promo_price, amount }], free_qty } — as it was at the sale (lines sold before this was kept: discount_source null, offers []). Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Pending sales — not paid yet (status=pending). Each row is short: { id (order number), is_custom, location_name, items (number of lines), currency, total_amount, status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status (paid | partial | pending | refunded), remaining_amount (udhaar still owed; 0 when paid), placed_at, channel }. GET /orders/:id has the full detail. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1423,7 +1424,7 @@ export const endpoints = [
     path: "/api/v1/orders",
     summary: "Orders Cancelled",
     description:
-      "Cancelled and voided sales (status=cancelled). Each order in the Bulk Order Creation shape { id, location, is_custom, offer_exempt, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Each order_items row: { id, product, category { id, name }, qty, unit_price, discount_amount, subtotal, tax_amount, total, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, min_qty, buy_qty, get_qty, promo_price, amount }], free_qty } — as it was at the sale (lines sold before this was kept: discount_source null, offers []). Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Cancelled and voided sales (status=cancelled). Each row is short: { id (order number), is_custom, location_name, items (number of lines), currency, total_amount, status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status (paid | partial | pending | refunded), remaining_amount (udhaar still owed; 0 when paid), placed_at, channel }. GET /orders/:id has the full detail. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1444,7 +1445,7 @@ export const endpoints = [
     path: "/api/v1/orders",
     summary: "Complete Order History",
     description:
-      "Every order whatever its status (status=all; also completed | pending | cancelled | refunded). Each order in the Bulk Order Creation shape { id, location, is_custom, offer_exempt, staff, customer, batch, currency, order_items, subtotal, …, order_status, total_amount, amount_paid, change_due, placed_at, channel }. Each order_items row: { id, product, category { id, name }, qty, unit_price, discount_amount, subtotal, tax_amount, total, discount_source (none | product | category | product+category | bulk_tier | offer | custom), offers [{ id, name, type, discount_type, discount_value, min_qty, buy_qty, get_qty, promo_price, amount }], free_qty } — as it was at the sale (lines sold before this was kept: discount_source null, offers []). Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Every order whatever its status (status=all; also completed | pending | cancelled | refunded). Each row is short: { id (order number), is_custom, location_name, items (number of lines), currency, total_amount, status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status (paid | partial | pending | refunded), remaining_amount (udhaar still owed; 0 when paid), placed_at, channel }. GET /orders/:id has the full detail. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1465,7 +1466,7 @@ export const endpoints = [
     path: "/api/v1/orders/:id",
     summary: "Order Detail",
     description:
-      "One order — :id is the order number (e.g. 1) or UUID — in the Bulk Order Creation shape { id, location, is_custom, staff, customer, batch, currency, order_items, subtotal, …, total_amount, amount_paid, change_due, placed_at }. A manager / cashier only sees orders of their own location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "One order — :id is the order number (e.g. 1) or UUID — with everything about it: the receipt's detail (store, cashier, customer, items with product { id, title, sku, barcode, discount, taxes[] }, category { id, name, discount, tax }, offer, free_qty, sales_tax, refunded_qty, totals; subtotal, order_discount / coupon / sales_tax / fbr_fee when the sale had them, payment_gst_amount, tax_amount, total, amount_paid, change_due, remaining_amount on udhaar, payments [{ method, gst_percent, gst_amount, amount, paid, change, status }]) plus receipt_id, staff, batch, is_custom, offer_exempt, placed_at, transactions [{ id, method, amount, tax_amount, status, paid_at }] and refunds [ …each refund with items and how it was paid back ]. A manager / cashier only sees orders of their own location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -1475,7 +1476,7 @@ export const endpoints = [
     path: "/api/v1/orders/:id/receipt",
     summary: "Receipt by Order Id",
     description:
-      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order. Only what is printed on the receipt, each figure once: { id (receipt number), order_id, store { name, ntn, strn }, issued_at, channel, status, payment_status, payment_method, location { id, name }, cashier { id, name }, customer { id, name } | null, currency, items: [{ id, title, sku, qty, unit_price, discount_amount, refunded_qty, total (with tax) }], subtotal (before tax), discount_amount (order discount + coupon), tax_amount, total, amount_paid (handed over), change_due, payments: [{ method, status, amount }], tax_breakdown { product_tax, category_tax, sales_tax, payment_tax } — only on an FBR invoice, else null }.",
+      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order; issued_at = when the sale happened (placed_at), even for an offline sale synced later. { id (receipt number), order_id, store { name, ntn, strn }, issued_at, channel, status, payment_status, payment_method, location, cashier { id, name }, customer, currency, items: [{ id, qty, unit_price, gross_amount, product { id, title, sku, barcode, discount { name, type, value, amount } | null, taxes [{ name, type, value, amount }] }, category { id, name, discount | null, tax { name, type, value, amount } | null }, offer { id, name, type, discount_type, discount_value, amount } | null, free_qty (BOGO, when any), sales_tax { rate, amount } (only when charged), discount_amount, subtotal, tax_amount, refunded_qty, total }], subtotal, order_discount { type, value, amount } (only when the order had one), coupon { code, amount } (only when used), sales_tax { rate, amount } (only when charged), payment_gst_amount, tax_amount, fbr_fee (only on an FBR invoice), total, amount_paid, change_due, remaining_amount (only on udhaar), payments [{ method, gst_percent, gst_amount, amount, paid, change, status }] }. Every figure is as it was at the sale.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -1515,7 +1516,7 @@ export const endpoints = [
     path: "/api/v1/orders/refunds/bulk",
     summary: "Bulk Order Items Refund",
     description:
-      "POS sync: { locationId, items: [...] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds some items of an order: each entry needs order_id, order_item_id (the line's number in that order), qty and reason. Response data: one refund per entry, in order, in the same shape as a complete refund — { id, location, staff, order, receiptId, currency, reason, amount, tax, total, payments }. payments[] says how the refund is paid back: the same way the sale was paid, each method getting its own part back with the payment tax it was charged — { method, bill_share, payment_tax_percent, payment_tax_amount, amount }. E.g. a sale paid card 600 + cash 937.25 for 12 units gives back card 50 + cash 78.10 per unit; method credit means it was taken off the customer's udhaar. Only the cash part leaves the cash drawer. Refunding unit by unit returns exactly what each method paid (any paisa from rounding comes back on a later unit). Failed entries are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sync: { locationId, items: [...] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds some items of an order: each entry needs order_id, order_item_id (the line's number in that order), qty and reason. The order turns partial_refunded (refunded once every line is fully back); its payment_status stays as it was (paid / partial). Response data: one refund per entry, in order, in the same shape as a complete refund — { id, location, staff, order, receiptId, currency, reason, amount, tax, total, payments }. payments[] says how the refund is paid back: the same way the sale was paid, each method getting its own part back with the payment tax it was charged — { method, bill_share, payment_tax_percent, payment_tax_amount, amount }. E.g. a sale paid card 600 + cash 937.25 for 12 units gives back card 50 + cash 78.10 per unit; method credit means it was taken off the customer's udhaar. Only the cash part leaves the cash drawer. Refunding unit by unit returns exactly what each method paid (any paisa from rounding comes back on a later unit). Failed entries are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       locationId: 1,
       items: [
@@ -1650,7 +1651,7 @@ export const endpoints = [
       items: [
         { name: "Nestle Distributor", phone: "03006666666", email: "sales@nestle-dist.local", address: "Industrial Area", payment_terms: "Net 15", location_scope: "all" },
         { name: "Unilever Wholesale", phone: "03007777777", email: "orders@unilever-ws.local", address: "Korangi", payment_terms: "Net 30", location_scope: "selected", location_ids: [1] },
-        { name: "Rice Mills Co", phone: "03008888888", email: "info@ricemills.local", address: "Gujranwala", payment_terms: "Cash on delivery", location_scope: "selected", location_ids: [1, 2] },
+        { name: "Rice Mills Co", phone: "03008888888", email: "info@ricemills.local", address: "Gujranwala", payment_terms: "Cash on delivery", location_scope: "selected", location_ids: [1] },
       ],
     },
     adminOnly: ["location_scope", "location_ids"],
@@ -1687,6 +1688,30 @@ export const endpoints = [
       "Super Admin, for testing. Deletes one order (its UUID — the id in GET /orders?channel=web) with its items, refunds, payments, receipts and coupon uses. Stock and batch totals are not put back.",
     auth: "superadmin",
     pathParams: [{ name: "id", default: UUID, required: true }],
+  }),
+  ep({
+    id: "customer-create",
+    tag: "customers",
+    method: "POST",
+    path: "/api/v1/customers",
+    summary: "Create Customer",
+    description:
+      "Adds a customer. Its number (1, 2, 3… — in GET /customers) is the customer_id on an order. An order that is paid less than its total (udhaar) needs a customer: the rest is added to the customer's debt and the order's payment_status is partial with remaining_amount.",
+    body: { name: "Ali Khan", phone: "03001231234", email: "ali@example.com" },
+  }),
+  ep({
+    id: "customer-bulk",
+    tag: "customers",
+    method: "POST",
+    path: "/api/v1/customers/bulk",
+    summary: "Bulk Customers",
+    description: "POS offline sync: { items: [ ...customers ] }, each as in Create Customer. Failed rows are listed in failed[].",
+    body: {
+      items: [
+        { name: "Ali Khan", phone: "03001231234" },
+        { name: "Sana Tariq", phone: "03214567890", email: "sana@example.com" },
+      ],
+    },
   }),
   // ---- Bulk updates (PATCH): POS offline sync — updates queue on the till and go in one request ----
   ep({
