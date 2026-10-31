@@ -10,8 +10,12 @@ const LEGACY_PLAN_FLAGS = [
   "has_dedicated_am",
 ]
 
+// The API moved from Railway to Render (its own database): a session still on the old URL moves
+// over, and its tokens / license key (issued by the old server) are dropped.
+const OLD_BASE_URLS = ["https://pak-pos-backend-production.up.railway.app/", "https://pak-pos-backend-production.up.railway.app"]
+
 const defaults = {
-  baseUrl: "https://pak-pos-backend-production.up.railway.app/",
+  baseUrl: "https://pak-pos-backend.onrender.com/",
   accessToken: "",
   refreshToken: "",
   licenseKey: "",
@@ -58,7 +62,10 @@ export function loadSession() {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return { ...defaults }
-    const parsed = { ...defaults, ...JSON.parse(raw) }
+    let parsed = { ...defaults, ...JSON.parse(raw) }
+    if (OLD_BASE_URLS.includes(parsed.baseUrl)) {
+      parsed = { ...parsed, baseUrl: defaults.baseUrl, accessToken: "", refreshToken: "", licenseKey: "", role: "" }
+    }
     const bodies = {}
     for (const [id, text] of Object.entries(parsed.bodies || {})) {
       bodies[id] = migrateLegacyPlanBody(text)
