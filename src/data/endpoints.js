@@ -26,8 +26,7 @@ const VISIBILITY_OPTIONAL = [
   ["channel", "both", "optional"],
 ]
 
-// Where each example row is sold (store admin only; stripped for a manager / cashier): every
-// location, two locations, one location.
+// Where each example row is sold (any role): every location, two locations, one location.
 const CATALOG_LOCATIONS = [
   [["location_scope", "all"]],
   [
@@ -1170,7 +1169,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Categories",
-    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. Where each category is sold is set on each row, and only a store admin sends it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1, 2] and [1]. A manager or cashier sends no location; their categories are sold at their token's location. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. Where each category is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1, 2] and [1]. A manager / cashier sends their own location; if they leave it out, the category is sold at their token's location. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: {
       bulk: true,
       variants: [
@@ -1186,7 +1185,6 @@ export const endpoints = [
       ],
       toggles: CATEGORY_TOGGLES,
     },
-    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
 
   ep({
@@ -1215,10 +1213,9 @@ export const endpoints = [
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and only a store admin sends it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager or cashier sends no location; their products are sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager / cashier sends their own location; if they leave it out, the product is sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
-    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "prod-expiry",
@@ -1747,14 +1744,13 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk",
     summary: "Bulk Update Products",
-    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers; store admin only). Reply: the updated products (same shape as create).`,
+    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers). Reply: the updated products (same shape as create).`,
     body: {
       items: [
         { id: 1, title: "1 Litre Pepsi", price: 110, discount_name: "Eid Shopping", discount_type: "percentage", discount_value: 10 },
         { id: 2, low_stock_threshold: 24, sell_loose: true, location_scope: "selected", location_ids: [1, 2] },
       ],
     },
-    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "prod-bulk-weight-patch",
@@ -1803,14 +1799,13 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Update Categories",
-    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers; store admin only).`,
+    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers).`,
     body: {
       items: [
         { id: 1, name: "Beverages", tax_name: "GST", tax_type: "percentage", tax_value: 5, location_scope: "all" },
         { id: 3, discount_name: "Ramzan Sale", discount_type: "percentage", discount_value: 15 },
       ],
     },
-    adminOnly: ["location_scope", "location_ids", "items[].location_scope", "items[].location_ids"],
   }),
   ep({
     id: "cat-bulk-status-patch",

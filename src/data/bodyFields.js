@@ -77,11 +77,10 @@ const PLAN_CREATE = {
 const STAFF_ID = note("The staff member doing it — the cashier picked by PIN (their user number, e.g. 3). Leave out = the signed-in admin / manager")
 
 
-// Where a category / product is sold (store admin only; a manager's / cashier's row is for their
-// token's location and their edits never move it).
+// Where a category / product is sold (any role; a manager / cashier sends their own location).
 const CATALOG_LOCATIONS = {
-  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). Manager / cashier: ignored — what they create is sold at their token's location"),
-  location_ids: note("Store admin only, required when selected: location numbers, e.g. [1] or [1, 2] (UUIDs also work)"),
+  location_scope: note("all (every location, default) | selected (only location_ids). Manager / cashier: send selected + their own location; left out = their token's location"),
+  location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2] (UUIDs also work)"),
 }
 
 const CATEGORY_CREATE = {
@@ -124,7 +123,7 @@ const PRODUCT_CREATE = {
   is_published: note("Default false"),
   is_active: note("Default true"),
   ...VISIBILITY,
-  location_scope: note("Store admin only: all (every location, default) | selected (only location_ids). The product shows at a location only when its category is sold there too. Manager / cashier: ignored — their product is sold at their token's location"),
+  location_scope: note("all (every location, default) | selected (only location_ids). The product shows at a location only when its category is sold there too. Manager / cashier: send selected + their own location; left out = their token's location"),
   location_ids: CATALOG_LOCATIONS.location_ids,
 }
 
