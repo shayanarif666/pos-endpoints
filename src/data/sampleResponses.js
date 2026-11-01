@@ -299,6 +299,69 @@ export const SAMPLE_RESPONSES = {
       ]
     }
   }],
+  "prod-image-upload": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Product Image Uploaded",
+        "data": {
+          "id": 1,
+          "title": "1 Litre Pepsi",
+          "image": "https://res.cloudinary.com/demo/image/upload/v1730000000/pak-pos/store/products/pepsi.jpg"
+        }
+      }
+    },
+    {
+      "label": "No file (400)",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Send the image file in the image field",
+        "errors": null
+      }
+    },
+    {
+      "label": "Unknown product (404)",
+      "status": 404,
+      "body": {
+        "success": false,
+        "message": "Product not found",
+        "errors": null
+      }
+    }
+  ],
+  "prod-image-get": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 1,
+          "title": "1 Litre Pepsi",
+          "image": "https://res.cloudinary.com/demo/image/upload/v1730000000/pak-pos/store/products/pepsi.jpg"
+        }
+      }
+    }
+  ],
+  "prod-image-delete": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Product Image Removed",
+        "data": {
+          "id": 1,
+          "title": "1 Litre Pepsi",
+          "image": null
+        }
+      }
+    }
+  ],
   "prod-bulk": [{
     "label": "201 Created",
     "status": 201,

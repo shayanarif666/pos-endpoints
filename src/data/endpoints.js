@@ -749,7 +749,7 @@ export const postSections = [
   { id: "staff", name: "Staff", tag: "staff", ids: ["staff-bulk"] },
   { id: "batch-report", name: "Batch Report", tag: "shifts", ids: ["batch-open", "batch-close"] },
   { id: "categories", name: "Categories", tag: "categories", ids: ["cat-bulk"] },
-  { id: "products", name: "Products", tag: "products", ids: ["prod-bulk"] },
+  { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "offers", name: "Offers", tag: "offers", ids: ["offer-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
@@ -778,7 +778,7 @@ export const getSections = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
-  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-expiry", "prod-weight-list"] },
+  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-image-get", "prod-expiry", "prod-weight-list"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
@@ -1211,6 +1211,15 @@ export const endpoints = [
   }),
 
   ep({
+    id: "prod-image-get",
+    tag: "products",
+    method: "GET",
+    path: "/api/v1/products/:id/image",
+    summary: "Product Image",
+    description: "The product's image. :id = the product number (e.g. 1) or UUID. Response { id (product number), title, image (URL, or null when it has none) }. Any role.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+  }),
+  ep({
     id: "prod-list",
     tag: "products",
     method: "GET",
@@ -1239,6 +1248,17 @@ export const endpoints = [
       "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager / cashier sends their own location; if they leave it out, the product is sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
+  }),
+  ep({
+    id: "prod-image-upload",
+    tag: "products",
+    method: "POST",
+    path: "/api/v1/products/image",
+    summary: "Product Image Upload",
+    description:
+      "multipart/form-data: productId (the product number, e.g. 1, or UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per product: a new upload replaces the old one. The file is stored on the image server and the product's image becomes its URL — the same image Bulk Products / Products return as image. POST /api/v1/products/:id/image does the same with the product in the path. Response { id (product number), title, image (URL) }. Store admin or manager.",
+    body: { productId: 1 },
+    files: [{ name: "image", label: "Image" }],
   }),
   ep({
     id: "prod-expiry",
@@ -1716,6 +1736,15 @@ export const endpoints = [
   }),
 
 
+  ep({
+    id: "prod-image-delete",
+    tag: "products",
+    method: "DELETE",
+    path: "/api/v1/products/:id/image",
+    summary: "Remove Product Image",
+    description: "Removes the product's image (the product stays). :id = the product number (e.g. 1) or UUID. Response { id, title, image: null }. Store admin or manager.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+  }),
   ep({
     id: "data-delete-all",
     tag: "data",

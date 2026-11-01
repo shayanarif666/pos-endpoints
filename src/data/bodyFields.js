@@ -480,6 +480,9 @@ export const BODY_FIELDS = {
   "cat-patch": allOptional(CATEGORY_CREATE),
 
   // Products
+  "prod-image-upload": {
+    productId: must("The product number (e.g. 1) or UUID. Send the file in the image field (multipart/form-data)"),
+  },
   "prod-create": PRODUCT_CREATE,
   "prod-bulk": { ...TOP_STORE, ...bulkOf(PRODUCT_CREATE) },
   // category_id here is UUID-only, unlike create/bulk's flexible id-or-category_number.
