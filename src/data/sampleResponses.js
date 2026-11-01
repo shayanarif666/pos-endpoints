@@ -372,164 +372,14 @@ export const SAMPLE_RESPONSES = {
         "data": [
           {
             "id": 1,
-            "title": "1 Litre Pepsi",
-            "has_variants": false,
-            "parent": null,
-            "variant_name": null,
-            "variants": [],
-            "slug": "1-litre-pepsi",
-            "category": {
-              "id": 1,
-              "name": "Beverages"
-            },
-            "sku": "1-LITRE-PEPSI",
-            "barcode": "78263672323325",
-            "image": null,
-            "description": null,
-            "unit": "bottle",
-            "cost_price": 50,
-            "selling_price": 100,
-            "has_product_discount": true,
-            "discount_type": "percentage",
-            "discount_value": 5,
-            "discount_name": "Eid Shopping",
-            "has_product_tax": true,
-            "taxes": [
-              {
-                "name": "GST",
-                "type": "percentage",
-                "value": 18
-              }
-            ],
-            "is_pack_product": false,
-            "pack_size": null,
-            "pack_cost_price": null,
-            "pack_selling_price": null,
-            "sell_loose": true,
-            "is_weight_based": false,
-            "has_bulk_discount": false,
-            "low_stock_threshold": 10,
-            "total_price_each_unit": 112.1,
-            "total_pack_price": null,
-            "location_scope": "all",
-            "location_ids": [],
-            "is_active": true,
-            "is_pos_visible": true,
-            "is_web_visible": true
-          },
-          {
-            "id": 2,
-            "title": "Lux Soap",
-            "has_variants": false,
-            "parent": null,
-            "variant_name": null,
-            "variants": [],
-            "slug": "lux-soap",
-            "category": {
-              "id": 2,
-              "name": "Soap"
-            },
-            "sku": "LUX-SOAP",
-            "barcode": "8961014001234",
-            "image": null,
-            "description": null,
-            "unit": "piece",
-            "cost_price": 75,
-            "selling_price": 100,
-            "has_product_discount": true,
-            "discount_type": "percentage",
-            "discount_value": 0,
-            "discount_name": "Eid Shopping",
-            "has_product_tax": true,
-            "taxes": [
-              {
-                "name": "GST",
-                "type": "percentage",
-                "value": 18
-              }
-            ],
-            "is_pack_product": true,
-            "pack_size": 12,
-            "pack_cost_price": 900,
-            "pack_selling_price": 1200,
-            "sell_loose": true,
-            "is_weight_based": false,
-            "has_bulk_discount": false,
-            "low_stock_threshold": 10,
-            "total_price_each_unit": 118,
-            "total_pack_price": 1416,
-            "location_scope": "selected",
-            "location_ids": [
-              1,
-              2
-            ],
-            "is_active": true,
-            "is_pos_visible": true,
-            "is_web_visible": true
-          },
-          {
-            "id": 3,
-            "title": "Basmati Rice",
-            "has_variants": false,
-            "parent": null,
-            "variant_name": null,
-            "variants": [],
-            "slug": "basmati-rice",
-            "category": {
-              "id": 3,
-              "name": "Rice & Daal"
-            },
-            "sku": "BASMATI-RICE",
-            "barcode": "8964000123456",
-            "image": null,
-            "description": null,
-            "unit": "kg",
-            "cost_price": 300,
-            "selling_price": 360,
-            "has_product_discount": true,
-            "discount_type": "percentage",
-            "discount_value": 10,
-            "discount_name": "Eid Shopping",
-            "has_product_tax": true,
-            "taxes": [
-              {
-                "name": "GST",
-                "type": "percentage",
-                "value": 18
-              },
-              {
-                "name": "Excise",
-                "type": "fixed",
-                "value": 2
-              }
-            ],
-            "is_pack_product": true,
-            "pack_size": 25,
-            "pack_cost_price": 7500,
-            "pack_selling_price": 9000,
-            "sell_loose": true,
-            "is_weight_based": true,
-            "has_bulk_discount": false,
-            "low_stock_threshold": 10,
-            "total_price_each_unit": 384.32,
-            "total_pack_price": 9608,
-            "location_scope": "selected",
-            "location_ids": [
-              1
-            ],
-            "is_active": true,
-            "is_pos_visible": true,
-            "is_web_visible": true
-          },
-          {
-            "id": 4,
             "title": "Pepsi",
             "has_variants": true,
             "parent": null,
             "variant_name": null,
             "variants": [
               {
-                "id": 5,
+                "id": 1,
+                "product_id": 2,
                 "name": "1L",
                 "sku": "PEPSI-1L",
                 "barcode": "8961014100011",
@@ -540,7 +390,6 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
-                "variant_taxes": [],
                 "taxes": [
                   {
                     "name": "GST",
@@ -548,10 +397,30 @@ export const SAMPLE_RESPONSES = {
                     "value": 18
                   }
                 ],
+                "qty": 80,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 50,
+                    "expiry_date": "2027-03-31"
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 30,
+                    "expiry_date": "2027-03-31"
+                  }
+                ],
                 "is_active": true
               },
               {
-                "id": 6,
+                "id": 2,
+                "product_id": 3,
                 "name": "1.5L",
                 "sku": "PEPSI-1-5L",
                 "barcode": "8961014100028",
@@ -562,7 +431,6 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
-                "variant_taxes": [],
                 "taxes": [
                   {
                     "name": "GST",
@@ -570,10 +438,30 @@ export const SAMPLE_RESPONSES = {
                     "value": 18
                   }
                 ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 40,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 20,
+                    "expiry_date": null
+                  }
+                ],
                 "is_active": true
               },
               {
-                "id": 7,
+                "id": 3,
+                "product_id": 4,
                 "name": "2L",
                 "sku": "PEPSI-2L",
                 "barcode": "8961014100035",
@@ -584,13 +472,6 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
-                "variant_taxes": [
-                  {
-                    "name": "Sugar tax",
-                    "type": "fixed",
-                    "value": 5
-                  }
-                ],
                 "taxes": [
                   {
                     "name": "GST",
@@ -603,26 +484,64 @@ export const SAMPLE_RESPONSES = {
                     "value": 5
                   }
                 ],
+                "qty": 36,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
                 "is_active": true
               },
               {
-                "id": 8,
-                "name": "Jumbo 6-pack",
-                "sku": "PEPSI-JUMBO-6-PACK",
+                "id": 4,
+                "product_id": 5,
+                "name": "Jumbo",
+                "sku": "PEPSI-JUMBO",
                 "barcode": "8961014100042",
-                "cost_price": 150,
-                "selling_price": 200,
-                "is_pack_product": true,
-                "pack_size": 6,
-                "pack_cost_price": 900,
-                "pack_selling_price": 1200,
-                "sell_loose": true,
-                "variant_taxes": [],
+                "cost_price": 190,
+                "selling_price": 240,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
                 "taxes": [
                   {
                     "name": "GST",
                     "type": "percentage",
                     "value": 18
+                  }
+                ],
+                "qty": 15,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 15,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 0,
+                    "expiry_date": null
                   }
                 ],
                 "is_active": true
@@ -634,7 +553,7 @@ export const SAMPLE_RESPONSES = {
               "name": "Beverages"
             },
             "sku": "PEPSI",
-            "barcode": null,
+            "barcode": "8961014100004",
             "image": null,
             "description": null,
             "unit": "bottle",
@@ -659,11 +578,435 @@ export const SAMPLE_RESPONSES = {
             "sell_loose": false,
             "is_weight_based": false,
             "has_bulk_discount": false,
-            "low_stock_threshold": 5,
-            "total_price_each_unit": 1770,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 118,
             "total_pack_price": null,
             "location_scope": "all",
             "location_ids": [],
+            "stock_scope": "selected",
+            "stock_location_ids": [
+              1,
+              2
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 6,
+            "title": "Pack Of Pepsi",
+            "has_variants": true,
+            "parent": null,
+            "variant_name": null,
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 7,
+                "name": "1L x 10",
+                "sku": "PEPSI-PACK-1L",
+                "barcode": "8961014200018",
+                "cost_price": 78,
+                "selling_price": 95,
+                "is_pack_product": true,
+                "pack_size": 10,
+                "pack_cost_price": 780,
+                "pack_selling_price": 950,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 150,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 100,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 50,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 8,
+                "name": "1.5L x 6",
+                "sku": "PEPSI-PACK-1-5L",
+                "barcode": "8961014200025",
+                "cost_price": 105,
+                "selling_price": 133.33,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 630,
+                "pack_selling_price": 800,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 96,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 60,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 9,
+                "name": "2L x 6",
+                "sku": "PEPSI-PACK-2L",
+                "barcode": "8961014200032",
+                "cost_price": 133.33,
+                "selling_price": 170,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 800,
+                "pack_selling_price": 1020,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  },
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 4,
+                "product_id": 10,
+                "name": "Jumbo x 4",
+                "sku": "PEPSI-PACK-JUMBO",
+                "barcode": "8961014200049",
+                "cost_price": 180,
+                "selling_price": 230,
+                "is_pack_product": true,
+                "pack_size": 4,
+                "pack_cost_price": 720,
+                "pack_selling_price": 920,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 28,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 20,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 8,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pack-of-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "PEPSI-PACK",
+            "barcode": "8961014200001",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 78,
+            "selling_price": 95,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 12,
+            "total_price_each_unit": 112.1,
+            "total_pack_price": null,
+            "location_scope": "selected",
+            "location_ids": [
+              2,
+              1
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 11,
+            "title": "Pack Of Lux Soap",
+            "has_variants": true,
+            "parent": null,
+            "variant_name": null,
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 12,
+                "name": "Soft Rose (Pink)",
+                "sku": "LUX-PINK",
+                "barcode": "8961014300015",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 96,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 48,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 13,
+                "name": "Fresh Splash (Green)",
+                "sku": "LUX-GREEN",
+                "barcode": "8961014300022",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 14,
+                "name": "Sandal & Cream (Yellow)",
+                "sku": "LUX-YELLOW",
+                "barcode": "8961014300039",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 36,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 0,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pack-of-lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
+            },
+            "sku": "LUX-PACK",
+            "barcode": "8961014300008",
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 90,
+            "selling_price": 110,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 12,
+            "total_price_each_unit": 129.8,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "stock_scope": "all",
+            "stock_location_ids": [],
             "is_active": true,
             "is_pos_visible": true,
             "is_web_visible": true
@@ -672,97 +1015,370 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
-  "movement-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Stock Movement Created",
-      "data": [
-        {
-          "id": 1,
-          "location": {
+  "movement-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Stock Movement Created",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "Pepsi",
+              "sku": "PEPSI",
+              "unit": "bottle"
+            },
+            "variant": {
+              "id": 1,
+              "name": "1L",
+              "sku": "PEPSI-1L"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": "Bill #4521",
+            "qty": 120,
+            "qty_after": 168,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
+          {
             "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
+            "location": {
+              "id": 2,
+              "name": "DHA Phase 6"
+            },
+            "product": {
+              "id": 1,
+              "title": "Pepsi",
+              "sku": "PEPSI",
+              "unit": "bottle"
+            },
+            "variant": {
+              "id": 1,
+              "name": "1L",
+              "sku": "PEPSI-1L"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": "Bill #4521",
+            "qty": 60,
+            "qty_after": 90,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "order": null,
-          "movement_type": "stock_in",
-          "reason": "purchase",
-          "reason_note": null,
-          "qty": 50,
-          "qty_after": 50,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 2,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+          {
+            "id": 3,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "Pepsi",
+              "sku": "PEPSI",
+              "unit": "bottle"
+            },
+            "variant": {
+              "id": 3,
+              "name": "2L",
+              "sku": "PEPSI-2L"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": "Bill #4521",
+            "qty": 48,
+            "qty_after": 72,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
+          {
+            "id": 4,
+            "location": {
+              "id": 2,
+              "name": "DHA Phase 6"
+            },
+            "product": {
+              "id": 6,
+              "title": "Pack Of Pepsi",
+              "sku": "PEPSI-PACK",
+              "unit": "bottle"
+            },
+            "variant": {
+              "id": 2,
+              "name": "1.5L x 6",
+              "sku": "PEPSI-PACK-1-5L"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_out",
+            "reason": "damage",
+            "reason_note": "Delivery mein 1 pack phata hua aaya",
+            "qty": -6,
+            "qty_after": 30,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
+          {
+            "id": 5,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 6,
+              "title": "Pack Of Pepsi",
+              "sku": "PEPSI-PACK",
+              "unit": "bottle"
+            },
+            "variant": {
+              "id": 4,
+              "name": "Jumbo x 4",
+              "sku": "PEPSI-PACK-JUMBO"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_out",
+            "reason": "expiry",
+            "reason_note": null,
+            "qty": -4,
+            "qty_after": 16,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "order": null,
-          "movement_type": "stock_in",
-          "reason": "opening_balance",
-          "reason_note": null,
-          "qty": 24,
-          "qty_after": 24,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 3,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+          {
+            "id": 6,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 1,
+              "name": "Soft Rose (Pink)",
+              "sku": "LUX-PINK"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": null,
+            "qty": 24,
+            "qty_after": 72,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
+          {
+            "id": 7,
+            "location": {
+              "id": 3,
+              "name": "Clifton Block 5"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 1,
+              "name": "Soft Rose (Pink)",
+              "sku": "LUX-PINK"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": null,
+            "qty": 12,
+            "qty_after": 36,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
+          {
+            "id": 8,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 2,
+              "name": "Fresh Splash (Green)",
+              "sku": "LUX-GREEN"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": null,
+            "qty": 24,
+            "qty_after": 64,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
           },
-          "order": null,
-          "movement_type": "stock_out",
-          "reason": "damage",
-          "reason_note": null,
-          "qty": -2,
-          "qty_after": 48,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ]
+          {
+            "id": 9,
+            "location": {
+              "id": 2,
+              "name": "DHA Phase 6"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 2,
+              "name": "Fresh Splash (Green)",
+              "sku": "LUX-GREEN"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": null,
+            "qty": 12,
+            "qty_after": 24,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
+          },
+          {
+            "id": 10,
+            "location": {
+              "id": 2,
+              "name": "DHA Phase 6"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 3,
+              "name": "Sandal & Cream (Yellow)",
+              "sku": "LUX-YELLOW"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": null,
+            "qty": 12,
+            "qty_after": 12,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
+          },
+          {
+            "id": 11,
+            "location": {
+              "id": 3,
+              "name": "Clifton Block 5"
+            },
+            "product": {
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-PACK",
+              "unit": "piece"
+            },
+            "variant": {
+              "id": 3,
+              "name": "Sandal & Cream (Yellow)",
+              "sku": "LUX-YELLOW"
+            },
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": null,
+            "movement_type": "stock_out",
+            "reason": "return_to_supplier",
+            "reason_note": null,
+            "qty": -12,
+            "qty_after": 0,
+            "unit_sold": 0,
+            "created_at": "2026-11-01T10:00:00.000Z"
+          }
+        ]
+      }
     }
-  }],
+  ],
   "transfer-bulk": [
     {
       "label": "201 Created",
@@ -1890,27 +2506,197 @@ export const SAMPLE_RESPONSES = {
         "data": [
           {
             "id": 1,
-            "title": "1 Litre Pepsi",
-            "has_variants": false,
+            "title": "Pepsi",
+            "has_variants": true,
             "parent": null,
             "variant_name": null,
-            "variants": [],
-            "slug": "1-litre-pepsi",
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 2,
+                "name": "1L",
+                "sku": "PEPSI-1L",
+                "barcode": "8961014100011",
+                "cost_price": 80,
+                "selling_price": 100,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 78,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 48,
+                    "expiry_date": "2027-03-31"
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 30,
+                    "expiry_date": "2027-03-31"
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 3,
+                "name": "1.5L",
+                "sku": "PEPSI-1-5L",
+                "barcode": "8961014100028",
+                "cost_price": 110,
+                "selling_price": 140,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 40,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 20,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 4,
+                "name": "2L",
+                "sku": "PEPSI-2L",
+                "barcode": "8961014100035",
+                "cost_price": 140,
+                "selling_price": 180,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  },
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "qty": 36,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 4,
+                "product_id": 5,
+                "name": "Jumbo",
+                "sku": "PEPSI-JUMBO",
+                "barcode": "8961014100042",
+                "cost_price": 190,
+                "selling_price": 250,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 21,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 15,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 6,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pepsi",
             "category": {
               "id": 1,
               "name": "Beverages"
             },
-            "sku": "1-LITRE-PEPSI",
-            "barcode": "78263672323325",
+            "sku": "PEPSI",
+            "barcode": "8961014100004",
             "image": null,
             "description": null,
             "unit": "bottle",
-            "cost_price": 50,
-            "selling_price": 110,
-            "has_product_discount": true,
-            "discount_type": "percentage",
-            "discount_value": 10,
-            "discount_name": "Eid Shopping",
+            "cost_price": 80,
+            "selling_price": 100,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
             "has_product_tax": true,
             "taxes": [
               {
@@ -1923,41 +2709,257 @@ export const SAMPLE_RESPONSES = {
             "pack_size": null,
             "pack_cost_price": null,
             "pack_selling_price": null,
-            "sell_loose": true,
+            "sell_loose": false,
             "is_weight_based": false,
             "has_bulk_discount": false,
             "low_stock_threshold": 10,
-            "total_price_each_unit": 116.82,
+            "total_price_each_unit": 118,
             "total_pack_price": null,
             "location_scope": "all",
             "location_ids": [],
+            "stock_scope": "selected",
+            "stock_location_ids": [
+              1,
+              2
+            ],
             "is_active": true,
             "is_pos_visible": true,
             "is_web_visible": true
           },
           {
-            "id": 2,
-            "title": "Lux Soap",
-            "has_variants": false,
+            "id": 6,
+            "title": "Pack Of Pepsi",
+            "has_variants": true,
             "parent": null,
             "variant_name": null,
-            "variants": [],
-            "slug": "lux-soap",
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 7,
+                "name": "1L x 10",
+                "sku": "PEPSI-PACK-1L",
+                "barcode": "8961014200018",
+                "cost_price": 78,
+                "selling_price": 95,
+                "is_pack_product": true,
+                "pack_size": 10,
+                "pack_cost_price": 780,
+                "pack_selling_price": 950,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 150,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 100,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 50,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 8,
+                "name": "1.5L x 6",
+                "sku": "PEPSI-PACK-1-5L",
+                "barcode": "8961014200025",
+                "cost_price": 105,
+                "selling_price": 133.33,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 630,
+                "pack_selling_price": 800,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 96,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 60,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 9,
+                "name": "2L x 6",
+                "sku": "PEPSI-PACK-2L",
+                "barcode": "8961014200032",
+                "cost_price": 133.33,
+                "selling_price": 170,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 800,
+                "pack_selling_price": 1020,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  },
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 4,
+                "product_id": 10,
+                "name": "Jumbo x 4",
+                "sku": "PEPSI-PACK-JUMBO",
+                "barcode": "8961014200049",
+                "cost_price": 180,
+                "selling_price": 230,
+                "is_pack_product": true,
+                "pack_size": 4,
+                "pack_cost_price": 720,
+                "pack_selling_price": 920,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 28,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 20,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 8,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 5,
+                "product_id": 15,
+                "name": "500ml x 12",
+                "sku": "PEPSI-PACK-500ML",
+                "barcode": "8961014200056",
+                "cost_price": 50,
+                "selling_price": 65,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 600,
+                "pack_selling_price": 780,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 48,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 48,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 0,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pack-of-pepsi",
             "category": {
-              "id": 2,
-              "name": "Soap"
+              "id": 1,
+              "name": "Beverages"
             },
-            "sku": "LUX-SOAP",
-            "barcode": "8961014001234",
+            "sku": "PEPSI-PACK",
+            "barcode": "8961014200001",
             "image": null,
             "description": null,
-            "unit": "piece",
-            "cost_price": 75,
-            "selling_price": 100,
-            "has_product_discount": true,
-            "discount_type": "percentage",
-            "discount_value": 0,
-            "discount_name": "Eid Shopping",
+            "unit": "bottle",
+            "cost_price": 78,
+            "selling_price": 95,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
             "has_product_tax": true,
             "taxes": [
               {
@@ -1966,20 +2968,222 @@ export const SAMPLE_RESPONSES = {
                 "value": 18
               }
             ],
-            "is_pack_product": true,
-            "pack_size": 12,
-            "pack_cost_price": 900,
-            "pack_selling_price": 1200,
-            "sell_loose": true,
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
             "is_weight_based": false,
             "has_bulk_discount": false,
-            "low_stock_threshold": 24,
-            "total_price_each_unit": 118,
-            "total_pack_price": 1416,
+            "low_stock_threshold": 12,
+            "total_price_each_unit": 112.1,
+            "total_pack_price": null,
             "location_scope": "selected",
             "location_ids": [
+              2,
+              1
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 11,
+            "title": "Pack Of Lux Soap",
+            "has_variants": true,
+            "parent": null,
+            "variant_name": null,
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 12,
+                "name": "Soft Rose (Pink)",
+                "sku": "LUX-PINK",
+                "barcode": "8961014300015",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 96,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 48,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 13,
+                "name": "Fresh Splash (Green)",
+                "sku": "LUX-GREEN",
+                "barcode": "8961014300022",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 64,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 40,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 14,
+                "name": "Sandal & Cream (Yellow)",
+                "sku": "LUX-YELLOW",
+                "barcode": "8961014300039",
+                "cost_price": 90,
+                "selling_price": 110,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 1080,
+                "pack_selling_price": 1320,
+                "sell_loose": true,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 36,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 0,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 3,
+                      "name": "Clifton Block 5"
+                    },
+                    "qty": 12,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pack-of-lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
+            },
+            "sku": "LUX-PACK",
+            "barcode": "8961014300008",
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 90,
+            "selling_price": 110,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 12,
+            "total_price_each_unit": 129.8,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "stock_scope": "selected",
+            "stock_location_ids": [
               1,
-              2
+              3
             ],
             "is_active": true,
             "is_pos_visible": true,
@@ -3925,6 +5129,240 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
+  "prod-get": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 1,
+          "title": "Pepsi",
+          "has_variants": true,
+          "parent": null,
+          "variant_name": null,
+          "variants": [
+            {
+              "id": 1,
+              "product_id": 2,
+              "name": "1L",
+              "sku": "PEPSI-1L",
+              "barcode": "8961014100011",
+              "cost_price": 80,
+              "selling_price": 100,
+              "is_pack_product": false,
+              "pack_size": null,
+              "pack_cost_price": null,
+              "pack_selling_price": null,
+              "sell_loose": false,
+              "taxes": [
+                {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 18
+                }
+              ],
+              "qty": 258,
+              "stocks": [
+                {
+                  "location": {
+                    "id": 1,
+                    "name": "Gulshan e Iqbal Block 13 D"
+                  },
+                  "qty": 168,
+                  "expiry_date": "2027-06-30"
+                },
+                {
+                  "location": {
+                    "id": 2,
+                    "name": "DHA Phase 6"
+                  },
+                  "qty": 90,
+                  "expiry_date": "2027-06-30"
+                }
+              ],
+              "is_active": true
+            },
+            {
+              "id": 2,
+              "product_id": 3,
+              "name": "1.5L",
+              "sku": "PEPSI-1-5L",
+              "barcode": "8961014100028",
+              "cost_price": 110,
+              "selling_price": 140,
+              "is_pack_product": false,
+              "pack_size": null,
+              "pack_cost_price": null,
+              "pack_selling_price": null,
+              "sell_loose": false,
+              "taxes": [
+                {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 18
+                }
+              ],
+              "qty": 60,
+              "stocks": [
+                {
+                  "location": {
+                    "id": 1,
+                    "name": "Gulshan e Iqbal Block 13 D"
+                  },
+                  "qty": 40,
+                  "expiry_date": null
+                },
+                {
+                  "location": {
+                    "id": 2,
+                    "name": "DHA Phase 6"
+                  },
+                  "qty": 20,
+                  "expiry_date": null
+                }
+              ],
+              "is_active": true
+            },
+            {
+              "id": 3,
+              "product_id": 4,
+              "name": "2L",
+              "sku": "PEPSI-2L",
+              "barcode": "8961014100035",
+              "cost_price": 140,
+              "selling_price": 180,
+              "is_pack_product": false,
+              "pack_size": null,
+              "pack_cost_price": null,
+              "pack_selling_price": null,
+              "sell_loose": false,
+              "taxes": [
+                {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 18
+                },
+                {
+                  "name": "Sugar tax",
+                  "type": "fixed",
+                  "value": 5
+                }
+              ],
+              "qty": 84,
+              "stocks": [
+                {
+                  "location": {
+                    "id": 1,
+                    "name": "Gulshan e Iqbal Block 13 D"
+                  },
+                  "qty": 72,
+                  "expiry_date": "2027-06-30"
+                },
+                {
+                  "location": {
+                    "id": 2,
+                    "name": "DHA Phase 6"
+                  },
+                  "qty": 12,
+                  "expiry_date": null
+                }
+              ],
+              "is_active": true
+            },
+            {
+              "id": 4,
+              "product_id": 5,
+              "name": "Jumbo",
+              "sku": "PEPSI-JUMBO",
+              "barcode": "8961014100042",
+              "cost_price": 190,
+              "selling_price": 250,
+              "is_pack_product": false,
+              "pack_size": null,
+              "pack_cost_price": null,
+              "pack_selling_price": null,
+              "sell_loose": false,
+              "taxes": [
+                {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 18
+                }
+              ],
+              "qty": 21,
+              "stocks": [
+                {
+                  "location": {
+                    "id": 1,
+                    "name": "Gulshan e Iqbal Block 13 D"
+                  },
+                  "qty": 15,
+                  "expiry_date": null
+                },
+                {
+                  "location": {
+                    "id": 2,
+                    "name": "DHA Phase 6"
+                  },
+                  "qty": 6,
+                  "expiry_date": null
+                }
+              ],
+              "is_active": true
+            }
+          ],
+          "slug": "pepsi",
+          "category": {
+            "id": 1,
+            "name": "Beverages"
+          },
+          "sku": "PEPSI",
+          "barcode": "8961014100004",
+          "image": null,
+          "description": null,
+          "unit": "bottle",
+          "cost_price": 80,
+          "selling_price": 100,
+          "has_product_discount": false,
+          "discount_type": null,
+          "discount_value": null,
+          "discount_name": null,
+          "has_product_tax": true,
+          "taxes": [
+            {
+              "name": "GST",
+              "type": "percentage",
+              "value": 18
+            }
+          ],
+          "is_pack_product": false,
+          "pack_size": null,
+          "pack_cost_price": null,
+          "pack_selling_price": null,
+          "sell_loose": false,
+          "is_weight_based": false,
+          "has_bulk_discount": false,
+          "low_stock_threshold": 10,
+          "total_price_each_unit": 118,
+          "total_pack_price": null,
+          "location_scope": "all",
+          "location_ids": [],
+          "stock_scope": "selected",
+          "stock_location_ids": [
+            1,
+            2
+          ],
+          "is_active": true,
+          "is_pos_visible": true,
+          "is_web_visible": true,
+          "qty": 0,
+          "stocks": []
+        }
+      }
+    }
+  ],
   "prod-list": [
     {
       "label": "200 OK",
@@ -3933,6 +5371,271 @@ export const SAMPLE_RESPONSES = {
         "success": true,
         "message": "OK",
         "data": [
+          {
+            "id": 6,
+            "title": "Pack Of Pepsi",
+            "has_variants": true,
+            "parent": null,
+            "variant_name": null,
+            "variants": [
+              {
+                "id": 1,
+                "product_id": 7,
+                "name": "1L x 10",
+                "sku": "PEPSI-PACK-1L",
+                "barcode": "8961014200018",
+                "cost_price": 78,
+                "selling_price": 95,
+                "is_pack_product": true,
+                "pack_size": 10,
+                "pack_cost_price": 780,
+                "pack_selling_price": 950,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 150,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 100,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 50,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 2,
+                "product_id": 8,
+                "name": "1.5L x 6",
+                "sku": "PEPSI-PACK-1-5L",
+                "barcode": "8961014200025",
+                "cost_price": 105,
+                "selling_price": 133.33,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 630,
+                "pack_selling_price": 800,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 90,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 60,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 30,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 3,
+                "product_id": 9,
+                "name": "2L x 6",
+                "sku": "PEPSI-PACK-2L",
+                "barcode": "8961014200032",
+                "cost_price": 133.33,
+                "selling_price": 170,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 800,
+                "pack_selling_price": 1020,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  },
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "qty": 60,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 36,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 24,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 4,
+                "product_id": 10,
+                "name": "Jumbo x 4",
+                "sku": "PEPSI-PACK-JUMBO",
+                "barcode": "8961014200049",
+                "cost_price": 180,
+                "selling_price": 230,
+                "is_pack_product": true,
+                "pack_size": 4,
+                "pack_cost_price": 720,
+                "pack_selling_price": 920,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 24,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 16,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 8,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 5,
+                "product_id": 15,
+                "name": "500ml x 12",
+                "sku": "PEPSI-PACK-500ML",
+                "barcode": "8961014200056",
+                "cost_price": 50,
+                "selling_price": 65,
+                "is_pack_product": true,
+                "pack_size": 12,
+                "pack_cost_price": 600,
+                "pack_selling_price": 780,
+                "sell_loose": false,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "qty": 48,
+                "stocks": [
+                  {
+                    "location": {
+                      "id": 1,
+                      "name": "Gulshan e Iqbal Block 13 D"
+                    },
+                    "qty": 48,
+                    "expiry_date": null
+                  },
+                  {
+                    "location": {
+                      "id": 2,
+                      "name": "DHA Phase 6"
+                    },
+                    "qty": 0,
+                    "expiry_date": null
+                  }
+                ],
+                "is_active": true
+              }
+            ],
+            "slug": "pack-of-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "PEPSI-PACK",
+            "barcode": "8961014200001",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 78,
+            "selling_price": 95,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 12,
+            "total_price_each_unit": 112.1,
+            "total_pack_price": null,
+            "location_scope": "selected",
+            "location_ids": [
+              2,
+              1
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true,
+            "qty": 0,
+            "stocks": []
+          },
           {
             "id": 1,
             "title": "1 Litre Pepsi",
@@ -3997,7 +5700,9 @@ export const SAMPLE_RESPONSES = {
                 "qty": 41,
                 "expiry_date": "2026-12-31"
               }
-            ]
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": []
           },
           {
             "id": 3,
@@ -4062,7 +5767,9 @@ export const SAMPLE_RESPONSES = {
                 "qty": 50,
                 "expiry_date": null
               }
-            ]
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": []
           },
           {
             "id": 2,
@@ -4131,7 +5838,9 @@ export const SAMPLE_RESPONSES = {
                 "qty": 10,
                 "expiry_date": "2027-06-30"
               }
-            ]
+            ],
+            "stock_scope": "all",
+            "stock_location_ids": []
           }
         ],
         "pagination": {
@@ -4901,598 +6610,620 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "movement-list": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 26,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+  "movement-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 26,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 8,
+              "status": "voided"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 1,
+            "qty_after": 41,
+            "unit_sold": 5,
+            "created_at": "2026-10-31T09:27:36.000Z"
           },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
+          {
+            "id": 25,
+            "location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            },
+            "order": null,
+            "movement_type": "transfer_in",
+            "reason": "transfer",
+            "reason_note": null,
+            "qty": 10,
+            "qty_after": 10,
+            "unit_sold": 0,
+            "created_at": "2026-10-31T09:27:36.000Z"
           },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
+          {
+            "id": 24,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            },
+            "order": null,
+            "movement_type": "transfer_out",
+            "reason": "transfer",
+            "reason_note": null,
+            "qty": -10,
+            "qty_after": 10,
+            "unit_sold": 2,
+            "created_at": "2026-10-31T09:27:36.000Z"
           },
-          "order": {
+          {
+            "id": 23,
+            "location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            },
+            "order": null,
+            "movement_type": "transfer_in",
+            "reason": "transfer",
+            "reason_note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
+            "qty": 22,
+            "qty_after": 22,
+            "unit_sold": 0,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 22,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            },
+            "order": null,
+            "movement_type": "transfer_out",
+            "reason": "transfer",
+            "reason_note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
+            "qty": -24,
+            "qty_after": 40,
+            "unit_sold": 6,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 21,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 3,
+              "title": "Basmati Rice",
+              "sku": "BASMATI-RICE",
+              "unit": "kg"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 3,
+              "name": "Ameer Hamza",
+              "role": "cashier"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": "Nestle Distributor delivery",
+            "qty": 50,
+            "qty_after": 50,
+            "unit_sold": 0,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 20,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 3,
+              "name": "Ameer Hamza",
+              "role": "cashier"
+            },
+            "order": null,
+            "movement_type": "stock_in",
+            "reason": "purchase",
+            "reason_note": "Nestle Distributor delivery",
+            "qty": 24,
+            "qty_after": 64,
+            "unit_sold": 6,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 19,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 3,
+              "name": "Ameer Hamza",
+              "role": "cashier"
+            },
+            "order": null,
+            "movement_type": "stock_out",
+            "reason": "damage",
+            "reason_note": "2 soaps damaged",
+            "qty": -2,
+            "qty_after": 20,
+            "unit_sold": 2,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 18,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 3,
+              "name": "Ameer Hamza",
+              "role": "cashier"
+            },
+            "order": null,
+            "movement_type": "adjustment",
+            "reason": "count",
+            "reason_note": "Physical count",
+            "qty": -2,
+            "qty_after": 40,
+            "unit_sold": 6,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 17,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 8,
+              "status": "voided"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -1,
+            "qty_after": 42,
+            "unit_sold": 6,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 16,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 7,
+              "status": "completed"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -1,
+            "qty_after": 43,
+            "unit_sold": 5,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 15,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            },
+            "order": {
+              "id": 6,
+              "status": "voided"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 1,
+            "qty_after": 44,
+            "unit_sold": 4,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 14,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 6,
+              "status": "voided"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -1,
+            "qty_after": 43,
+            "unit_sold": 5,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 13,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 1,
+              "status": "partial_refunded"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 1,
+            "qty_after": 22,
+            "unit_sold": 2,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 12,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 1,
+              "status": "partial_refunded"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 1,
+            "qty_after": 44,
+            "unit_sold": 4,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 11,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 3,
+              "status": "refunded"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 1,
+            "qty_after": 43,
+            "unit_sold": 5,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 10,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 3,
+              "status": "refunded"
+            },
+            "movement_type": "refund",
+            "reason": "refund",
+            "reason_note": null,
+            "qty": 12,
+            "qty_after": 21,
+            "unit_sold": 3,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 9,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 5,
+              "status": "completed"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -2,
+            "qty_after": 9,
+            "unit_sold": 15,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
             "id": 8,
-            "status": "voided"
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 5,
+              "status": "completed"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -3,
+            "qty_after": 42,
+            "unit_sold": 6,
+            "created_at": "2026-10-31T09:27:36.000Z"
           },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 1,
-          "qty_after": 41,
-          "unit_sold": 5,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 25,
-          "location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          },
-          "order": null,
-          "movement_type": "transfer_in",
-          "reason": "transfer",
-          "reason_note": null,
-          "qty": 10,
-          "qty_after": 10,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 24,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          },
-          "order": null,
-          "movement_type": "transfer_out",
-          "reason": "transfer",
-          "reason_note": null,
-          "qty": -10,
-          "qty_after": 10,
-          "unit_sold": 2,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 23,
-          "location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          },
-          "order": null,
-          "movement_type": "transfer_in",
-          "reason": "transfer",
-          "reason_note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
-          "qty": 22,
-          "qty_after": 22,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 22,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          },
-          "order": null,
-          "movement_type": "transfer_out",
-          "reason": "transfer",
-          "reason_note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
-          "qty": -24,
-          "qty_after": 40,
-          "unit_sold": 6,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 21,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 3,
-            "title": "Basmati Rice",
-            "sku": "BASMATI-RICE",
-            "unit": "kg"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
-          },
-          "order": null,
-          "movement_type": "stock_in",
-          "reason": "purchase",
-          "reason_note": "Nestle Distributor delivery",
-          "qty": 50,
-          "qty_after": 50,
-          "unit_sold": 0,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 20,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
-          },
-          "order": null,
-          "movement_type": "stock_in",
-          "reason": "purchase",
-          "reason_note": "Nestle Distributor delivery",
-          "qty": 24,
-          "qty_after": 64,
-          "unit_sold": 6,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 19,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
-          },
-          "order": null,
-          "movement_type": "stock_out",
-          "reason": "damage",
-          "reason_note": "2 soaps damaged",
-          "qty": -2,
-          "qty_after": 20,
-          "unit_sold": 2,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 18,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 3,
-            "name": "Ameer Hamza",
-            "role": "cashier"
-          },
-          "order": null,
-          "movement_type": "adjustment",
-          "reason": "count",
-          "reason_note": "Physical count",
-          "qty": -2,
-          "qty_after": 40,
-          "unit_sold": 6,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 17,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 8,
-            "status": "voided"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -1,
-          "qty_after": 42,
-          "unit_sold": 6,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 16,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
+          {
             "id": 7,
-            "status": "completed"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -1,
-          "qty_after": 43,
-          "unit_sold": 5,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 15,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          },
-          "order": {
-            "id": 6,
-            "status": "voided"
-          },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 1,
-          "qty_after": 44,
-          "unit_sold": 4,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 14,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 6,
-            "status": "voided"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -1,
-          "qty_after": 43,
-          "unit_sold": 5,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 13,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 1,
-            "status": "partial_refunded"
-          },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 1,
-          "qty_after": 22,
-          "unit_sold": 2,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 12,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 1,
-            "status": "partial_refunded"
-          },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 1,
-          "qty_after": 44,
-          "unit_sold": 4,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 11,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 3,
-            "status": "refunded"
-          },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 1,
-          "qty_after": 43,
-          "unit_sold": 5,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 10,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 3,
-            "status": "refunded"
-          },
-          "movement_type": "refund",
-          "reason": "refund",
-          "reason_note": null,
-          "qty": 12,
-          "qty_after": 21,
-          "unit_sold": 3,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 9,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 5,
-            "status": "completed"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -2,
-          "qty_after": 9,
-          "unit_sold": 15,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 8,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 5,
-            "status": "completed"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -3,
-          "qty_after": 42,
-          "unit_sold": 6,
-          "created_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 7,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "supplier": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 3,
-            "status": "refunded"
-          },
-          "movement_type": "sale",
-          "reason": "sale",
-          "reason_note": null,
-          "qty": -1,
-          "qty_after": 45,
-          "unit_sold": 3,
-          "created_at": "2026-10-31T09:27:36.000Z"
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "variant": null,
+            "supplier": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 3,
+              "status": "refunded"
+            },
+            "movement_type": "sale",
+            "reason": "sale",
+            "reason_note": null,
+            "qty": -1,
+            "qty_after": 45,
+            "unit_sold": 3,
+            "created_at": "2026-10-31T09:27:36.000Z"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 26,
+          "total_pages": 2
         }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 26,
-        "total_pages": 2
       }
     }
-  }],
+  ],
   "transfer-list": [
     {
       "label": "200 OK",

@@ -57,82 +57,66 @@ const CATEGORY_TOGGLES = [
   { id: "optional", label: "Show Optional Fields", default: false },
 ]
 
-// Shared tail of a product row; tax / discount differ per example item.
-const productTail = ({ taxes, discount, weight, locations = CATALOG_LOCATIONS[0] }) => [
-  ["taxes", taxes, "tax"],
-  ...DISCOUNT("Eid Shopping", "percentage", discount),
-  ["low_stock_threshold", 10],
-  ["sell_loose", true],
-  ["is_weight_based", weight],
+const GST = [{ name: "GST", type: "percentage", value: 18 }]
+const at = (...rows) => rows.map(([location_id, qty, expiry_date]) => ({ location_id, qty, ...(expiry_date ? { expiry_date } : {}) }))
+const pack = (size, cost, price, sellLoose) => ({ is_pack_product: true, pack_size: size, pack_cost: cost, pack_price: price, sell_loose: sellLoose })
+
+// A product with variants: where it is sold, where its stock is held, then each variant with its
+// own SKU, barcode, prices / pack and opening stock per location.
+const productWithVariants = ({ title, sku, barcode, category, unit, threshold, scope, stockScope, variants }) => [
+  ["title", title],
+  ["sku", sku],
+  ["barcode", barcode],
+  ["category_id", category],
+  ["unit", unit],
+  ["taxes", GST, "tax"],
+  ["low_stock_threshold", threshold],
+  ["is_weight_based", false],
   ["image", ""],
+  ...scope,
+  ...stockScope,
+  ["variants", variants],
   ["is_published", false, "optional"],
   ...VISIBILITY_OPTIONAL,
-  ...locations,
 ]
 
-// Loose item: sold one by one.
-const PRODUCT_LOOSE_ROW = [
-  ["title", "1 Litre Pepsi"],
-  ["barcode", "78263672323325"],
-  ["category_id", 1],
-  ["unit", "bottle"],
-  ["cost", 50],
-  ["price", 100],
-  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 5, weight: false }),
-]
-
-// Loose + pack: a box of 12 that also sells single pieces.
-const PRODUCT_PACK_ROW = [
-  ["title", "Lux Soap"],
-  ["barcode", "8961014001234"],
-  ["category_id", 2],
-  ["unit", "piece"],
-  ["is_pack_product", true],
-  ["pack_size", 12],
-  ["pack_cost", 900],
-  ["pack_price", 1200],
-  ...productTail({ taxes: [{ name: "GST", type: "percentage", value: 18 }], discount: 0, weight: false, locations: CATALOG_LOCATIONS[1] }),
-]
-
-// Loose + pack + weight: a 25 kg bag, also sold loose by the kg on the scale.
-const PRODUCT_PACK_WEIGHT_ROW = [
-  ["title", "Basmati Rice"],
-  ["barcode", "8964000123456"],
-  ["category_id", 3],
-  ["unit", "kg"],
-  ["is_pack_product", true],
-  ["pack_size", 25],
-  ["pack_cost", 7500],
-  ["pack_price", 9000],
-  ...productTail({
-    taxes: [
-      { name: "GST", type: "percentage", value: 18 },
-      { name: "Excise", type: "fixed", value: 2 },
-    ],
-    discount: 10,
-    weight: true,
-    locations: CATALOG_LOCATIONS[2],
-  }),
-]
-
-// With variants: each size is a product of its own (own SKU, barcode, prices, stock).
-const PRODUCT_VARIANTS_ROW = [
-  ["title", "Pepsi"],
-  ["category_id", 1],
-  ["unit", "bottle"],
-  ["taxes", [{ name: "GST", type: "percentage", value: 18 }], "tax"],
-  [
-    "variants",
-    [
-      { name: "1L", barcode: "8961014100011", cost: 80, price: 100, stock: 50 },
-      { name: "1.5L", barcode: "8961014100028", cost: 110, price: 140, stock: 30 },
-      { name: "2L", barcode: "8961014100035", cost: 140, price: 180, stock: 20, taxes: [{ name: "Sugar tax", type: "fixed", value: 5 }] },
-      { name: "Jumbo 6-pack", barcode: "8961014100042", is_pack_product: true, pack_size: 6, pack_cost: 900, pack_price: 1200, sell_loose: true, stock: 12 },
-    ],
+// Pepsi: loose bottles in four sizes; sold everywhere, stock at locations 1 and 2.
+const PRODUCT_PEPSI_ROW = productWithVariants({
+  title: "Pepsi", sku: "PEPSI", barcode: "8961014100004", category: 1, unit: "bottle", threshold: 10,
+  scope: [["location_scope", "all"]],
+  stockScope: [["stock_scope", "selected"], ["stock_location_ids", [1, 2]]],
+  variants: [
+    { name: "1L", sku: "PEPSI-1L", barcode: "8961014100011", cost: 80, price: 100, stock: at([1, 50, "2027-03-31"], [2, 30, "2027-03-31"]) },
+    { name: "1.5L", sku: "PEPSI-1-5L", barcode: "8961014100028", cost: 110, price: 140, stock: at([1, 40], [2, 20]) },
+    { name: "2L", sku: "PEPSI-2L", barcode: "8961014100035", cost: 140, price: 180, taxes: [{ name: "Sugar tax", type: "fixed", value: 5 }], stock: at([1, 24], [2, 12]) },
+    { name: "Jumbo", sku: "PEPSI-JUMBO", barcode: "8961014100042", cost: 190, price: 240, stock: at([1, 15]) },
   ],
-  ["low_stock_threshold", 5],
-  ["is_active", true, "optional"],
-]
+})
+
+// Pack Of Pepsi: every size by the pack; sold (and stocked) at locations 1 and 2.
+const PRODUCT_PEPSI_PACK_ROW = productWithVariants({
+  title: "Pack Of Pepsi", sku: "PEPSI-PACK", barcode: "8961014200001", category: 1, unit: "bottle", threshold: 12,
+  scope: [["location_scope", "selected"], ["location_ids", [1, 2]]],
+  stockScope: [["stock_scope", "all"]],
+  variants: [
+    { name: "1L x 10", sku: "PEPSI-PACK-1L", barcode: "8961014200018", ...pack(10, 780, 950, false), stock: at([1, 100], [2, 50]) },
+    { name: "1.5L x 6", sku: "PEPSI-PACK-1-5L", barcode: "8961014200025", ...pack(6, 630, 800, false), stock: at([1, 60], [2, 36]) },
+    { name: "2L x 6", sku: "PEPSI-PACK-2L", barcode: "8961014200032", ...pack(6, 800, 1020, false), taxes: [{ name: "Sugar tax", type: "fixed", value: 5 }], stock: at([1, 36], [2, 24]) },
+    { name: "Jumbo x 4", sku: "PEPSI-PACK-JUMBO", barcode: "8961014200049", ...pack(4, 720, 920, false), stock: at([1, 20], [2, 8]) },
+  ],
+})
+
+// Pack Of Lux Soap: a box of 12 in three colours, single bars sold too; everywhere.
+const PRODUCT_LUX_PACK_ROW = productWithVariants({
+  title: "Pack Of Lux Soap", sku: "LUX-PACK", barcode: "8961014300008", category: 2, unit: "piece", threshold: 12,
+  scope: [["location_scope", "all"]],
+  stockScope: [["stock_scope", "all"]],
+  variants: [
+    { name: "Soft Rose (Pink)", sku: "LUX-PINK", barcode: "8961014300015", ...pack(12, 1080, 1320, true), stock: at([1, 48], [2, 24], [3, 24]) },
+    { name: "Fresh Splash (Green)", sku: "LUX-GREEN", barcode: "8961014300022", ...pack(12, 1080, 1320, true), stock: at([1, 36], [2, 12], [3, 12]) },
+    { name: "Sandal & Cream (Yellow)", sku: "LUX-YELLOW", barcode: "8961014300039", ...pack(12, 1080, 1320, true), stock: at([1, 24], [3, 12]) },
+  ],
+})
 
 const round2 = (n) => Math.round(n * 100) / 100
 
@@ -190,41 +174,10 @@ function productBuilder() {
   return {
     bulk: true,
     variants: [
-      { id: "default", label: null, rows: [PRODUCT_LOOSE_ROW, PRODUCT_PACK_ROW, PRODUCT_PACK_WEIGHT_ROW, PRODUCT_VARIANTS_ROW] },
+      { id: "default", label: null, rows: [PRODUCT_PEPSI_ROW, PRODUCT_PEPSI_PACK_ROW, PRODUCT_LUX_PACK_ROW] },
     ],
     bulkTop: [["storeId", 1]],
     toggles: PRODUCT_TOGGLES,
-  }
-}
-
-const movementRow = (productId, type, reason, qty, expiry) => [
-  ["product_id", productId],
-  ["movement_type", type],
-  ["reason", reason],
-  ["qty", qty],
-  ["expiry_date", expiry],
-  ["supplier_id", null, "optional"],
-  ["is_pos_visible", true, "optional"],
-  ["is_web_visible", true, "optional"],
-  ["channel", "both", "optional"],
-]
-
-function movementBuilder() {
-  return {
-    bulk: true,
-    variants: [
-      {
-        id: "default",
-        label: "Movement",
-        rows: [
-          movementRow(1, "stock_in", "purchase", 50, "2026-12-31"),
-          movementRow(2, "stock_in", "opening_balance", 24, "2027-06-30"),
-          movementRow(1, "stock_out", "damage", -2, "2026-12-31"),
-        ],
-      },
-    ],
-    bulkTop: [["storeId", 1], ["locationId", 1], ["staffId", 2]],
-    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
   }
 }
 
@@ -797,7 +750,7 @@ export const getSections = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
-  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-image-get", "prod-expiry", "prod-weight-list"] },
+  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-get", "prod-image-get", "prod-expiry", "prod-weight-list"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
@@ -1245,7 +1198,7 @@ export const endpoints = [
     path: "/api/v1/products",
     summary: "Products",
     description:
-      "Products in the same shape as Bulk Products (with location_scope and location_ids — location numbers), plus qty (stock at the location read, or every location for a store admin) and stocks [{ locationId, qty, expiry_date }]. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed: a product's location_scope / locations and its category's must both include it. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Products in the same shape as Bulk Products (with location_scope / location_ids and stock_scope / stock_location_ids — location numbers), plus qty (stock at the location read, or every location for a store admin) and stocks [{ location, qty, expiry_date }]. A product with variants lists each variant inside it — variants [{ id (variant number 1, 2, 3…), product_id, name, sku, barcode, prices / pack, taxes, qty, stocks [{ location, qty, expiry_date }] }]; a manager / cashier sees their own location's stock only. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed: a product's location_scope / locations and its category's must both include it. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1258,13 +1211,24 @@ export const endpoints = [
     ],
   }),
   ep({
+    id: "prod-get",
+    tag: "products",
+    method: "GET",
+    path: "/api/v1/products/:id",
+    summary: "Product Detail",
+    description:
+      "One product (:id = product number or UUID) in the Products shape: where it is sold (location_scope / location_ids), where its stock is held (stock_scope / stock_location_ids), and each variant (id = variant number) with its stock per location, or the product's own stocks when it has no variants. A store admin sees every location (or one with location_id); a manager / cashier only their own, and a product not sold at their location is 404. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+    query: [{ name: "location_id", default: "", required: false }],
+  }),
+  ep({
     id: "prod-bulk",
     tag: "products",
     method: "POST",
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "POS sync: { items: [ ...products ] }. The example sends four kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size), a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg) and Pepsi with variants (1L, 1.5L, 2L, Jumbo 6-pack) — variants [{ name, sku, barcode, cost, price, stock }]: each variant is a product of its own with its own SKU, barcode, prices and stock; a pack variant has its own pack_size / pack_cost / pack_price; taxes on a variant are added to the product's taxes (the 2L adds a sugar tax), and a change to the product's taxes reaches every variant. The parent has has_variants true and is not sold itself; a variant has parent and variant_name. A barcode already in use never fails the request: a new 13-digit barcode (starting with 2) is saved instead. On PATCH, variants [{ id (variant's product number), price… }] changes a variant and a row without id adds one. Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager / cashier sends their own location; if they leave it out, the product is sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "{ storeId, items: [ ...products ] }. Product and stock in one request: the frontend never posts the opening stock separately. Each product says where it is sold (location_scope all | selected + location_ids) and which of those locations hold its stock (stock_scope all | selected + stock_location_ids). Its stock comes per location: on each variant (variants[].stock) or, without variants, on the product (stock) — [{ location_id, qty, expiry_date }]. Every row is saved as a stock_in / opening_balance movement; a stock location that is not listed gets qty 0. The example: Pepsi — four loose sizes, sold everywhere, stock at locations 1 and 2 (Jumbo only at 1); Pack Of Pepsi — the same sizes by the pack (10, 6, 6 and 4 bottles), sold and stocked at 1 and 2; Pack Of Lux Soap — a box of 12 in three colours, single bars sold too, at every location. The product has its own sku and barcode, and so does each variant; a barcode already in use never fails the request: a new 13-digit one (starting with 2) is saved. Variants are numbered 1, 2, 3… inside each product: that is the variant id used by edits and stock movements. A pack variant's unit cost / price = pack price ÷ pack size. Taxes on a variant are added to the product's taxes. A manager / cashier: the product is sold and stocked at their own location only (location / stock scope they send is ignored; stock for another location is skipped and named in stock_warnings). On channel=pos the reply is every product with short numbers, its variants with id (variant number), product_id (the variant's own product number) and their stock per location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
   }),
@@ -1320,7 +1284,7 @@ export const endpoints = [
     path: "/api/v1/stock-movements",
     summary: "Stock Movements",
     description:
-      "Stock movements, newest first, in the Bulk Stock Movements shape { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, unit_sold }. Filters: productId, movement_type, reason, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (movement time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Stock movements, newest first, in the Bulk Stock Movements shape { id, location, product, variant { id (variant number), name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold }. Opening stock shows as stock_in / opening_balance and a stock count from product edit as adjustment / count. Filters: productId (a product's number: its own and its variants' movements), movement_type, reason, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (movement time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1357,8 +1321,55 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk Stock Movements",
-    description: "POS sync: { storeId, locationId, staffId, items: [ ...movements ] }. locationId is sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). product_id is the product number (UUID also works). qty is the change: positive for stock_in, negative for stock_out, either sign for adjustment. On channel=pos the response is { success, message (\"Stock Successfully Created\"), data: [ ... ] } one per created movement, in order: { id, location, product, supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    bodyBuilder: movementBuilder(),
+    description: "New stock and losses after the product was created: { storeId, staffId, items: [ ...products ] }. One item per product and reason; a product with variants sends variants [{ id (variant number 1, 2, 3…), stock: [{ location_id, qty, expiry_date }] }], a product without variants sends stock [{ location_id, qty }]. One movement is written per variant and location. qty is in units and positive: stock_in adds it, stock_out takes it away (an adjustment keeps its sign). Reasons — stock_in: purchase, customer_return · stock_out: damage, expiry, waste, theft, return_to_supplier · adjustment: count · any: other. opening_balance is refused: it is written by product create, and a count by product edit. Each location must be one the product is sold at; a manager / cashier may only name their own. A variant / location that fails (unknown variant, location not allowed, not enough stock) is listed in failed[] with the item's index; the others still save. On channel=pos the reply data is one row per movement, in order: { id, location, product (the product), variant { id, name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }.",
+    body: {
+      storeId: 1,
+      staffId: 2,
+      items: [
+        {
+          product_id: 1,
+          movement_type: "stock_in",
+          reason: "purchase",
+          supplier_id: 1,
+          reason_note: "Bill #4521",
+          variants: [
+            { id: 1, stock: [{ location_id: 1, qty: 120, expiry_date: "2027-06-30" }, { location_id: 2, qty: 60, expiry_date: "2027-06-30" }] },
+            { id: 3, stock: [{ location_id: 1, qty: 48, expiry_date: "2027-06-30" }] },
+          ],
+        },
+        {
+          product_id: 6,
+          movement_type: "stock_out",
+          reason: "damage",
+          reason_note: "Delivery mein 1 pack phata hua aaya",
+          variants: [{ id: 2, stock: [{ location_id: 2, qty: 6 }] }],
+        },
+        {
+          product_id: 6,
+          movement_type: "stock_out",
+          reason: "expiry",
+          variants: [{ id: 4, stock: [{ location_id: 1, qty: 4 }] }],
+        },
+        {
+          product_id: 11,
+          movement_type: "stock_in",
+          reason: "purchase",
+          supplier_id: 2,
+          variants: [
+            { id: 1, stock: [{ location_id: 1, qty: 24 }, { location_id: 3, qty: 12 }] },
+            { id: 2, stock: [{ location_id: 1, qty: 24 }, { location_id: 2, qty: 12 }] },
+            { id: 3, stock: [{ location_id: 2, qty: 12 }] },
+          ],
+        },
+        {
+          product_id: 11,
+          movement_type: "stock_out",
+          reason: "return_to_supplier",
+          supplier_id: 2,
+          variants: [{ id: 3, stock: [{ location_id: 3, qty: 12 }] }],
+        },
+      ],
+    },
   }),
   ep({
     id: "transfer-bulk",
@@ -1828,11 +1839,29 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk",
     summary: "Bulk Update Products",
-    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price (or cost_price / selling_price), discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers). Reply: the updated products (same shape as create).`,
+    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids and stock_scope / stock_location_ids (location numbers, store admin only). Stock is the counted total per location, not a change: variants[].stock (or stock for a product without variants) = [{ location_id, qty }]; the server writes the difference as an adjustment / count movement, and nothing when it is the same. variants[] with id (the variant number 1, 2, 3…) changes that variant; without id it adds a new one (numbered next) whose stock is its opening balance. A location that newly holds the stock gets qty 0 for each variant. The example: Pepsi 1L counted 48 at location 1 (was 50: -2 written) and Jumbo 6 at location 2 with a new price; a new 500ml pack in Pack Of Pepsi; Lux stock now at locations 1 and 3, Green counted 40 at 1. Reply: the updated products (same shape as create), with stock_warnings when a stock row was skipped.`,
+
     body: {
       items: [
-        { id: 1, title: "1 Litre Pepsi", price: 110, discount_name: "Eid Shopping", discount_type: "percentage", discount_value: 10 },
-        { id: 2, low_stock_threshold: 24, sell_loose: true, location_scope: "selected", location_ids: [1, 2] },
+        {
+          id: 1,
+          variants: [
+            { id: 1, stock: [{ location_id: 1, qty: 48 }] },
+            { id: 4, price: 250, stock: [{ location_id: 2, qty: 6 }] },
+          ],
+        },
+        {
+          id: 6,
+          variants: [
+            { name: "500ml x 12", sku: "PEPSI-PACK-500ML", barcode: "8961014200056", is_pack_product: true, pack_size: 12, pack_cost: 600, pack_price: 780, stock: [{ location_id: 1, qty: 48 }] },
+          ],
+        },
+        {
+          id: 11,
+          stock_scope: "selected",
+          stock_location_ids: [1, 3],
+          variants: [{ id: 2, stock: [{ location_id: 1, qty: 40 }] }],
+        },
       ],
     },
   }),
