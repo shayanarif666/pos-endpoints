@@ -282,6 +282,7 @@ const ORDER_ROWS = [
     lines: [
       {
         product_id: 1,
+        variant_id: 1,
         qty: 2,
         unit_price: 100,
         cost_price: 50,
@@ -289,7 +290,8 @@ const ORDER_ROWS = [
         taxes: [tax("product", "GST", 18, 32.4), tax("category", "GST", 5, 9), tax("sales", "Sales Tax", 18, 32.4)],
       },
       {
-        product_id: 2,
+        product_id: 11,
+        variant_id: 2,
         qty: 1,
         unit_price: 100,
         cost_price: 75,
@@ -316,6 +318,7 @@ const ORDER_ROWS = [
     lines: [
       {
         product_id: 1,
+        variant_id: 2,
         qty: 1,
         unit_price: 100,
         cost_price: 50,
@@ -690,7 +693,7 @@ const SAMPLE_CATALOG_ORDER = {
   order_items: [
     {
       id: 1,
-      product: { id: 1, title: "1 Litre Pepsi", sku: "1-LITRE-PEPSI", unit: "bottle" },
+      product: { id: 1, title: "Pepsi - 1L", sku: "PEPSI-1L", unit: "bottle", variant: { id: 1, name: "1L" } },
       qty: 1,
       unit_price: 100,
       discount_amount: 5,
@@ -1466,7 +1469,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id | title + category, qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -1570,7 +1573,7 @@ export const endpoints = [
     path: "/api/v1/orders/:id",
     summary: "Order Detail",
     description:
-      "One order — :id is the order number (e.g. 1) or UUID — with everything about it: the receipt's detail (store, cashier, customer, items with product { id, title, sku, barcode, discount, taxes[] }, category { id, name, discount, tax }, offer, free_qty, sales_tax, refunded_qty, totals; subtotal, order_discount / coupon / sales_tax / fbr_fee when the sale had them, payment_gst_amount, tax_amount, total, amount_paid, change_due, remaining_amount on udhaar, payments [{ method, gst_percent, gst_amount, amount, paid, change, status }]) plus receipt_id, staff, batch, is_custom, offer_exempt, placed_at, transactions [{ id, method, amount, tax_amount, status, paid_at }] and refunds [ …each refund with items and how it was paid back ]. A manager / cashier only sees orders of their own location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "One order — :id is the order number (e.g. 1) or UUID — with everything about it: the receipt's detail (store, cashier, customer, items with product { id, variant { id, name } (null without variants), title, sku, barcode, discount, taxes[] }, category { id, name, discount, tax }, offer, free_qty, sales_tax, refunded_qty, totals; subtotal, order_discount / coupon / sales_tax / fbr_fee when the sale had them, payment_gst_amount, tax_amount, total, amount_paid, change_due, remaining_amount on udhaar, payments [{ method, gst_percent, gst_amount, amount, paid, change, status }]) plus receipt_id, staff, batch, is_custom, offer_exempt, placed_at, transactions [{ id, method, amount, tax_amount, status, paid_at }] and refunds [ …each refund with items and how it was paid back ]. A manager / cashier only sees orders of their own location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -1580,7 +1583,7 @@ export const endpoints = [
     path: "/api/v1/orders/:id/receipt",
     summary: "Receipt by Order Id",
     description:
-      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order; issued_at = when the sale happened (placed_at), even for an offline sale synced later. { id (receipt number), order_id, store { name, ntn, strn }, issued_at, channel, status, payment_status, payment_method, location, cashier { id, name }, customer, currency, items: [{ id, qty, unit_price, gross_amount, product { id, title, sku, barcode, discount { name, type, value, amount } | null, taxes [{ name, type, value, amount }] }, category { id, name, discount | null, tax { name, type, value, amount } | null }, offer { id, name, type, discount_type, discount_value, amount } | null, free_qty (BOGO, when any), sales_tax { rate, amount } (only when charged), discount_amount, subtotal, tax_amount, refunded_qty, total }], subtotal, order_discount { type, value, amount } (only when the order had one), coupon { code, amount } (only when used), sales_tax { rate, amount } (only when charged), payment_gst_amount, tax_amount, fbr_fee (only on an FBR invoice), total, amount_paid, change_due, remaining_amount (only on udhaar), payments [{ method, gst_percent, gst_amount, amount, paid, change, status }] }. Every figure is as it was at the sale.",
+      "The sale receipt of an order — :id is the order number (e.g. 1) or UUID. Created automatically with the order; issued_at = when the sale happened (placed_at), even for an offline sale synced later. { id (receipt number), order_id, store { name, ntn, strn }, issued_at, channel, status, payment_status, payment_method, location, cashier { id, name }, customer, currency, items: [{ id, qty, unit_price, gross_amount, product { id, variant { id, name } (a product with variants: the variant sold; null otherwise), title, sku, barcode, discount { name, type, value, amount } | null, taxes [{ name, type, value, amount }] }, category { id, name, discount | null, tax { name, type, value, amount } | null }, offer { id, name, type, discount_type, discount_value, amount } | null, free_qty (BOGO, when any), sales_tax { rate, amount } (only when charged), discount_amount, subtotal, tax_amount, refunded_qty, total }], subtotal, order_discount { type, value, amount } (only when the order had one), coupon { code, amount } (only when used), sales_tax { rate, amount } (only when charged), payment_gst_amount, tax_amount, fbr_fee (only on an FBR invoice), total, amount_paid, change_due, remaining_amount (only on udhaar), payments [{ method, gst_percent, gst_amount, amount, paid, change, status }] }. Every figure is as it was at the sale.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({

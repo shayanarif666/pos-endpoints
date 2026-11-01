@@ -1703,780 +1703,814 @@ export const SAMPLE_RESPONSES = {
       ]
     }
   }],
-  "order-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Order Created",
-      "data": [
-        {
-          "id": 1,
-          "location": {
+  "order-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Order Created",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": false,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+            "location": {
               "id": 1,
-              "product": {
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "is_custom": false,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
                 "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
-              },
-              "category": {
-                "id": 1,
-                "name": "Beverages"
-              },
-              "qty": 2,
-              "unit_price": 100,
-              "discount_amount": 20,
-              "subtotal": 180,
-              "tax_amount": 73.8,
-              "total": 253.8,
-              "discount_source": "offer",
-              "offers": [
-                {
+                "product": {
                   "id": 1,
-                  "name": "Weekend 10% off",
-                  "type": "promotional",
-                  "amount": 20,
-                  "buy_qty": null,
-                  "get_qty": null,
-                  "min_qty": null,
-                  "promo_price": null,
-                  "discount_type": "percentage",
-                  "discount_value": 10
-                }
-              ],
-              "free_qty": 0
-            },
-            {
-              "id": 2,
-              "product": {
-                "id": 2,
-                "title": "Lux Soap",
-                "sku": "LUX-SOAP",
-                "unit": "piece"
+                  "variant": {
+                    "id": 1,
+                    "name": "1L"
+                  },
+                  "title": "Pepsi - 1L",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "category": {
+                  "id": 1,
+                  "name": "Beverages"
+                },
+                "qty": 2,
+                "unit_price": 100,
+                "discount_amount": 20,
+                "subtotal": 180,
+                "tax_amount": 73.8,
+                "total": 253.8,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 1,
+                    "name": "Weekend 10% off",
+                    "type": "promotional",
+                    "amount": 20,
+                    "buy_qty": null,
+                    "get_qty": null,
+                    "min_qty": null,
+                    "promo_price": null,
+                    "discount_type": "percentage",
+                    "discount_value": 10
+                  }
+                ],
+                "free_qty": 0
               },
-              "category": {
+              {
                 "id": 2,
-                "name": "Soap"
-              },
-              "qty": 1,
-              "unit_price": 100,
-              "discount_amount": 0,
-              "subtotal": 100,
-              "tax_amount": 46,
-              "total": 146,
-              "discount_source": "none",
-              "offers": [],
-              "free_qty": 0
-            }
-          ],
-          "subtotal": 349.4,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "cash",
-          "payment_status": "paid",
-          "payment_gst_amount": 63.97,
-          "tax_amount": 183.77,
-          "payments": [
-            {
-              "method": "cash",
-              "bill_share": 399.8,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 63.97,
-              "amount": 463.77,
-              "paid": 1000,
-              "change": 536.23
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 463.77,
-          "amount_paid": 1000,
-          "change_due": 536.23,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T10:05:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        },
-        {
-          "id": 2,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": true,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
-              "id": 1,
-              "category": "Stationary",
-              "title": "SP10 Blue Pen",
-              "price": 50,
-              "qty": 2,
-              "unit_price": 50,
-              "discount_amount": 0,
-              "subtotal": 100,
-              "tax_amount": 18,
-              "total": 118
-            },
-            {
-              "id": 2,
-              "category": "Stationary",
-              "title": "A4 Notebook",
-              "price": 120,
-              "qty": 1,
-              "unit_price": 120,
-              "discount_amount": 0,
-              "subtotal": 120,
-              "tax_amount": 21.6,
-              "total": 141.6
-            }
-          ],
-          "subtotal": 220,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "cash",
-          "payment_status": "paid",
-          "payment_gst_amount": 41.54,
-          "tax_amount": 81.14,
-          "payments": [
-            {
-              "method": "cash",
-              "bill_share": 259.6,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 41.54,
-              "amount": 301.14,
-              "paid": 500,
-              "change": 198.86
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 301.14,
-          "amount_paid": 500,
-          "change_due": 198.86,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T10:20:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        },
-        {
-          "id": 3,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": false,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
-              "id": 1,
-              "product": {
-                "id": 2,
-                "title": "Lux Soap",
-                "sku": "LUX-SOAP",
-                "unit": "piece"
-              },
-              "category": {
-                "id": 2,
-                "name": "Soap"
-              },
-              "qty": 12,
-              "unit_price": 100,
-              "discount_amount": 60,
-              "subtotal": 1140,
-              "tax_amount": 524.4,
-              "total": 1664.4,
-              "discount_source": "offer",
-              "offers": [
-                {
+                "product": {
+                  "id": 11,
+                  "variant": {
+                    "id": 2,
+                    "name": "Fresh Splash (Green)"
+                  },
+                  "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                  "sku": "LUX-SOAP",
+                  "unit": "piece"
+                },
+                "category": {
                   "id": 2,
-                  "name": "Buy 3 save 5%",
-                  "type": "bulk_discount",
-                  "amount": 60,
-                  "buy_qty": null,
-                  "get_qty": null,
-                  "min_qty": 3,
-                  "promo_price": null,
-                  "discount_type": "percentage",
-                  "discount_value": 5
-                }
-              ],
-              "free_qty": 0
-            },
-            {
-              "id": 2,
-              "product": {
-                "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
-              },
-              "category": {
-                "id": 1,
-                "name": "Beverages"
-              },
-              "qty": 1,
-              "unit_price": 100,
-              "discount_amount": 10,
-              "subtotal": 90,
-              "tax_amount": 36.9,
-              "total": 126.9,
-              "discount_source": "offer",
-              "offers": [
-                {
-                  "id": 1,
-                  "name": "Weekend 10% off",
-                  "type": "promotional",
-                  "amount": 10,
-                  "buy_qty": null,
-                  "get_qty": null,
-                  "min_qty": null,
-                  "promo_price": null,
-                  "discount_type": "percentage",
-                  "discount_value": 10
-                }
-              ],
-              "free_qty": 0
-            }
-          ],
-          "subtotal": 1569.9,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "mixed",
-          "payment_status": "paid",
-          "payment_gst_amount": 276.13,
-          "tax_amount": 837.43,
-          "payments": [
-            {
-              "method": "card",
-              "bill_share": 95.24,
-              "payment_tax_percent": 5,
-              "payment_tax_amount": 4.76,
-              "amount": 100,
-              "paid": 100,
-              "change": 0
-            },
-            {
-              "method": "cash",
-              "bill_share": 1696.06,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 271.37,
-              "amount": 1967.43,
-              "paid": 3000,
-              "change": 1032.57
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 2067.43,
-          "amount_paid": 3100,
-          "change_due": 1032.57,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T11:40:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        },
-        {
-          "id": 4,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+                  "name": "Soap"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "discount_amount": 0,
+                "subtotal": 100,
+                "tax_amount": 46,
+                "total": 146,
+                "discount_source": "none",
+                "offers": [],
+                "free_qty": 0
+              }
+            ],
+            "subtotal": 349.4,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "cash",
+            "payment_status": "paid",
+            "payment_gst_amount": 63.97,
+            "tax_amount": 183.77,
+            "payments": [
+              {
+                "method": "cash",
+                "bill_share": 399.8,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 63.97,
+                "amount": 463.77,
+                "paid": 1000,
+                "change": 536.23
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 463.77,
+            "amount_paid": 1000,
+            "change_due": 536.23,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T10:05:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
           },
-          "is_custom": true,
-          "offer_exempt": false,
-          "staff": {
+          {
             "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+            "location": {
               "id": 1,
-              "category": "Household",
-              "title": "Tissue Box",
-              "price": 150,
-              "qty": 1,
-              "unit_price": 150,
-              "discount_amount": 0,
-              "subtotal": 150,
-              "tax_amount": 27,
-              "total": 177
+              "name": "Gulshan e Iqbal Block 13 D"
             },
-            {
+            "is_custom": true,
+            "offer_exempt": false,
+            "staff": {
               "id": 2,
-              "category": "Electronics",
-              "title": "AA Batteries (pair)",
-              "price": 80,
-              "qty": 2,
-              "unit_price": 80,
-              "discount_amount": 0,
-              "subtotal": 160,
-              "tax_amount": 28.8,
-              "total": 188.8
-            }
-          ],
-          "subtotal": 310,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "mixed",
-          "payment_status": "paid",
-          "payment_gst_amount": 53.29,
-          "tax_amount": 109.09,
-          "payments": [
-            {
-              "method": "jazzcash",
-              "bill_share": 47.62,
-              "payment_tax_percent": 5,
-              "payment_tax_amount": 2.38,
-              "amount": 50,
-              "paid": 50,
-              "change": 0
+              "name": "Ahmed Malik",
+              "role": "manager"
             },
-            {
-              "method": "cash",
-              "bill_share": 318.18,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 50.91,
-              "amount": 369.09,
-              "paid": 500,
-              "change": 130.91
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 419.09,
-          "amount_paid": 550,
-          "change_due": 130.91,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T12:15:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        },
-        {
-          "id": 5,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": false,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+            "customer": null,
+            "batch": {
               "id": 1,
-              "product": {
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
                 "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
+                "category": "Stationary",
+                "title": "SP10 Blue Pen",
+                "price": 50,
+                "qty": 2,
+                "unit_price": 50,
+                "discount_amount": 0,
+                "subtotal": 100,
+                "tax_amount": 18,
+                "total": 118
               },
-              "category": {
-                "id": 1,
-                "name": "Beverages"
-              },
-              "qty": 3,
-              "unit_price": 100,
-              "discount_amount": 100,
-              "subtotal": 200,
-              "tax_amount": 82,
-              "total": 282,
-              "discount_source": "offer",
-              "offers": [
-                {
-                  "id": 3,
-                  "name": "Buy 2 get 1 free",
-                  "type": "bogo",
-                  "amount": 100,
-                  "buy_qty": 2,
-                  "get_qty": 1,
-                  "min_qty": null,
-                  "promo_price": null,
-                  "discount_type": null,
-                  "discount_value": null
-                }
-              ],
-              "free_qty": 1
-            },
-            {
-              "id": 2,
-              "product": {
+              {
                 "id": 2,
-                "title": "Lux Soap",
-                "sku": "LUX-SOAP",
-                "unit": "piece"
-              },
-              "category": {
-                "id": 2,
-                "name": "Soap"
-              },
-              "qty": 2,
-              "unit_price": 100,
-              "discount_amount": 0,
-              "subtotal": 200,
-              "tax_amount": 92,
-              "total": 292,
-              "discount_source": "none",
-              "offers": [],
-              "free_qty": 0
-            }
-          ],
-          "subtotal": 502,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "mixed",
-          "payment_status": "paid",
-          "payment_gst_amount": 80.12,
-          "tax_amount": 254.12,
-          "payments": [
-            {
-              "method": "easypaisa",
-              "bill_share": 106.55,
-              "payment_tax_percent": 5,
-              "payment_tax_amount": 5.33,
-              "amount": 111.88,
-              "paid": 111.88,
-              "change": 0
-            },
-            {
-              "method": "cash",
-              "bill_share": 467.45,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 74.79,
-              "amount": 542.24,
-              "paid": 1000,
-              "change": 457.76
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 654.12,
-          "amount_paid": 1111.88,
-          "change_due": 457.76,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T13:30:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        }
-      ]
-    }
-  }],
-  "order-refund-complete-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Refunded Successfully",
-      "data": [
-        {
-          "id": 1,
-          "refund_type": "complete",
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+                "category": "Stationary",
+                "title": "A4 Notebook",
+                "price": 120,
+                "qty": 1,
+                "unit_price": 120,
+                "discount_amount": 0,
+                "subtotal": 120,
+                "tax_amount": 21.6,
+                "total": 141.6
+              }
+            ],
+            "subtotal": 220,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "cash",
+            "payment_status": "paid",
+            "payment_gst_amount": 41.54,
+            "tax_amount": 81.14,
+            "payments": [
+              {
+                "method": "cash",
+                "bill_share": 259.6,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 41.54,
+                "amount": 301.14,
+                "paid": 500,
+                "change": 198.86
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 301.14,
+            "amount_paid": 500,
+            "change_due": 198.86,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T10:20:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
           },
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 2,
-            "status": "refunded"
-          },
-          "receiptId": 6,
-          "currency": "PKR",
-          "reason": "Full return",
-          "items": [
-            {
-              "order_item_id": 1,
-              "title": "SP10 Blue Pen",
-              "qty": 2,
-              "unit_price": 50,
-              "amount": 100,
-              "tax": 36.88
-            },
-            {
-              "order_item_id": 2,
-              "title": "A4 Notebook",
-              "qty": 1,
-              "unit_price": 120,
-              "amount": 120,
-              "tax": 44.26
-            }
-          ],
-          "amount": 220,
-          "tax": 81.14,
-          "total": 301.14,
-          "payments": [
-            {
-              "amount": 136.88,
-              "method": "cash",
-              "bill_share": 118,
-              "payment_tax_amount": 18.88,
-              "payment_tax_percent": 16
-            }
-          ],
-          "refunded_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 3,
-          "refund_type": "complete",
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
+          {
             "id": 3,
-            "status": "refunded"
-          },
-          "receiptId": 8,
-          "currency": "PKR",
-          "reason": "Customer changed mind",
-          "items": [
-            {
-              "order_item_id": 1,
-              "product": {
-                "id": 2,
-                "title": "Lux Soap",
-                "sku": "LUX-SOAP",
-                "unit": "piece"
-              },
-              "qty": 12,
-              "unit_price": 100,
-              "amount": 1140,
-              "tax": 780.97
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
             },
-            {
-              "order_item_id": 2,
-              "product": {
-                "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
-              },
-              "qty": 1,
-              "unit_price": 100,
-              "amount": 90,
-              "tax": 56.46
-            }
-          ],
-          "amount": 1230,
-          "tax": 837.43,
-          "total": 2067.43,
-          "payments": [
-            {
-              "amount": 92.92,
-              "method": "card",
-              "bill_share": 88.5,
-              "payment_tax_amount": 4.42,
-              "payment_tax_percent": 5
+            "is_custom": false,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
             },
-            {
-              "amount": 1828.05,
-              "method": "cash",
-              "bill_share": 1575.91,
-              "payment_tax_amount": 252.14,
-              "payment_tax_percent": 16
-            }
-          ],
-          "refunded_at": "2026-10-31T09:27:36.000Z"
-        }
-      ]
-    }
-  }],
-  "order-refund-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Refunded Successfully",
-      "data": [
-        {
-          "id": 5,
-          "refund_type": "partial",
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 1,
-            "status": "partial_refunded"
-          },
-          "receiptId": 10,
-          "currency": "PKR",
-          "reason": "Customer return",
-          "items": [
-            {
-              "order_item_id": 1,
-              "product": {
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
                 "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
+                "product": {
+                  "id": 11,
+                  "variant": {
+                    "id": 2,
+                    "name": "Fresh Splash (Green)"
+                  },
+                  "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                  "sku": "LUX-SOAP",
+                  "unit": "piece"
+                },
+                "category": {
+                  "id": 2,
+                  "name": "Soap"
+                },
+                "qty": 12,
+                "unit_price": 100,
+                "discount_amount": 60,
+                "subtotal": 1140,
+                "tax_amount": 524.4,
+                "total": 1664.4,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 2,
+                    "name": "Buy 3 save 5%",
+                    "type": "bulk_discount",
+                    "amount": 60,
+                    "buy_qty": null,
+                    "get_qty": null,
+                    "min_qty": 3,
+                    "promo_price": null,
+                    "discount_type": "percentage",
+                    "discount_value": 5
+                  }
+                ],
+                "free_qty": 0
               },
-              "qty": 1,
-              "unit_price": 100,
-              "amount": 90,
-              "tax": 57.2
-            }
-          ],
-          "amount": 90,
-          "tax": 57.2,
-          "total": 147.2,
-          "payments": [
-            {
-              "amount": 147.2,
-              "method": "cash",
-              "bill_share": 126.9,
-              "payment_tax_amount": 20.3,
-              "payment_tax_percent": 16
-            }
-          ],
-          "refunded_at": "2026-10-31T09:27:36.000Z"
-        },
-        {
-          "id": 6,
-          "refund_type": "partial",
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "order": {
-            "id": 1,
-            "status": "partial_refunded"
-          },
-          "receiptId": 11,
-          "currency": "PKR",
-          "reason": "Damaged item",
-          "items": [
-            {
-              "order_item_id": 2,
-              "product": {
+              {
                 "id": 2,
-                "title": "Lux Soap",
-                "sku": "LUX-SOAP",
-                "unit": "piece"
+                "product": {
+                  "id": 1,
+                  "variant": {
+                    "id": 1,
+                    "name": "1L"
+                  },
+                  "title": "Pepsi - 1L",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "category": {
+                  "id": 1,
+                  "name": "Beverages"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "discount_amount": 10,
+                "subtotal": 90,
+                "tax_amount": 36.9,
+                "total": 126.9,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 1,
+                    "name": "Weekend 10% off",
+                    "type": "promotional",
+                    "amount": 10,
+                    "buy_qty": null,
+                    "get_qty": null,
+                    "min_qty": null,
+                    "promo_price": null,
+                    "discount_type": "percentage",
+                    "discount_value": 10
+                  }
+                ],
+                "free_qty": 0
+              }
+            ],
+            "subtotal": 1569.9,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "mixed",
+            "payment_status": "paid",
+            "payment_gst_amount": 276.13,
+            "tax_amount": 837.43,
+            "payments": [
+              {
+                "method": "card",
+                "bill_share": 95.24,
+                "payment_tax_percent": 5,
+                "payment_tax_amount": 4.76,
+                "amount": 100,
+                "paid": 100,
+                "change": 0
               },
-              "qty": 1,
-              "unit_price": 100,
-              "amount": 100,
-              "tax": 69.37
-            }
-          ],
-          "amount": 100,
-          "tax": 69.37,
-          "total": 169.37,
-          "payments": [
-            {
-              "amount": 169.37,
-              "method": "cash",
-              "bill_share": 146.01,
-              "payment_tax_amount": 23.36,
-              "payment_tax_percent": 16
-            }
-          ],
-          "refunded_at": "2026-10-31T09:27:36.000Z"
-        }
-      ]
+              {
+                "method": "cash",
+                "bill_share": 1696.06,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 271.37,
+                "amount": 1967.43,
+                "paid": 3000,
+                "change": 1032.57
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 2067.43,
+            "amount_paid": 3100,
+            "change_due": 1032.57,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T11:40:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          },
+          {
+            "id": 4,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "is_custom": true,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
+                "id": 1,
+                "category": "Household",
+                "title": "Tissue Box",
+                "price": 150,
+                "qty": 1,
+                "unit_price": 150,
+                "discount_amount": 0,
+                "subtotal": 150,
+                "tax_amount": 27,
+                "total": 177
+              },
+              {
+                "id": 2,
+                "category": "Electronics",
+                "title": "AA Batteries (pair)",
+                "price": 80,
+                "qty": 2,
+                "unit_price": 80,
+                "discount_amount": 0,
+                "subtotal": 160,
+                "tax_amount": 28.8,
+                "total": 188.8
+              }
+            ],
+            "subtotal": 310,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "mixed",
+            "payment_status": "paid",
+            "payment_gst_amount": 53.29,
+            "tax_amount": 109.09,
+            "payments": [
+              {
+                "method": "jazzcash",
+                "bill_share": 47.62,
+                "payment_tax_percent": 5,
+                "payment_tax_amount": 2.38,
+                "amount": 50,
+                "paid": 50,
+                "change": 0
+              },
+              {
+                "method": "cash",
+                "bill_share": 318.18,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 50.91,
+                "amount": 369.09,
+                "paid": 500,
+                "change": 130.91
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 419.09,
+            "amount_paid": 550,
+            "change_due": 130.91,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T12:15:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          },
+          {
+            "id": 5,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "is_custom": false,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
+                "id": 1,
+                "product": {
+                  "id": 1,
+                  "variant": {
+                    "id": 1,
+                    "name": "1L"
+                  },
+                  "title": "Pepsi - 1L",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "category": {
+                  "id": 1,
+                  "name": "Beverages"
+                },
+                "qty": 3,
+                "unit_price": 100,
+                "discount_amount": 100,
+                "subtotal": 200,
+                "tax_amount": 82,
+                "total": 282,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 3,
+                    "name": "Buy 2 get 1 free",
+                    "type": "bogo",
+                    "amount": 100,
+                    "buy_qty": 2,
+                    "get_qty": 1,
+                    "min_qty": null,
+                    "promo_price": null,
+                    "discount_type": null,
+                    "discount_value": null
+                  }
+                ],
+                "free_qty": 1
+              },
+              {
+                "id": 2,
+                "product": {
+                  "id": 11,
+                  "variant": {
+                    "id": 2,
+                    "name": "Fresh Splash (Green)"
+                  },
+                  "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                  "sku": "LUX-SOAP",
+                  "unit": "piece"
+                },
+                "category": {
+                  "id": 2,
+                  "name": "Soap"
+                },
+                "qty": 2,
+                "unit_price": 100,
+                "discount_amount": 0,
+                "subtotal": 200,
+                "tax_amount": 92,
+                "total": 292,
+                "discount_source": "none",
+                "offers": [],
+                "free_qty": 0
+              }
+            ],
+            "subtotal": 502,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "mixed",
+            "payment_status": "paid",
+            "payment_gst_amount": 80.12,
+            "tax_amount": 254.12,
+            "payments": [
+              {
+                "method": "easypaisa",
+                "bill_share": 106.55,
+                "payment_tax_percent": 5,
+                "payment_tax_amount": 5.33,
+                "amount": 111.88,
+                "paid": 111.88,
+                "change": 0
+              },
+              {
+                "method": "cash",
+                "bill_share": 467.45,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 74.79,
+                "amount": 542.24,
+                "paid": 1000,
+                "change": 457.76
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 654.12,
+            "amount_paid": 1111.88,
+            "change_due": 457.76,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T13:30:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ]
+      }
     }
-  }],
+  ],
+  "order-refund-complete-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Refunded Successfully",
+        "data": [
+          {
+            "id": 1,
+            "refund_type": "complete",
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 2,
+              "status": "refunded"
+            },
+            "receiptId": 6,
+            "currency": "PKR",
+            "reason": "Full return",
+            "items": [
+              {
+                "order_item_id": 1,
+                "title": "SP10 Blue Pen",
+                "qty": 2,
+                "unit_price": 50,
+                "amount": 100,
+                "tax": 36.88
+              },
+              {
+                "order_item_id": 2,
+                "title": "A4 Notebook",
+                "qty": 1,
+                "unit_price": 120,
+                "amount": 120,
+                "tax": 44.26
+              }
+            ],
+            "amount": 220,
+            "tax": 81.14,
+            "total": 301.14,
+            "payments": [
+              {
+                "amount": 136.88,
+                "method": "cash",
+                "bill_share": 118,
+                "payment_tax_amount": 18.88,
+                "payment_tax_percent": 16
+              }
+            ],
+            "refunded_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 3,
+            "refund_type": "complete",
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 3,
+              "status": "refunded"
+            },
+            "receiptId": 8,
+            "currency": "PKR",
+            "reason": "Customer changed mind",
+            "items": [
+              {
+                "order_item_id": 1,
+                "product": {
+                  "id": 2,
+                  "variant": null,
+                  "title": "Lux Soap",
+                  "sku": "LUX-SOAP",
+                  "unit": "piece"
+                },
+                "qty": 12,
+                "unit_price": 100,
+                "amount": 1140,
+                "tax": 780.97
+              },
+              {
+                "order_item_id": 2,
+                "product": {
+                  "id": 1,
+                  "variant": null,
+                  "title": "1 Litre Pepsi",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "amount": 90,
+                "tax": 56.46
+              }
+            ],
+            "amount": 1230,
+            "tax": 837.43,
+            "total": 2067.43,
+            "payments": [
+              {
+                "amount": 92.92,
+                "method": "card",
+                "bill_share": 88.5,
+                "payment_tax_amount": 4.42,
+                "payment_tax_percent": 5
+              },
+              {
+                "amount": 1828.05,
+                "method": "cash",
+                "bill_share": 1575.91,
+                "payment_tax_amount": 252.14,
+                "payment_tax_percent": 16
+              }
+            ],
+            "refunded_at": "2026-10-31T09:27:36.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "order-refund-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Refunded Successfully",
+        "data": [
+          {
+            "id": 5,
+            "refund_type": "partial",
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 1,
+              "status": "partial_refunded"
+            },
+            "receiptId": 10,
+            "currency": "PKR",
+            "reason": "Customer return",
+            "items": [
+              {
+                "order_item_id": 1,
+                "product": {
+                  "id": 1,
+                  "variant": null,
+                  "title": "1 Litre Pepsi",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "amount": 90,
+                "tax": 57.2
+              }
+            ],
+            "amount": 90,
+            "tax": 57.2,
+            "total": 147.2,
+            "payments": [
+              {
+                "amount": 147.2,
+                "method": "cash",
+                "bill_share": 126.9,
+                "payment_tax_amount": 20.3,
+                "payment_tax_percent": 16
+              }
+            ],
+            "refunded_at": "2026-10-31T09:27:36.000Z"
+          },
+          {
+            "id": 6,
+            "refund_type": "partial",
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "order": {
+              "id": 1,
+              "status": "partial_refunded"
+            },
+            "receiptId": 11,
+            "currency": "PKR",
+            "reason": "Damaged item",
+            "items": [
+              {
+                "order_item_id": 2,
+                "product": {
+                  "id": 2,
+                  "variant": null,
+                  "title": "Lux Soap",
+                  "sku": "LUX-SOAP",
+                  "unit": "piece"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "amount": 100,
+                "tax": 69.37
+              }
+            ],
+            "amount": 100,
+            "tax": 69.37,
+            "total": 169.37,
+            "payments": [
+              {
+                "amount": 169.37,
+                "method": "cash",
+                "bill_share": 146.01,
+                "payment_tax_amount": 23.36,
+                "payment_tax_percent": 16
+              }
+            ],
+            "refunded_at": "2026-10-31T09:27:36.000Z"
+          }
+        ]
+      }
+    }
+  ],
   "customer-create": [{
     "label": "201 Created",
     "status": 201,
@@ -4139,305 +4173,313 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
-  "order-bulk-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Orders Updated",
-      "data": [
-        {
-          "id": 4,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": true,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": {
-            "id": 1,
-            "name": "Ali Khan",
-            "phone": "03001231234"
-          },
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+  "order-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Orders Updated",
+        "data": [
+          {
+            "id": 4,
+            "location": {
               "id": 1,
-              "category": "Household",
-              "title": "Tissue Box",
-              "price": 150,
-              "qty": 1,
-              "unit_price": 150,
-              "discount_amount": 0,
-              "subtotal": 150,
-              "tax_amount": 27,
-              "total": 177
+              "name": "Gulshan e Iqbal Block 13 D"
             },
-            {
+            "is_custom": true,
+            "offer_exempt": false,
+            "staff": {
               "id": 2,
-              "category": "Electronics",
-              "title": "AA Batteries (pair)",
-              "price": 80,
-              "qty": 2,
-              "unit_price": 80,
-              "discount_amount": 0,
-              "subtotal": 160,
-              "tax_amount": 28.8,
-              "total": 188.8
-            }
-          ],
-          "subtotal": 310,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "mixed",
-          "payment_status": "paid",
-          "payment_gst_amount": 53.29,
-          "tax_amount": 109.09,
-          "payments": [
-            {
-              "method": "jazzcash",
-              "bill_share": 47.62,
-              "payment_tax_percent": 5,
-              "payment_tax_amount": 2.38,
-              "amount": 50,
-              "paid": 50,
-              "change": 0
+              "name": "Ahmed Malik",
+              "role": "manager"
             },
-            {
-              "method": "cash",
-              "bill_share": 318.18,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 50.91,
-              "amount": 369.09,
-              "paid": 500,
-              "change": 130.91
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 419.09,
-          "amount_paid": 550,
-          "change_due": 130.91,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-24T12:15:00.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        }
-      ]
-    }
-  }],
-  "order-bulk-payment-method-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Payment Method Updated",
-      "data": [
-        {
-          "id": 7,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": false,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+            "customer": {
               "id": 1,
-              "product": {
-                "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
-              },
-              "category": {
-                "id": 1,
-                "name": "Beverages"
-              },
-              "qty": 1,
-              "unit_price": 100,
-              "discount_amount": 10,
-              "subtotal": 90,
-              "tax_amount": 36.9,
-              "total": 126.9,
-              "discount_source": "offer",
-              "offers": [
-                {
-                  "id": 1,
-                  "name": "Weekend 10% off",
-                  "type": "promotional",
-                  "amount": 10,
-                  "buy_qty": null,
-                  "get_qty": null,
-                  "min_qty": null,
-                  "promo_price": null,
-                  "discount_type": "percentage",
-                  "discount_value": 10
-                }
-              ],
-              "free_qty": 0
-            }
-          ],
-          "subtotal": 110.7,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "card",
-          "payment_status": "paid",
-          "payment_gst_amount": 6.34,
-          "tax_amount": 43.24,
-          "payments": [
-            {
-              "method": "card",
-              "bill_share": 126.9,
-              "payment_tax_percent": 5,
-              "payment_tax_amount": 6.34,
-              "amount": 133.24,
-              "paid": 133.24,
-              "change": 0
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "completed",
-          "total_amount": 133.24,
-          "amount_paid": 133.24,
-          "change_due": 0,
-          "remaining_amount": 0,
-          "cancel_reason": null,
-          "cancelled_by": null,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        }
-      ]
-    }
-  }],
-  "order-bulk-status-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Order Status Updated",
-      "data": [
-        {
-          "id": 8,
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "is_custom": false,
-          "offer_exempt": false,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "customer": null,
-          "batch": {
-            "id": 1,
-            "status": "open"
-          },
-          "currency": "PKR",
-          "order_items": [
-            {
+              "name": "Ali Khan",
+              "phone": "03001231234"
+            },
+            "batch": {
               "id": 1,
-              "product": {
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
                 "id": 1,
-                "title": "1 Litre Pepsi",
-                "sku": "1-LITRE-PEPSI",
-                "unit": "bottle"
+                "category": "Household",
+                "title": "Tissue Box",
+                "price": 150,
+                "qty": 1,
+                "unit_price": 150,
+                "discount_amount": 0,
+                "subtotal": 150,
+                "tax_amount": 27,
+                "total": 177
               },
-              "category": {
-                "id": 1,
-                "name": "Beverages"
+              {
+                "id": 2,
+                "category": "Electronics",
+                "title": "AA Batteries (pair)",
+                "price": 80,
+                "qty": 2,
+                "unit_price": 80,
+                "discount_amount": 0,
+                "subtotal": 160,
+                "tax_amount": 28.8,
+                "total": 188.8
+              }
+            ],
+            "subtotal": 310,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "mixed",
+            "payment_status": "paid",
+            "payment_gst_amount": 53.29,
+            "tax_amount": 109.09,
+            "payments": [
+              {
+                "method": "jazzcash",
+                "bill_share": 47.62,
+                "payment_tax_percent": 5,
+                "payment_tax_amount": 2.38,
+                "amount": 50,
+                "paid": 50,
+                "change": 0
               },
-              "qty": 1,
-              "unit_price": 100,
-              "discount_amount": 10,
-              "subtotal": 90,
-              "tax_amount": 36.9,
-              "total": 126.9,
-              "discount_source": "offer",
-              "offers": [
-                {
-                  "id": 1,
-                  "name": "Weekend 10% off",
-                  "type": "promotional",
-                  "amount": 10,
-                  "buy_qty": null,
-                  "get_qty": null,
-                  "min_qty": null,
-                  "promo_price": null,
-                  "discount_type": "percentage",
-                  "discount_value": 10
-                }
-              ],
-              "free_qty": 0
-            }
-          ],
-          "subtotal": 110.7,
-          "is_order_discounted": false,
-          "order_discount_type": null,
-          "discount_amount": 0,
-          "payment_method": "cash",
-          "payment_status": "refunded",
-          "payment_gst_amount": 20.3,
-          "tax_amount": 57.2,
-          "payments": [
-            {
-              "method": "cash",
-              "bill_share": 126.9,
-              "payment_tax_percent": 16,
-              "payment_tax_amount": 20.3,
-              "amount": 147.2,
-              "paid": 500,
-              "change": 352.8
-            }
-          ],
-          "fbr_invoice_enabled": false,
-          "fbr_tax_amount": 0,
-          "order_status": "voided",
-          "total_amount": 147.2,
-          "amount_paid": 500,
-          "change_due": 352.8,
-          "remaining_amount": 0,
-          "cancel_reason": "Rung up twice",
-          "cancelled_by": null,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos",
-          "is_pos_visible": true,
-          "is_web_visible": false
-        }
-      ]
+              {
+                "method": "cash",
+                "bill_share": 318.18,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 50.91,
+                "amount": 369.09,
+                "paid": 500,
+                "change": 130.91
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 419.09,
+            "amount_paid": 550,
+            "change_due": 130.91,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-24T12:15:00.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ]
+      }
     }
-  }],
+  ],
+  "order-bulk-payment-method-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Payment Method Updated",
+        "data": [
+          {
+            "id": 7,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "is_custom": false,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
+                "id": 1,
+                "product": {
+                  "id": 1,
+                  "variant": null,
+                  "title": "1 Litre Pepsi",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "category": {
+                  "id": 1,
+                  "name": "Beverages"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "discount_amount": 10,
+                "subtotal": 90,
+                "tax_amount": 36.9,
+                "total": 126.9,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 1,
+                    "name": "Weekend 10% off",
+                    "type": "promotional",
+                    "amount": 10,
+                    "buy_qty": null,
+                    "get_qty": null,
+                    "min_qty": null,
+                    "promo_price": null,
+                    "discount_type": "percentage",
+                    "discount_value": 10
+                  }
+                ],
+                "free_qty": 0
+              }
+            ],
+            "subtotal": 110.7,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "card",
+            "payment_status": "paid",
+            "payment_gst_amount": 6.34,
+            "tax_amount": 43.24,
+            "payments": [
+              {
+                "method": "card",
+                "bill_share": 126.9,
+                "payment_tax_percent": 5,
+                "payment_tax_amount": 6.34,
+                "amount": 133.24,
+                "paid": 133.24,
+                "change": 0
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "completed",
+            "total_amount": 133.24,
+            "amount_paid": 133.24,
+            "change_due": 0,
+            "remaining_amount": 0,
+            "cancel_reason": null,
+            "cancelled_by": null,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ]
+      }
+    }
+  ],
+  "order-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Order Status Updated",
+        "data": [
+          {
+            "id": 8,
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "is_custom": false,
+            "offer_exempt": false,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "customer": null,
+            "batch": {
+              "id": 1,
+              "status": "open"
+            },
+            "currency": "PKR",
+            "order_items": [
+              {
+                "id": 1,
+                "product": {
+                  "id": 1,
+                  "variant": null,
+                  "title": "1 Litre Pepsi",
+                  "sku": "1-LITRE-PEPSI",
+                  "unit": "bottle"
+                },
+                "category": {
+                  "id": 1,
+                  "name": "Beverages"
+                },
+                "qty": 1,
+                "unit_price": 100,
+                "discount_amount": 10,
+                "subtotal": 90,
+                "tax_amount": 36.9,
+                "total": 126.9,
+                "discount_source": "offer",
+                "offers": [
+                  {
+                    "id": 1,
+                    "name": "Weekend 10% off",
+                    "type": "promotional",
+                    "amount": 10,
+                    "buy_qty": null,
+                    "get_qty": null,
+                    "min_qty": null,
+                    "promo_price": null,
+                    "discount_type": "percentage",
+                    "discount_value": 10
+                  }
+                ],
+                "free_qty": 0
+              }
+            ],
+            "subtotal": 110.7,
+            "is_order_discounted": false,
+            "order_discount_type": null,
+            "discount_amount": 0,
+            "payment_method": "cash",
+            "payment_status": "refunded",
+            "payment_gst_amount": 20.3,
+            "tax_amount": 57.2,
+            "payments": [
+              {
+                "method": "cash",
+                "bill_share": 126.9,
+                "payment_tax_percent": 16,
+                "payment_tax_amount": 20.3,
+                "amount": 147.2,
+                "paid": 500,
+                "change": 352.8
+              }
+            ],
+            "fbr_invoice_enabled": false,
+            "fbr_tax_amount": 0,
+            "order_status": "voided",
+            "total_amount": 147.2,
+            "amount_paid": 500,
+            "change_due": 352.8,
+            "remaining_amount": 0,
+            "cancel_reason": "Rung up twice",
+            "cancelled_by": null,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos",
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ]
+      }
+    }
+  ],
   "sup-bulk-patch": [{
     "label": "200 OK",
     "status": 200,
@@ -6025,399 +6067,423 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
-  "order-list-completed": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 7,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 133.24,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 5,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 654.12,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T13:30:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 4,
-          "is_custom": true,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 419.09,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T12:15:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 1,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 463.77,
-          "status": "partial_refunded",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T10:05:00.000Z",
-          "channel": "pos"
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 4,
-        "total_pages": 1
-      }
-    }
-  }],
-  "order-list-pending": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 0,
-        "total_pages": 1
-      }
-    }
-  }],
-  "order-list-cancelled": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 8,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 147.2,
-          "status": "voided",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 6,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 147.2,
-          "status": "voided",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 2,
-        "total_pages": 1
-      }
-    }
-  }],
-  "order-get": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": {
-        "id": 1,
-        "order_id": 1,
-        "store": {
-          "name": "Acadex",
-          "ntn": "1234567-8",
-          "strn": "3277876123456"
-        },
-        "issued_at": "2026-10-24T10:05:00.000Z",
-        "channel": "pos",
-        "status": "partial_refunded",
-        "payment_status": "paid",
-        "payment_method": "cash",
-        "location": {
-          "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
-        },
-        "cashier": {
-          "id": 2,
-          "name": "Ahmed Malik"
-        },
-        "customer": null,
-        "currency": "PKR",
-        "items": [
+  "order-list-completed": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
           {
-            "id": 1,
-            "qty": 2,
-            "unit_price": 100,
-            "gross_amount": 200,
-            "product": {
-              "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "barcode": "78263672323325",
-              "discount": null,
-              "taxes": [
-                {
-                  "name": "GST",
-                  "type": "percentage",
-                  "value": 18,
-                  "amount": 32.4
-                }
-              ]
-            },
-            "category": {
-              "id": 1,
-              "name": "Beverages",
-              "discount": null,
-              "tax": {
-                "name": "GST",
-                "type": "percentage",
-                "value": 5,
-                "amount": 9
-              }
-            },
-            "offer": {
-              "id": 1,
-              "name": "Weekend 10% off",
-              "type": "promotional",
-              "discount_type": "percentage",
-              "discount_value": 10,
-              "amount": 20
-            },
-            "sales_tax": {
-              "rate": 18,
-              "amount": 32.4
-            },
-            "discount_amount": 20,
-            "subtotal": 180,
-            "tax_amount": 73.8,
-            "refunded_qty": 1,
-            "total": 253.8
-          },
-          {
-            "id": 2,
-            "qty": 1,
-            "unit_price": 100,
-            "gross_amount": 100,
-            "product": {
-              "id": 2,
-              "title": "Lux Soap",
-              "sku": "LUX-SOAP",
-              "barcode": "8961014001234",
-              "discount": null,
-              "taxes": [
-                {
-                  "name": "GST",
-                  "type": "percentage",
-                  "value": 18,
-                  "amount": 18
-                }
-              ]
-            },
-            "category": {
-              "id": 2,
-              "name": "Soap",
-              "discount": null,
-              "tax": {
-                "name": "GST",
-                "type": "percentage",
-                "value": 10,
-                "amount": 10
-              }
-            },
-            "offer": null,
-            "sales_tax": {
-              "rate": 18,
-              "amount": 18
-            },
-            "discount_amount": 0,
-            "subtotal": 100,
-            "tax_amount": 46,
-            "refunded_qty": 1,
-            "total": 146
-          }
-        ],
-        "subtotal": 280,
-        "sales_tax": {
-          "rate": 18,
-          "amount": 50.4
-        },
-        "payment_gst_amount": 63.97,
-        "tax_amount": 183.77,
-        "total": 463.77,
-        "amount_paid": 1000,
-        "change_due": 536.23,
-        "payments": [
-          {
-            "method": "cash",
-            "gst_percent": 16,
-            "gst_amount": 63.97,
-            "amount": 463.77,
-            "paid": 1000,
-            "change": 536.23,
-            "status": "success"
-          }
-        ],
-        "receipt_id": 1,
-        "staff": {
-          "id": 2,
-          "name": "Ahmed Malik",
-          "role": "manager"
-        },
-        "batch": {
-          "id": 1,
-          "status": "closed"
-        },
-        "is_custom": false,
-        "offer_exempt": false,
-        "placed_at": "2026-10-24T10:05:00.000Z",
-        "cancel_reason": null,
-        "transactions": [
-          {
-            "id": 1,
-            "method": "cash",
-            "amount": 463.77,
-            "tax_amount": 63.97,
-            "status": "success",
-            "paid_at": "2026-10-24T10:05:00.000Z"
-          }
-        ],
-        "refunds": [
-          {
-            "id": 6,
-            "refund_type": "partial",
-            "location": {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            "staff": {
-              "id": 2,
-              "name": "Ahmed Malik",
-              "role": "manager"
-            },
-            "order": {
-              "id": 1,
-              "status": "partial_refunded"
-            },
-            "receiptId": 11,
+            "id": 7,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
             "currency": "PKR",
-            "reason": "Damaged item",
-            "items": [
-              {
-                "order_item_id": 2,
-                "product": {
-                  "id": 2,
-                  "title": "Lux Soap",
-                  "sku": "LUX-SOAP",
-                  "unit": "piece"
-                },
-                "qty": 1,
-                "unit_price": 100,
-                "amount": 100,
-                "tax": 69.37
-              }
-            ],
-            "amount": 100,
-            "tax": 69.37,
-            "total": 169.37,
-            "payments": [
-              {
-                "amount": 169.37,
-                "method": "cash",
-                "bill_share": 146.01,
-                "payment_tax_amount": 23.36,
-                "payment_tax_percent": 16
-              }
-            ],
-            "refunded_at": "2026-10-31T09:27:36.000Z"
+            "total_amount": 133.24,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
           },
           {
             "id": 5,
-            "refund_type": "partial",
-            "location": {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            },
-            "staff": {
-              "id": 2,
-              "name": "Ahmed Malik",
-              "role": "manager"
-            },
-            "order": {
-              "id": 1,
-              "status": "partial_refunded"
-            },
-            "receiptId": 10,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
             "currency": "PKR",
-            "reason": "Customer return",
-            "items": [
-              {
-                "order_item_id": 1,
-                "product": {
-                  "id": 1,
-                  "title": "1 Litre Pepsi",
-                  "sku": "1-LITRE-PEPSI",
-                  "unit": "bottle"
-                },
-                "qty": 1,
-                "unit_price": 100,
-                "amount": 90,
-                "tax": 57.2
-              }
-            ],
-            "amount": 90,
-            "tax": 57.2,
-            "total": 147.2,
-            "payments": [
-              {
-                "amount": 147.2,
-                "method": "cash",
-                "bill_share": 126.9,
-                "payment_tax_amount": 20.3,
-                "payment_tax_percent": 16
-              }
-            ],
-            "refunded_at": "2026-10-31T09:27:36.000Z"
+            "total_amount": 654.12,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T13:30:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 4,
+            "is_custom": true,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 419.09,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T12:15:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 1,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 463.77,
+            "status": "partial_refunded",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T10:05:00.000Z",
+            "channel": "pos"
           }
-        ]
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 4,
+          "total_pages": 1
+        }
       }
     }
-  }],
+  ],
+  "order-list-pending": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 0,
+          "total_pages": 1
+        }
+      }
+    }
+  ],
+  "order-list-cancelled": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 8,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
+            "currency": "PKR",
+            "total_amount": 147.2,
+            "status": "voided",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 6,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
+            "currency": "PKR",
+            "total_amount": 147.2,
+            "status": "voided",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 2,
+          "total_pages": 1
+        }
+      }
+    }
+  ],
+  "order-get": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 1,
+          "order_id": 1,
+          "store": {
+            "name": "Acadex",
+            "ntn": "1234567-8",
+            "strn": "3277876123456"
+          },
+          "issued_at": "2026-10-24T10:05:00.000Z",
+          "channel": "pos",
+          "status": "partial_refunded",
+          "payment_status": "paid",
+          "payment_method": "cash",
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "cashier": {
+            "id": 2,
+            "name": "Ahmed Malik"
+          },
+          "customer": null,
+          "currency": "PKR",
+          "items": [
+            {
+              "id": 1,
+              "qty": 2,
+              "unit_price": 100,
+              "gross_amount": 200,
+              "product": {
+                "id": 1,
+                "variant": {
+                  "id": 1,
+                  "name": "1L"
+                },
+                "title": "Pepsi - 1L",
+                "sku": "1-LITRE-PEPSI",
+                "barcode": "78263672323325",
+                "discount": null,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18,
+                    "amount": 32.4
+                  }
+                ]
+              },
+              "category": {
+                "id": 1,
+                "name": "Beverages",
+                "discount": null,
+                "tax": {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 5,
+                  "amount": 9
+                }
+              },
+              "offer": {
+                "id": 1,
+                "name": "Weekend 10% off",
+                "type": "promotional",
+                "discount_type": "percentage",
+                "discount_value": 10,
+                "amount": 20
+              },
+              "sales_tax": {
+                "rate": 18,
+                "amount": 32.4
+              },
+              "discount_amount": 20,
+              "subtotal": 180,
+              "tax_amount": 73.8,
+              "refunded_qty": 1,
+              "total": 253.8
+            },
+            {
+              "id": 2,
+              "qty": 1,
+              "unit_price": 100,
+              "gross_amount": 100,
+              "product": {
+                "id": 11,
+                "variant": {
+                  "id": 2,
+                  "name": "Fresh Splash (Green)"
+                },
+                "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                "sku": "LUX-SOAP",
+                "barcode": "8961014001234",
+                "discount": null,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18,
+                    "amount": 18
+                  }
+                ]
+              },
+              "category": {
+                "id": 2,
+                "name": "Soap",
+                "discount": null,
+                "tax": {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 10,
+                  "amount": 10
+                }
+              },
+              "offer": null,
+              "sales_tax": {
+                "rate": 18,
+                "amount": 18
+              },
+              "discount_amount": 0,
+              "subtotal": 100,
+              "tax_amount": 46,
+              "refunded_qty": 1,
+              "total": 146
+            }
+          ],
+          "subtotal": 280,
+          "sales_tax": {
+            "rate": 18,
+            "amount": 50.4
+          },
+          "payment_gst_amount": 63.97,
+          "tax_amount": 183.77,
+          "total": 463.77,
+          "amount_paid": 1000,
+          "change_due": 536.23,
+          "payments": [
+            {
+              "method": "cash",
+              "gst_percent": 16,
+              "gst_amount": 63.97,
+              "amount": 463.77,
+              "paid": 1000,
+              "change": 536.23,
+              "status": "success"
+            }
+          ],
+          "receipt_id": 1,
+          "staff": {
+            "id": 2,
+            "name": "Ahmed Malik",
+            "role": "manager"
+          },
+          "batch": {
+            "id": 1,
+            "status": "closed"
+          },
+          "is_custom": false,
+          "offer_exempt": false,
+          "placed_at": "2026-10-24T10:05:00.000Z",
+          "cancel_reason": null,
+          "transactions": [
+            {
+              "id": 1,
+              "method": "cash",
+              "amount": 463.77,
+              "tax_amount": 63.97,
+              "status": "success",
+              "paid_at": "2026-10-24T10:05:00.000Z"
+            }
+          ],
+          "refunds": [
+            {
+              "id": 6,
+              "refund_type": "partial",
+              "location": {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              },
+              "staff": {
+                "id": 2,
+                "name": "Ahmed Malik",
+                "role": "manager"
+              },
+              "order": {
+                "id": 1,
+                "status": "partial_refunded"
+              },
+              "receiptId": 11,
+              "currency": "PKR",
+              "reason": "Damaged item",
+              "items": [
+                {
+                  "order_item_id": 2,
+                  "product": {
+                    "id": 11,
+                    "variant": {
+                      "id": 2,
+                      "name": "Fresh Splash (Green)"
+                    },
+                    "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                    "sku": "LUX-SOAP",
+                    "unit": "piece"
+                  },
+                  "qty": 1,
+                  "unit_price": 100,
+                  "amount": 100,
+                  "tax": 69.37
+                }
+              ],
+              "amount": 100,
+              "tax": 69.37,
+              "total": 169.37,
+              "payments": [
+                {
+                  "amount": 169.37,
+                  "method": "cash",
+                  "bill_share": 146.01,
+                  "payment_tax_amount": 23.36,
+                  "payment_tax_percent": 16
+                }
+              ],
+              "refunded_at": "2026-10-31T09:27:36.000Z"
+            },
+            {
+              "id": 5,
+              "refund_type": "partial",
+              "location": {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              },
+              "staff": {
+                "id": 2,
+                "name": "Ahmed Malik",
+                "role": "manager"
+              },
+              "order": {
+                "id": 1,
+                "status": "partial_refunded"
+              },
+              "receiptId": 10,
+              "currency": "PKR",
+              "reason": "Customer return",
+              "items": [
+                {
+                  "order_item_id": 1,
+                  "product": {
+                    "id": 1,
+                    "variant": {
+                      "id": 1,
+                      "name": "1L"
+                    },
+                    "title": "Pepsi - 1L",
+                    "sku": "1-LITRE-PEPSI",
+                    "unit": "bottle"
+                  },
+                  "qty": 1,
+                  "unit_price": 100,
+                  "amount": 90,
+                  "tax": 57.2
+                }
+              ],
+              "amount": 90,
+              "tax": 57.2,
+              "total": 147.2,
+              "payments": [
+                {
+                  "amount": 147.2,
+                  "method": "cash",
+                  "bill_share": 126.9,
+                  "payment_tax_amount": 20.3,
+                  "payment_tax_percent": 16
+                }
+              ],
+              "refunded_at": "2026-10-31T09:27:36.000Z"
+            }
+          ]
+        }
+      }
+    }
+  ],
   "refund-list-complete": [{
     "label": "200 OK",
     "status": 200,
@@ -9585,126 +9651,128 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "order-history": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 8,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 147.2,
-          "status": "voided",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 7,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 133.24,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 6,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 1,
-          "currency": "PKR",
-          "total_amount": 147.2,
-          "status": "voided",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-31T09:27:36.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 5,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 654.12,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T13:30:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 4,
-          "is_custom": true,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 419.09,
-          "status": "completed",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T12:15:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 3,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 2067.43,
-          "status": "refunded",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T11:40:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 2,
-          "is_custom": true,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 301.14,
-          "status": "refunded",
-          "payment_status": "refunded",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T10:20:00.000Z",
-          "channel": "pos"
-        },
-        {
-          "id": 1,
-          "is_custom": false,
-          "location_name": "Gulshan e Iqbal Block 13 D",
-          "items": 2,
-          "currency": "PKR",
-          "total_amount": 463.77,
-          "status": "partial_refunded",
-          "payment_status": "paid",
-          "remaining_amount": 0,
-          "placed_at": "2026-10-24T10:05:00.000Z",
-          "channel": "pos"
+  "order-history": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 8,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
+            "currency": "PKR",
+            "total_amount": 147.2,
+            "status": "voided",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 7,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
+            "currency": "PKR",
+            "total_amount": 133.24,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 6,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 1,
+            "currency": "PKR",
+            "total_amount": 147.2,
+            "status": "voided",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-31T09:27:36.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 5,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 654.12,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T13:30:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 4,
+            "is_custom": true,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 419.09,
+            "status": "completed",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T12:15:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 3,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 2067.43,
+            "status": "refunded",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T11:40:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 2,
+            "is_custom": true,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 301.14,
+            "status": "refunded",
+            "payment_status": "refunded",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T10:20:00.000Z",
+            "channel": "pos"
+          },
+          {
+            "id": 1,
+            "is_custom": false,
+            "location_name": "Gulshan e Iqbal Block 13 D",
+            "items": 2,
+            "currency": "PKR",
+            "total_amount": 463.77,
+            "status": "partial_refunded",
+            "payment_status": "paid",
+            "remaining_amount": 0,
+            "placed_at": "2026-10-24T10:05:00.000Z",
+            "channel": "pos"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 8,
+          "total_pages": 1
         }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 8,
-        "total_pages": 1
       }
     }
-  }],
+  ],
   "staff-list": [{
     "label": "200 OK",
     "status": 200,
@@ -10012,199 +10080,211 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "order-receipt": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": {
-        "id": 1,
-        "order_id": 1,
-        "store": {
-          "name": "Acadex",
-          "ntn": "1234567-8",
-          "strn": "3277876123456"
-        },
-        "issued_at": "2026-10-24T10:05:00.000Z",
-        "channel": "pos",
-        "status": "partial_refunded",
-        "payment_status": "paid",
-        "payment_method": "cash",
-        "location": {
+  "order-receipt": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
           "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
-        },
-        "cashier": {
-          "id": 2,
-          "name": "Ahmed Malik"
-        },
-        "customer": null,
-        "currency": "PKR",
-        "items": [
-          {
-            "id": 1,
-            "qty": 2,
-            "unit_price": 100,
-            "gross_amount": 200,
-            "product": {
-              "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "barcode": "78263672323325",
-              "discount": null,
-              "taxes": [
-                {
-                  "name": "GST",
-                  "type": "percentage",
-                  "value": 18,
-                  "amount": 32.4
-                }
-              ]
-            },
-            "category": {
-              "id": 1,
-              "name": "Beverages",
-              "discount": null,
-              "tax": {
-                "name": "GST",
-                "type": "percentage",
-                "value": 5,
-                "amount": 9
-              }
-            },
-            "offer": {
-              "id": 1,
-              "name": "Weekend 10% off",
-              "type": "promotional",
-              "discount_type": "percentage",
-              "discount_value": 10,
-              "amount": 20
-            },
-            "sales_tax": {
-              "rate": 18,
-              "amount": 32.4
-            },
-            "discount_amount": 20,
-            "subtotal": 180,
-            "tax_amount": 73.8,
-            "refunded_qty": 1,
-            "total": 253.8
+          "order_id": 1,
+          "store": {
+            "name": "Acadex",
+            "ntn": "1234567-8",
+            "strn": "3277876123456"
           },
-          {
+          "issued_at": "2026-10-24T10:05:00.000Z",
+          "channel": "pos",
+          "status": "partial_refunded",
+          "payment_status": "paid",
+          "payment_method": "cash",
+          "location": {
+            "id": 1,
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "cashier": {
             "id": 2,
-            "qty": 1,
-            "unit_price": 100,
-            "gross_amount": 100,
-            "product": {
-              "id": 2,
-              "title": "Lux Soap",
-              "sku": "LUX-SOAP",
-              "barcode": "8961014001234",
-              "discount": null,
-              "taxes": [
-                {
+            "name": "Ahmed Malik"
+          },
+          "customer": null,
+          "currency": "PKR",
+          "items": [
+            {
+              "id": 1,
+              "qty": 2,
+              "unit_price": 100,
+              "gross_amount": 200,
+              "product": {
+                "id": 1,
+                "variant": {
+                  "id": 1,
+                  "name": "1L"
+                },
+                "title": "Pepsi - 1L",
+                "sku": "1-LITRE-PEPSI",
+                "barcode": "78263672323325",
+                "discount": null,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18,
+                    "amount": 32.4
+                  }
+                ]
+              },
+              "category": {
+                "id": 1,
+                "name": "Beverages",
+                "discount": null,
+                "tax": {
                   "name": "GST",
                   "type": "percentage",
-                  "value": 18,
-                  "amount": 18
+                  "value": 5,
+                  "amount": 9
                 }
-              ]
+              },
+              "offer": {
+                "id": 1,
+                "name": "Weekend 10% off",
+                "type": "promotional",
+                "discount_type": "percentage",
+                "discount_value": 10,
+                "amount": 20
+              },
+              "sales_tax": {
+                "rate": 18,
+                "amount": 32.4
+              },
+              "discount_amount": 20,
+              "subtotal": 180,
+              "tax_amount": 73.8,
+              "refunded_qty": 1,
+              "total": 253.8
             },
-            "category": {
+            {
               "id": 2,
-              "name": "Soap",
-              "discount": null,
-              "tax": {
-                "name": "GST",
-                "type": "percentage",
-                "value": 10,
-                "amount": 10
-              }
-            },
-            "offer": null,
-            "sales_tax": {
-              "rate": 18,
-              "amount": 18
-            },
-            "discount_amount": 0,
-            "subtotal": 100,
-            "tax_amount": 46,
-            "refunded_qty": 1,
-            "total": 146
-          }
-        ],
-        "subtotal": 280,
-        "sales_tax": {
-          "rate": 18,
-          "amount": 50.4
-        },
-        "payment_gst_amount": 63.97,
-        "tax_amount": 183.77,
-        "total": 463.77,
-        "amount_paid": 1000,
-        "change_due": 536.23,
-        "payments": [
-          {
-            "method": "cash",
-            "gst_percent": 16,
-            "gst_amount": 63.97,
-            "amount": 463.77,
-            "paid": 1000,
-            "change": 536.23,
-            "status": "success"
-          }
-        ]
+              "qty": 1,
+              "unit_price": 100,
+              "gross_amount": 100,
+              "product": {
+                "id": 11,
+                "variant": {
+                  "id": 2,
+                  "name": "Fresh Splash (Green)"
+                },
+                "title": "Pack Of Lux Soap - Fresh Splash (Green)",
+                "sku": "LUX-SOAP",
+                "barcode": "8961014001234",
+                "discount": null,
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18,
+                    "amount": 18
+                  }
+                ]
+              },
+              "category": {
+                "id": 2,
+                "name": "Soap",
+                "discount": null,
+                "tax": {
+                  "name": "GST",
+                  "type": "percentage",
+                  "value": 10,
+                  "amount": 10
+                }
+              },
+              "offer": null,
+              "sales_tax": {
+                "rate": 18,
+                "amount": 18
+              },
+              "discount_amount": 0,
+              "subtotal": 100,
+              "tax_amount": 46,
+              "refunded_qty": 1,
+              "total": 146
+            }
+          ],
+          "subtotal": 280,
+          "sales_tax": {
+            "rate": 18,
+            "amount": 50.4
+          },
+          "payment_gst_amount": 63.97,
+          "tax_amount": 183.77,
+          "total": 463.77,
+          "amount_paid": 1000,
+          "change_due": 536.23,
+          "payments": [
+            {
+              "method": "cash",
+              "gst_percent": 16,
+              "gst_amount": 63.97,
+              "amount": 463.77,
+              "paid": 1000,
+              "change": 536.23,
+              "status": "success"
+            }
+          ]
+        }
       }
     }
-  }],
-  "refund-receipt": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": {
-        "id": 6,
-        "refund_id": 1,
-        "order_id": 2,
-        "refund_type": "complete",
-        "reason": "Full return",
-        "store": {
-          "name": "Acadex",
-          "ntn": "1234567-8",
-          "strn": "3277876123456"
-        },
-        "issued_at": "2026-10-31T09:27:36.000Z",
-        "location": {
-          "id": 1,
-          "name": "Gulshan e Iqbal Block 13 D"
-        },
-        "cashier": {
-          "id": 2,
-          "name": "Ahmed Malik"
-        },
-        "currency": "PKR",
-        "items": [
-          {
+  ],
+  "refund-receipt": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 6,
+          "refund_id": 1,
+          "order_id": 2,
+          "refund_type": "complete",
+          "reason": "Full return",
+          "store": {
+            "name": "Acadex",
+            "ntn": "1234567-8",
+            "strn": "3277876123456"
+          },
+          "issued_at": "2026-10-31T09:27:36.000Z",
+          "location": {
             "id": 1,
-            "title": "SP10 Blue Pen",
-            "sku": null,
-            "qty": 2,
-            "unit_price": 50,
-            "total": 136.88
-          }
-        ],
-        "subtotal": 100,
-        "tax_amount": 36.88,
-        "total": 136.88,
-        "payments": [
-          {
-            "method": "cash",
-            "amount": 136.88
-          }
-        ]
+            "name": "Gulshan e Iqbal Block 13 D"
+          },
+          "cashier": {
+            "id": 2,
+            "name": "Ahmed Malik"
+          },
+          "currency": "PKR",
+          "items": [
+            {
+              "id": 1,
+              "title": "SP10 Blue Pen",
+              "sku": null,
+              "qty": 2,
+              "unit_price": 50,
+              "total": 136.88
+            }
+          ],
+          "subtotal": 100,
+          "tax_amount": 36.88,
+          "total": 136.88,
+          "payments": [
+            {
+              "method": "cash",
+              "amount": 136.88
+            }
+          ]
+        }
       }
     }
-  }],
+  ],
 }
