@@ -109,7 +109,7 @@ const CATEGORY_CREATE = {
 
 const PRODUCT_CREATE = {
   title: R,
-  barcode: must("Unique per store — a barcode already in use returns 409"),
+  barcode: must("Unique per store. One already in use is not an error: the product is saved with a new 13-digit barcode (starting with 2) and the dashboard reply names it in barcode_replaced"),
   category_id: must("The category's number (e.g. 1) or its UUID"),
   unit: note("Default piece"),
   cost: must("Loose Item: cost of one unit. Stored as cost_price"),
@@ -134,12 +134,18 @@ const PRODUCT_CREATE = {
   ...VISIBILITY,
   location_scope: note("all (every location, default) | selected (only location_ids). The product shows at a location only when its category is sold there too. Manager / cashier: send selected + their own location; left out = their token's location"),
   location_ids: CATALOG_LOCATIONS.location_ids,
-  variants: note("Sizes / colours etc.: each variant becomes a product of its own (own SKU, barcode, prices and stock; the parent's category, taxes and unit). With variants the parent's barcode and prices are optional and the parent itself is not sold"),
-  "variants[].name": must("e.g. Size: M"),
+  variants: note("Sizes etc. (1L, 1.5L, 2L…): each variant becomes a product of its own with its own SKU, barcode, prices, pack and stock, and the parent's category, unit and taxes. With variants the parent's barcode and prices are optional and the parent itself is not sold"),
+  "variants[].name": must("e.g. 1.5L"),
   "variants[].sku": note("Unique per store. Left out = made from the title"),
-  "variants[].barcode": must("Unique per store"),
-  "variants[].cost": must("Cost of one unit (cost_price also works)"),
-  "variants[].price": must("Selling price of one unit (selling_price also works)"),
+  "variants[].barcode": must("A barcode already in use is replaced with a new 13-digit one"),
+  "variants[].cost": must("Loose variant: cost of one unit (cost_price also works)"),
+  "variants[].price": must("Loose variant: selling price of one unit (selling_price also works)"),
+  "variants[].is_pack_product": note("true = this variant is sold by the pack (its own pack_size, pack_cost, pack_price). Default false"),
+  "variants[].pack_size": must("Pack variant: units per pack, >= 2"),
+  "variants[].pack_cost": must("Pack variant: whole-pack cost; cost per unit = pack_cost ÷ pack_size"),
+  "variants[].pack_price": must("Pack variant: whole-pack price; price per unit = pack_price ÷ pack_size"),
+  "variants[].sell_loose": note("Pack variant: single units can also be sold"),
+  "variants[].taxes": note("Taxes on this variant only, added to the product's taxes: [{ name, type: percentage | fixed, value }]. When the product's taxes change, every variant gets them again plus its own"),
   "variants[].stock": note("Opening stock, at the variant's location_id or the request's / token's location"),
 }
 

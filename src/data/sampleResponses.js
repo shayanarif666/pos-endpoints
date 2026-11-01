@@ -523,42 +523,123 @@ export const SAMPLE_RESPONSES = {
           },
           {
             "id": 4,
-            "title": "Polo Shirt",
+            "title": "Pepsi",
             "has_variants": true,
             "parent": null,
             "variant_name": null,
             "variants": [
               {
                 "id": 5,
-                "name": "Size: M",
-                "sku": "POLO-M",
-                "barcode": "8961014009982",
-                "cost_price": 800,
-                "selling_price": 1500,
+                "name": "1L",
+                "sku": "PEPSI-1L",
+                "barcode": "8961014100011",
+                "cost_price": 80,
+                "selling_price": 100,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "variant_taxes": [],
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
                 "is_active": true
               },
               {
                 "id": 6,
-                "name": "Size: L",
-                "sku": "POLO-L",
-                "barcode": "8961014009975",
-                "cost_price": 850,
-                "selling_price": 1600,
+                "name": "1.5L",
+                "sku": "PEPSI-1-5L",
+                "barcode": "8961014100028",
+                "cost_price": 110,
+                "selling_price": 140,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "variant_taxes": [],
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 7,
+                "name": "2L",
+                "sku": "PEPSI-2L",
+                "barcode": "8961014100035",
+                "cost_price": 140,
+                "selling_price": 180,
+                "is_pack_product": false,
+                "pack_size": null,
+                "pack_cost_price": null,
+                "pack_selling_price": null,
+                "sell_loose": false,
+                "variant_taxes": [
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  },
+                  {
+                    "name": "Sugar tax",
+                    "type": "fixed",
+                    "value": 5
+                  }
+                ],
+                "is_active": true
+              },
+              {
+                "id": 8,
+                "name": "Jumbo 6-pack",
+                "sku": "PEPSI-JUMBO-6-PACK",
+                "barcode": "8961014100042",
+                "cost_price": 150,
+                "selling_price": 200,
+                "is_pack_product": true,
+                "pack_size": 6,
+                "pack_cost_price": 900,
+                "pack_selling_price": 1200,
+                "sell_loose": true,
+                "variant_taxes": [],
+                "taxes": [
+                  {
+                    "name": "GST",
+                    "type": "percentage",
+                    "value": 18
+                  }
+                ],
                 "is_active": true
               }
             ],
-            "slug": "polo-shirt",
+            "slug": "pepsi",
             "category": {
-              "id": 2,
-              "name": "Soap"
+              "id": 1,
+              "name": "Beverages"
             },
-            "sku": "POLO-SHIRT",
+            "sku": "PEPSI",
             "barcode": null,
             "image": null,
             "description": null,
-            "unit": "piece",
-            "cost_price": 800,
-            "selling_price": 1500,
+            "unit": "bottle",
+            "cost_price": 80,
+            "selling_price": 100,
             "has_product_discount": false,
             "discount_type": null,
             "discount_value": null,
