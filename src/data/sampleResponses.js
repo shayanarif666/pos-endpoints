@@ -5131,7 +5131,7 @@ export const SAMPLE_RESPONSES = {
   }],
   "prod-get": [
     {
-      "label": "200 OK",
+      "label": "200 OK · with variants",
       "status": 200,
       "body": {
         "success": true,
@@ -5323,8 +5323,6 @@ export const SAMPLE_RESPONSES = {
           "image": null,
           "description": null,
           "unit": "bottle",
-          "cost_price": 80,
-          "selling_price": 100,
           "has_product_discount": false,
           "discount_type": null,
           "discount_value": null,
@@ -5337,16 +5335,7 @@ export const SAMPLE_RESPONSES = {
               "value": 18
             }
           ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": false,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
           "low_stock_threshold": 10,
-          "total_price_each_unit": 118,
-          "total_pack_price": null,
           "location_scope": "all",
           "location_ids": [],
           "stock_scope": "selected",
@@ -5356,9 +5345,75 @@ export const SAMPLE_RESPONSES = {
           ],
           "is_active": true,
           "is_pos_visible": true,
+          "is_web_visible": true
+        }
+      }
+    },
+    {
+      "label": "200 OK · without variants",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 1,
+          "title": "1 Litre Pepsi",
+          "has_variants": false,
+          "parent": null,
+          "variant_name": null,
+          "variants": [],
+          "slug": "1-litre-pepsi",
+          "category": {
+            "id": 1,
+            "name": "Beverages"
+          },
+          "sku": "1-LITRE-PEPSI",
+          "barcode": "78263672323325",
+          "image": null,
+          "description": null,
+          "unit": "bottle",
+          "cost_price": 55,
+          "selling_price": 110,
+          "has_product_discount": true,
+          "discount_type": "percentage",
+          "discount_value": 10,
+          "discount_name": "Eid Shopping",
+          "has_product_tax": true,
+          "taxes": [
+            {
+              "name": "GST",
+              "type": "percentage",
+              "value": 18
+            }
+          ],
+          "is_pack_product": false,
+          "pack_size": null,
+          "pack_cost_price": null,
+          "pack_selling_price": null,
+          "sell_loose": true,
+          "is_weight_based": false,
+          "has_bulk_discount": false,
+          "low_stock_threshold": 10,
+          "total_price_each_unit": 116.82,
+          "total_pack_price": null,
+          "location_scope": "all",
+          "location_ids": [],
+          "is_active": true,
+          "is_pos_visible": true,
           "is_web_visible": true,
-          "qty": 0,
-          "stocks": []
+          "qty": 30,
+          "stocks": [
+            {
+              "location": {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              },
+              "qty": 30,
+              "expiry_date": "2026-12-31"
+            }
+          ],
+          "stock_scope": "all",
+          "stock_location_ids": []
         }
       }
     }
