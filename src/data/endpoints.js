@@ -115,6 +115,23 @@ const PRODUCT_PACK_WEIGHT_ROW = [
   }),
 ]
 
+// With variants: each size is a product of its own (own SKU, barcode, prices, stock).
+const PRODUCT_VARIANTS_ROW = [
+  ["title", "Polo Shirt"],
+  ["category_id", 2],
+  ["unit", "piece"],
+  ["taxes", [{ name: "GST", type: "percentage", value: 18 }], "tax"],
+  [
+    "variants",
+    [
+      { name: "Size: M", sku: "POLO-M", barcode: "8961014009982", cost: 800, price: 1500, stock: 20 },
+      { name: "Size: L", sku: "POLO-L", barcode: "8961014009975", cost: 850, price: 1600, stock: 15 },
+    ],
+  ],
+  ["low_stock_threshold", 5],
+  ["is_active", true, "optional"],
+]
+
 const round2 = (n) => Math.round(n * 100) / 100
 
 // Mirrors how the server keeps total_price_each_unit / total_pack_price: the product's own
@@ -171,7 +188,7 @@ function productBuilder() {
   return {
     bulk: true,
     variants: [
-      { id: "default", label: null, rows: [PRODUCT_LOOSE_ROW, PRODUCT_PACK_ROW, PRODUCT_PACK_WEIGHT_ROW] },
+      { id: "default", label: null, rows: [PRODUCT_LOOSE_ROW, PRODUCT_PACK_ROW, PRODUCT_PACK_WEIGHT_ROW, PRODUCT_VARIANTS_ROW] },
     ],
     bulkTop: [["storeId", 1]],
     toggles: PRODUCT_TOGGLES,
@@ -1245,7 +1262,7 @@ export const endpoints = [
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "POS sync: { items: [ ...products ] }. The example sends the three kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size) and a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg). Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager / cashier sends their own location; if they leave it out, the product is sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "POS sync: { items: [ ...products ] }. The example sends four kinds: a Loose Item (cost + price), a Loose + Pack product (is_pack_product, pack_size, pack_cost, pack_price, sell_loose — per-unit cost / price = pack price ÷ pack_size), a Loose + Pack + Weight product (the same plus is_weight_based, sold by the kg) and a product with variants — variants [{ name, sku, barcode, cost, price, stock }]: each variant is a product of its own (own SKU, barcode, prices and stock; the parent's category, taxes and unit), the parent has has_variants true and is not sold itself, a variant has parent and variant_name. On PATCH, variants [{ id (variant's product number), price… }] changes a variant and a row without id adds one. Required: title, barcode (unique per store), category_id (number or UUID) and the prices. taxes [{ name, type: percentage | fixed (per unit), value }] — as many as apply; at checkout the category tax and the store's sales tax (if on) are added, each on the discounted line amount. total_price / total_price_each_unit / total_pack_price are calculated by the server. Where each product is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (location numbers) — the example mixes all, [1, 2] and [1]; a product shows at a location only when its category is sold there too. A manager / cashier sends their own location; if they leave it out, the product is sold at their token's location. On channel=pos the response returns every product field with short numbers. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
   }),

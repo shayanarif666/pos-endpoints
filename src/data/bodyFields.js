@@ -134,6 +134,13 @@ const PRODUCT_CREATE = {
   ...VISIBILITY,
   location_scope: note("all (every location, default) | selected (only location_ids). The product shows at a location only when its category is sold there too. Manager / cashier: send selected + their own location; left out = their token's location"),
   location_ids: CATALOG_LOCATIONS.location_ids,
+  variants: note("Sizes / colours etc.: each variant becomes a product of its own (own SKU, barcode, prices and stock; the parent's category, taxes and unit). With variants the parent's barcode and prices are optional and the parent itself is not sold"),
+  "variants[].name": must("e.g. Size: M"),
+  "variants[].sku": note("Unique per store. Left out = made from the title"),
+  "variants[].barcode": must("Unique per store"),
+  "variants[].cost": must("Cost of one unit (cost_price also works)"),
+  "variants[].price": must("Selling price of one unit (selling_price also works)"),
+  "variants[].stock": note("Opening stock, at the variant's location_id or the request's / token's location"),
 }
 
 const MOVEMENT_CREATE = {

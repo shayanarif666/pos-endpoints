@@ -362,150 +362,235 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
-  "prod-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Products Created",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
+  "prod-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Products Created",
+        "data": [
+          {
             "id": 1,
-            "name": "Beverages"
-          },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 50,
-          "selling_price": 100,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 5,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 112.1,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 2,
-          "title": "Lux Soap",
-          "slug": "lux-soap",
-          "category": {
-            "id": 2,
-            "name": "Soap"
-          },
-          "sku": "LUX-SOAP",
-          "barcode": "8961014001234",
-          "image": null,
-          "description": null,
-          "unit": "piece",
-          "cost_price": 75,
-          "selling_price": 100,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 0,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 12,
-          "pack_cost_price": 900,
-          "pack_selling_price": 1200,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 118,
-          "total_pack_price": 1416,
-          "location_scope": "selected",
-          "location_ids": [1, 2],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
             },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "location_scope": "selected",
-          "location_ids": [1],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        }
-      ]
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 50,
+            "selling_price": 100,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 5,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 112.1,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 2,
+            "title": "Lux Soap",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
+            },
+            "sku": "LUX-SOAP",
+            "barcode": "8961014001234",
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 75,
+            "selling_price": 100,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 0,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 12,
+            "pack_cost_price": 900,
+            "pack_selling_price": 1200,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 118,
+            "total_pack_price": 1416,
+            "location_scope": "selected",
+            "location_ids": [
+              1,
+              2
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "location_scope": "selected",
+            "location_ids": [
+              1
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 4,
+            "title": "Polo Shirt",
+            "has_variants": true,
+            "parent": null,
+            "variant_name": null,
+            "variants": [
+              {
+                "id": 5,
+                "name": "Size: M",
+                "sku": "POLO-M",
+                "barcode": "8961014009982",
+                "cost_price": 800,
+                "selling_price": 1500,
+                "is_active": true
+              },
+              {
+                "id": 6,
+                "name": "Size: L",
+                "sku": "POLO-L",
+                "barcode": "8961014009975",
+                "cost_price": 850,
+                "selling_price": 1600,
+                "is_active": true
+              }
+            ],
+            "slug": "polo-shirt",
+            "category": {
+              "id": 2,
+              "name": "Soap"
+            },
+            "sku": "POLO-SHIRT",
+            "barcode": null,
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 800,
+            "selling_price": 1500,
+            "has_product_discount": false,
+            "discount_type": null,
+            "discount_value": null,
+            "discount_name": null,
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": false,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 5,
+            "total_price_each_unit": 1770,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          }
+        ]
+      }
     }
-  }],
+  ],
   "movement-bulk": [{
     "label": "201 Created",
     "status": 201,
@@ -1714,501 +1799,563 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "prod-bulk-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Products Updated",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
+  "prod-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Products Updated",
+        "data": [
+          {
             "id": 1,
-            "name": "Beverages"
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 50,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
           },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 50,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 2,
-          "title": "Lux Soap",
-          "slug": "lux-soap",
-          "category": {
+          {
             "id": 2,
-            "name": "Soap"
-          },
-          "sku": "LUX-SOAP",
-          "barcode": "8961014001234",
-          "image": null,
-          "description": null,
-          "unit": "piece",
-          "cost_price": 75,
-          "selling_price": 100,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 0,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 12,
-          "pack_cost_price": 900,
-          "pack_selling_price": 1200,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 24,
-          "total_price_each_unit": 118,
-          "total_pack_price": 1416,
-          "location_scope": "selected",
-          "location_ids": [1, 2],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        }
-      ]
-    }
-  }],
-  "prod-bulk-weight-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Weight Settings Updated",
-      "data": [
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
+            "title": "Lux Soap",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
             },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "location_scope": "selected",
-          "location_ids": [1],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
-          },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 50,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        }
-      ]
+            "sku": "LUX-SOAP",
+            "barcode": "8961014001234",
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 75,
+            "selling_price": 100,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 0,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 12,
+            "pack_cost_price": 900,
+            "pack_selling_price": 1200,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 24,
+            "total_price_each_unit": 118,
+            "total_pack_price": 1416,
+            "location_scope": "selected",
+            "location_ids": [
+              1,
+              2
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          }
+        ]
+      }
     }
-  }],
-  "prod-bulk-price-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Prices Updated",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
+  ],
+  "prod-bulk-weight-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Weight Settings Updated",
+        "data": [
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "location_scope": "selected",
+            "location_ids": [
+              1
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
           },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 55,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 2,
-          "title": "Lux Soap",
-          "slug": "lux-soap",
-          "category": {
+          {
+            "id": 1,
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 50,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          }
+        ]
+      }
+    }
+  ],
+  "prod-bulk-price-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Prices Updated",
+        "data": [
+          {
+            "id": 1,
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 55,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
             "id": 2,
-            "name": "Soap"
-          },
-          "sku": "LUX-SOAP",
-          "barcode": "8961014001234",
-          "image": null,
-          "description": null,
-          "unit": "piece",
-          "cost_price": 79.17,
-          "selling_price": 105,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 0,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 12,
-          "pack_cost_price": 950,
-          "pack_selling_price": 1260,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 24,
-          "total_price_each_unit": 123.9,
-          "total_pack_price": 1486.8,
-          "location_scope": "selected",
-          "location_ids": [1, 2],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        }
-      ]
-    }
-  }],
-  "prod-bulk-status-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Product Status Updated",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
-          },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 55,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
+            "title": "Lux Soap",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
             },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "location_scope": "selected",
-          "location_ids": [1],
-          "is_active": false,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        }
-      ]
+            "sku": "LUX-SOAP",
+            "barcode": "8961014001234",
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 79.17,
+            "selling_price": 105,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 0,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 12,
+            "pack_cost_price": 950,
+            "pack_selling_price": 1260,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 24,
+            "total_price_each_unit": 123.9,
+            "total_pack_price": 1486.8,
+            "location_scope": "selected",
+            "location_ids": [
+              1,
+              2
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          }
+        ]
+      }
     }
-  }],
-  "prod-bulk-visibility-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Product Visibility Updated",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
+  ],
+  "prod-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Product Status Updated",
+        "data": [
+          {
             "id": 1,
-            "name": "Beverages"
-          },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 55,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true
-        },
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
             },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "location_scope": "selected",
-          "location_ids": [1],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": false
-        }
-      ]
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 55,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "location_scope": "selected",
+            "location_ids": [
+              1
+            ],
+            "is_active": false,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          }
+        ]
+      }
     }
-  }],
+  ],
+  "prod-bulk-visibility-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Product Visibility Updated",
+        "data": [
+          {
+            "id": 1,
+            "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
+            "sku": "1-LITRE-PEPSI",
+            "barcode": "78263672323325",
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 55,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true
+          },
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "location_scope": "selected",
+            "location_ids": [
+              1
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ]
+      }
+    }
+  ],
   "cat-bulk-patch": [{
     "label": "200 OK",
     "status": 200,
@@ -3697,315 +3844,342 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "prod-list": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 1,
-          "title": "1 Litre Pepsi",
-          "slug": "1-litre-pepsi",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
-          },
-          "sku": "1-LITRE-PEPSI",
-          "barcode": "78263672323325",
-          "image": null,
-          "description": null,
-          "unit": "bottle",
-          "cost_price": 55,
-          "selling_price": 110,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": false,
-          "pack_size": null,
-          "pack_cost_price": null,
-          "pack_selling_price": null,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 116.82,
-          "total_pack_price": null,
-          "location_scope": "all",
-          "location_ids": [],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true,
-          "qty": 63,
-          "stocks": [
-            {
-              "location": {
-                "id": 2,
-                "name": "Branch 2"
-              },
-              "qty": 22,
-              "expiry_date": null
-            },
-            {
-              "location": {
-                "id": 1,
-                "name": "Gulshan e Iqbal Block 13 D"
-              },
-              "qty": 41,
-              "expiry_date": "2026-12-31"
-            }
-          ]
-        },
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "location_scope": "selected",
-          "location_ids": [1],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": false,
-          "qty": 50,
-          "stocks": [
-            {
-              "location": {
-                "id": 1,
-                "name": "Gulshan e Iqbal Block 13 D"
-              },
-              "qty": 50,
-              "expiry_date": null
-            }
-          ]
-        },
-        {
-          "id": 2,
-          "title": "Lux Soap",
-          "slug": "lux-soap",
-          "category": {
-            "id": 2,
-            "name": "Soap"
-          },
-          "sku": "LUX-SOAP",
-          "barcode": "8961014001234",
-          "image": null,
-          "description": null,
-          "unit": "piece",
-          "cost_price": 79.17,
-          "selling_price": 105,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 0,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 12,
-          "pack_cost_price": 950,
-          "pack_selling_price": 1260,
-          "sell_loose": true,
-          "is_weight_based": false,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 24,
-          "total_price_each_unit": 123.9,
-          "total_pack_price": 1486.8,
-          "location_scope": "selected",
-          "location_ids": [1, 2],
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": true,
-          "qty": 20,
-          "stocks": [
-            {
-              "location": {
-                "id": 2,
-                "name": "Branch 2"
-              },
-              "qty": 10,
-              "expiry_date": null
-            },
-            {
-              "location": {
-                "id": 1,
-                "name": "Gulshan e Iqbal Block 13 D"
-              },
-              "qty": 10,
-              "expiry_date": "2027-06-30"
-            }
-          ]
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 3,
-        "total_pages": 1
-      }
-    }
-  }],
-  "prod-expiry": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "product": {
+  "prod-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
             "id": 1,
             "title": "1 Litre Pepsi",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "1-litre-pepsi",
+            "category": {
+              "id": 1,
+              "name": "Beverages"
+            },
             "sku": "1-LITRE-PEPSI",
             "barcode": "78263672323325",
-            "unit": "bottle"
+            "image": null,
+            "description": null,
+            "unit": "bottle",
+            "cost_price": 55,
+            "selling_price": 110,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": false,
+            "pack_size": null,
+            "pack_cost_price": null,
+            "pack_selling_price": null,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 116.82,
+            "total_pack_price": null,
+            "location_scope": "all",
+            "location_ids": [],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true,
+            "qty": 63,
+            "stocks": [
+              {
+                "location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "qty": 22,
+                "expiry_date": null
+              },
+              {
+                "location": {
+                  "id": 1,
+                  "name": "Gulshan e Iqbal Block 13 D"
+                },
+                "qty": 41,
+                "expiry_date": "2026-12-31"
+              }
+            ]
           },
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "location_scope": "selected",
+            "location_ids": [
+              1
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": false,
+            "qty": 50,
+            "stocks": [
+              {
+                "location": {
+                  "id": 1,
+                  "name": "Gulshan e Iqbal Block 13 D"
+                },
+                "qty": 50,
+                "expiry_date": null
+              }
+            ]
           },
-          "qty": 41,
-          "expiry_date": "2026-12-31",
-          "expiry_status": "ok"
-        },
-        {
-          "product": {
+          {
             "id": 2,
             "title": "Lux Soap",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "lux-soap",
+            "category": {
+              "id": 2,
+              "name": "Soap"
+            },
             "sku": "LUX-SOAP",
             "barcode": "8961014001234",
-            "unit": "piece"
-          },
-          "location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "qty": 10,
-          "expiry_date": "2027-06-30",
-          "expiry_status": "ok"
+            "image": null,
+            "description": null,
+            "unit": "piece",
+            "cost_price": 79.17,
+            "selling_price": 105,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 0,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 12,
+            "pack_cost_price": 950,
+            "pack_selling_price": 1260,
+            "sell_loose": true,
+            "is_weight_based": false,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 24,
+            "total_price_each_unit": 123.9,
+            "total_pack_price": 1486.8,
+            "location_scope": "selected",
+            "location_ids": [
+              1,
+              2
+            ],
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": true,
+            "qty": 20,
+            "stocks": [
+              {
+                "location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "qty": 10,
+                "expiry_date": null
+              },
+              {
+                "location": {
+                  "id": 1,
+                  "name": "Gulshan e Iqbal Block 13 D"
+                },
+                "qty": 10,
+                "expiry_date": "2027-06-30"
+              }
+            ]
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 3,
+          "total_pages": 1
         }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 2,
-        "total_pages": 1
       }
     }
-  }],
-  "prod-weight-list": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 3,
-          "title": "Basmati Rice",
-          "slug": "basmati-rice",
-          "category": {
-            "id": 3,
-            "name": "Rice & Daal"
-          },
-          "sku": "BASMATI-RICE",
-          "barcode": "8964000123456",
-          "image": null,
-          "description": null,
-          "unit": "kg",
-          "cost_price": 300,
-          "selling_price": 360,
-          "has_product_discount": true,
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "discount_name": "Eid Shopping",
-          "has_product_tax": true,
-          "taxes": [
-            {
-              "name": "GST",
-              "type": "percentage",
-              "value": 18
+  ],
+  "prod-expiry": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "barcode": "78263672323325",
+              "unit": "bottle"
             },
-            {
-              "name": "Excise",
-              "type": "fixed",
-              "value": 2
-            }
-          ],
-          "is_pack_product": true,
-          "pack_size": 25,
-          "pack_cost_price": 7500,
-          "pack_selling_price": 9000,
-          "sell_loose": true,
-          "is_weight_based": true,
-          "has_bulk_discount": false,
-          "low_stock_threshold": 10,
-          "total_price_each_unit": 384.32,
-          "total_pack_price": 9608,
-          "is_active": true,
-          "is_pos_visible": true,
-          "is_web_visible": false
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "qty": 41,
+            "expiry_date": "2026-12-31",
+            "expiry_status": "ok"
+          },
+          {
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "barcode": "8961014001234",
+              "unit": "piece"
+            },
+            "location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "qty": 10,
+            "expiry_date": "2027-06-30",
+            "expiry_status": "ok"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 2,
+          "total_pages": 1
         }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 1,
-        "total_pages": 1
       }
     }
-  }],
+  ],
+  "prod-weight-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 3,
+            "title": "Basmati Rice",
+            "has_variants": false,
+            "parent": null,
+            "variant_name": null,
+            "variants": [],
+            "slug": "basmati-rice",
+            "category": {
+              "id": 3,
+              "name": "Rice & Daal"
+            },
+            "sku": "BASMATI-RICE",
+            "barcode": "8964000123456",
+            "image": null,
+            "description": null,
+            "unit": "kg",
+            "cost_price": 300,
+            "selling_price": 360,
+            "has_product_discount": true,
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "discount_name": "Eid Shopping",
+            "has_product_tax": true,
+            "taxes": [
+              {
+                "name": "GST",
+                "type": "percentage",
+                "value": 18
+              },
+              {
+                "name": "Excise",
+                "type": "fixed",
+                "value": 2
+              }
+            ],
+            "is_pack_product": true,
+            "pack_size": 25,
+            "pack_cost_price": 7500,
+            "pack_selling_price": 9000,
+            "sell_loose": true,
+            "is_weight_based": true,
+            "has_bulk_discount": false,
+            "low_stock_threshold": 10,
+            "total_price_each_unit": 384.32,
+            "total_pack_price": 9608,
+            "is_active": true,
+            "is_pos_visible": true,
+            "is_web_visible": false
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 1,
+          "total_pages": 1
+        }
+      }
+    }
+  ],
   "order-list-completed": [{
     "label": "200 OK",
     "status": 200,
