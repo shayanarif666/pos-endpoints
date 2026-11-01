@@ -172,19 +172,19 @@ const OFFER_CREATE = {
   staff_id: STAFF_ID,
   name: R,
   type: must("promotional | flash_sale | bulk_discount | bogo"),
-  apply_to: must("category | product"),
-  discount_type: note("Required for promotional / bulk_discount; not used by bogo"),
-  discount_value: note("Required for promotional / bulk_discount; not used by bogo"),
-  category_id: note("Required when apply_to is category: the category's number (e.g. 1) or UUID. Saved on the offer target"),
-  product_id: note("Required when apply_to is product: the product's number (e.g. 1) or UUID. Saved on the offer target"),
+  products: note("The products it applies to: numbers (e.g. [1, 2]) or { product_id, promo_price?, free_product_id? }. Send products and / or categories — at least one"),
+  "products[].product_id": note("The product's number (e.g. 1) or UUID"),
+  "products[].promo_price": note("flash_sale: this product's sale price"),
+  "products[].free_product_id": note("bogo: the free item for this product, if not the same product (number or UUID)"),
+  categories: note("The categories it applies to: numbers, e.g. [1, 3]. A product in a listed category gets the offer; a product listed itself wins over its category"),
+  discount_type: note("Required for promotional / bulk_discount, and for a flash_sale on categories; not used by bogo"),
+  discount_value: note("Required for promotional / bulk_discount, and for a flash_sale on categories; not used by bogo"),
   min_qty: note("Required for bulk_discount: the discount starts at this quantity"),
   buy_qty: note("Required for bogo: items paid for in each group"),
   get_qty: note("Required for bogo: items free in each group"),
   start_at: O,
   end_at: O,
   is_active: note("Default true (active). false = inactive: never applied to any product or category. status: active | inactive also works"),
-  promo_price: note("flash_sale: fixed sale price (used when below the selling price). Saved on the offer target"),
-  free_product_id: note("bogo: the free item, if not the same product. Number or UUID. Saved on the offer target"),
   location_scope: note("all (every location, default) | selected (only location_ids). Manager / cashier: send selected + their own location; left out = their token's location"),
   location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2, 3, 4] (UUIDs also work)"),
 }
@@ -254,6 +254,17 @@ const POS_PRICED_ORDER = {
   "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change. Left out = amount"),
   "payments[].transaction_id": note("The card / wallet reference, if the till has one"),
   total_amount: must("The order total as the till worked it out. Saved as sent; paid less than it = udhaar for the customer"),
+}
+
+// One transfer: from one location to one or more destinations, each with its own products and qty.
+const TRANSFER_CREATE = {
+  from_location_id: must("Location number (e.g. 1) or UUID the stock leaves from"),
+  note: O,
+  destinations: must("Where it goes: one row per destination location"),
+  "destinations[].to_location_id": must("Location number (e.g. 2) or UUID — not the source"),
+  "destinations[].products": must("What this destination gets: one row per product"),
+  "destinations[].products[].product_id": must("Product number (e.g. 1) or UUID"),
+  "destinations[].products[].qty": must("Above 0. The source must hold, per product, the qty of every destination together"),
 }
 
 const SUPPLIER_CREATE = {
@@ -501,25 +512,9 @@ export const BODY_FIELDS = {
   }) },
 
   // Stock transfers
-  "transfer-create": {
-    from_location_id: must("Location number (e.g. 1) or UUID the stock leaves from"),
-    to_location_id: must("Location number or UUID it goes to"),
-    product_id: must("Product number (e.g. 1) or UUID"),
-    qty: R,
-    note: O,
-    staff_id: STAFF_ID,
-  },
+  "transfer-create": { ...TRANSFER_CREATE, staff_id: STAFF_ID },
 
-  "transfer-bulk": {
-    ...TOP_STORE,
-    ...TOP_STAFF,
-    items: R,
-    "items[].from_location_id": must("Location number (e.g. 1) or UUID the stock leaves from"),
-    "items[].to_location_id": must("Location number or UUID it goes to"),
-    "items[].product_id": must("Product number (e.g. 1) or UUID"),
-    "items[].qty": R,
-    "items[].note": O,
-  },
+  "transfer-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(TRANSFER_CREATE) },
 
   // Offers
   "offer-create": OFFER_CREATE,
@@ -531,12 +526,10 @@ export const BODY_FIELDS = {
     "targets[].free_product_id": note("BOGO free item. Number or UUID"),
     "targets[].promo_price": note("Flash sale fixed price"),
   },
-  // Targets change through PUT /offers/:id/targets, not PATCH.
+  // products / categories on a PATCH replace what the offer applies to.
   "offer-patch": allOptional(
     Object.fromEntries(
-      Object.entries(OFFER_CREATE).filter(
-        ([key]) => !["category_id", "product_id", "promo_price", "free_product_id"].includes(key)
-      )
+      Object.entries(OFFER_CREATE).filter(([key]) => !["staff_id"].includes(key))
     )
   ),
 
@@ -636,15 +629,37 @@ export const BODY_FIELDS = {
     "items[].qty": must("Above 0 (adjustment: 0 or more)"),
   },
   "transfer-bulk-patch": bulkUpdateOf("transfer", {
-    qty: note("The source must have it"),
-    to_location_id: note("The destination's location number"),
+    products: note("Lines still on the way to change: [{ product_id, to_location_id, qty }]. The source must have the new qty"),
+    "products[].product_id": must("Product number (e.g. 1) or UUID"),
+    "products[].to_location_id": note("Which destination's line (needed when the product goes to more than one)"),
+    "products[].qty": must("The new qty, above 0"),
     note: O,
+    qty: note("A transfer with one product: its new qty"),
+    to_location_id: note("A transfer with one product: its new destination"),
   }),
-  "transfer-bulk-qty-patch": bulkUpdateOf("transfer", { qty: must("Above 0; the source must have it") }),
-  "transfer-bulk-status-patch": bulkUpdateOf("transfer", { status: must("completed (everything arrived) | cancelled (nothing moves)") }, { staff_id: UPDATE_STAFF_ID }),
+  "transfer-bulk-qty-patch": bulkUpdateOf("transfer", {
+    products: must("[{ product_id, to_location_id, qty }] — the lines to change; the source must have it"),
+    "products[].product_id": must("Product number (e.g. 1) or UUID"),
+    "products[].to_location_id": note("Which destination's line (needed when the product goes to more than one)"),
+    "products[].qty": must("Above 0"),
+  }),
+  "transfer-bulk-status-patch": bulkUpdateOf(
+    "transfer",
+    {
+      status: must("completed (everything still on the way arrived in full) | cancelled (nothing moves)"),
+      to_location_id: note("Only this destination's lines. Left out = every destination (a manager / cashier: their own location)"),
+    },
+    { staff_id: UPDATE_STAFF_ID }
+  ),
   "transfer-bulk-receive-patch": bulkUpdateOf(
     "transfer",
-    { received_qty: must("What arrived: 0 to the transfer's qty"), note: note("e.g. why some is short") },
+    {
+      to_location_id: note("The destination receiving. Left out = a manager's / cashier's own location (store admin: every destination)"),
+      products: must("What arrived: [{ product_id, received_qty }] — 0 up to the qty sent. A product left out stays on the way"),
+      "products[].product_id": must("Product number (e.g. 1) or UUID"),
+      "products[].received_qty": must("What arrived of it"),
+      note: note("e.g. why some is short"),
+    },
     { staff_id: UPDATE_STAFF_ID }
   ),
   "order-bulk-patch": bulkUpdateOf("order", { customer_id: must("The customer's number; only an order with no customer yet") }, { locationId: UPDATE_LOCATION }),
@@ -694,7 +709,8 @@ export const BODY_FIELDS = {
   "offer-bulk-patch": bulkUpdateOf("offer", {
     name: O,
     type: note("promotional | flash_sale | bulk_discount | bogo"),
-    apply_to: note("category | product"),
+    products: note("Replaces what the offer applies to: product numbers or { product_id, promo_price?, free_product_id? }"),
+    categories: note("Replaces what the offer applies to: category numbers"),
     discount_type: note("percentage | fixed"),
     discount_value: O,
     min_qty: note("bulk_discount: the discount starts at this quantity"),

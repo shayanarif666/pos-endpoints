@@ -534,205 +534,277 @@ export const SAMPLE_RESPONSES = {
       ]
     }
   }],
-  "transfer-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Stock Transfer Created",
-      "data": [
-        {
-          "id": 1,
-          "from_location": {
+  "transfer-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Stock Transfer Created",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 20,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": "Weekly refill",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.891Z"
-        },
-        {
-          "id": 2,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "qty": 12,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.899Z"
-        },
-        {
-          "id": 3,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 10,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": "Weekend stock",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.907Z"
-        }
-      ]
-    }
-  }],
-  "offer-bulk": [{
-    "label": "201 Created",
-    "status": 201,
-    "body": {
-      "success": true,
-      "message": "Offer Created",
-      "data": [
-        {
-          "id": 1,
-          "type": "promotional",
-          "name": "Weekend 10% off",
-          "apply_to": "category",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
-          },
-          "discount_type": "percentage",
-          "discount_value": 10,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "all",
-          "locations": [],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          }
-        },
-        {
-          "id": 2,
-          "type": "bulk_discount",
-          "name": "Buy 3 save 5%",
-          "apply_to": "product",
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "discount_type": "percentage",
-          "discount_value": 5,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": 3,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "selected",
-          "locations": [
-            {
+            "from_location": {
               "id": 1,
               "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
+            },
+            "status": "on_the_way",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 20,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  },
+                  {
+                    "product": {
+                      "id": 2,
+                      "title": "Lux Soap",
+                      "sku": "LUX-SOAP",
+                      "unit": "piece"
+                    },
+                    "qty": 12,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              },
+              {
+                "to_location": {
+                  "id": 3,
+                  "name": "Gulshan e Iqbal Block 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 3,
+                      "title": "Basmati Rice",
+                      "sku": "BASMATI-RICE",
+                      "unit": "kg"
+                    },
+                    "qty": 8,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  },
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              }
+            ],
+            "note": "Weekly refill",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.891Z"
           }
-        },
-        {
-          "id": 3,
-          "type": "bogo",
-          "name": "Buy 2 get 1 free",
-          "apply_to": "product",
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "discount_type": null,
-          "discount_value": null,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": 2,
-          "get_qty": 1,
-          "location_scope": "selected",
-          "locations": [
-            {
-              "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          }
-        }
-      ]
+        ]
+      }
     }
-  }],
+  ],
+  "offer-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Offer Created",
+        "data": [
+          {
+            "id": 1,
+            "type": "promotional",
+            "name": "Eid Sale 10%",
+            "apply_to": "mixed",
+            "products": [
+              {
+                "id": 1,
+                "title": "1 Litre Pepsi",
+                "sku": "1-LITRE-PEPSI",
+                "unit": "bottle",
+                "promo_price": null,
+                "free_product": null
+              },
+              {
+                "id": 2,
+                "title": "Lux Soap",
+                "sku": "LUX-SOAP",
+                "unit": "piece",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [
+              {
+                "id": 3,
+                "name": "Rice & Daal"
+              }
+            ],
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "min_qty": null,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "all",
+            "locations": [],
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          },
+          {
+            "id": 2,
+            "type": "flash_sale",
+            "name": "Flash Sale",
+            "apply_to": "product",
+            "products": [
+              {
+                "id": 1,
+                "title": "1 Litre Pepsi",
+                "sku": "1-LITRE-PEPSI",
+                "unit": "bottle",
+                "promo_price": 90,
+                "free_product": null
+              },
+              {
+                "id": 2,
+                "title": "Lux Soap",
+                "sku": "LUX-SOAP",
+                "unit": "piece",
+                "promo_price": 95,
+                "free_product": null
+              }
+            ],
+            "categories": [],
+            "discount_type": null,
+            "discount_value": null,
+            "min_qty": null,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          },
+          {
+            "id": 3,
+            "type": "bogo",
+            "name": "Buy 2 get 1 free",
+            "apply_to": "mixed",
+            "products": [
+              {
+                "id": 1,
+                "title": "1 Litre Pepsi",
+                "sku": "1-LITRE-PEPSI",
+                "unit": "bottle",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [
+              {
+                "id": 2,
+                "name": "Soap"
+              }
+            ],
+            "discount_type": null,
+            "discount_value": null,
+            "min_qty": null,
+            "buy_qty": 2,
+            "get_qty": 1,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          },
+          {
+            "id": 4,
+            "type": "bulk_discount",
+            "name": "Buy 3 save 5%",
+            "apply_to": "category",
+            "products": [],
+            "categories": [
+              {
+                "id": 1,
+                "name": "Beverages"
+              },
+              {
+                "id": 2,
+                "name": "Soap"
+              }
+            ],
+            "discount_type": "percentage",
+            "discount_value": 5,
+            "min_qty": 3,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "all",
+            "locations": [],
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          }
+        ]
+      }
+    }
+  ],
   "sup-bulk": [{
     "label": "201 Created",
     "status": 201,
@@ -2249,208 +2321,329 @@ export const SAMPLE_RESPONSES = {
       ]
     }
   }],
-  "transfer-bulk-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Stock Transfers Updated",
-      "data": [
-        {
-          "id": 1,
-          "from_location": {
+  "transfer-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Stock Transfers Updated",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "on_the_way",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 24,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "qty": 24,
+            "received_qty": null,
+            "note": "Weekly refill + 4",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
           },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 24,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": "Weekly refill + 4",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 3,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
+          {
             "id": 3,
-            "name": "Gulshan e Iqbal Block 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 10,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": "Weekend stock",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ]
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "on_the_way",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 3,
+                  "name": "Gulshan e Iqbal Block 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 3,
+              "name": "Gulshan e Iqbal Block 2"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "qty": 10,
+            "received_qty": null,
+            "note": "Weekend stock",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
+          }
+        ]
+      }
     }
-  }],
-  "transfer-bulk-qty-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Stock Transfer Qty Updated",
-      "data": [
-        {
-          "id": 2,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
+  ],
+  "transfer-bulk-qty-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Stock Transfer Qty Updated",
+        "data": [
+          {
             "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "qty": 10,
-          "received_qty": null,
-          "status": "on_the_way",
-          "note": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ]
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "on_the_way",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 2,
+                      "title": "Lux Soap",
+                      "sku": "LUX-SOAP",
+                      "unit": "piece"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "qty": 10,
+            "received_qty": null,
+            "note": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
+          }
+        ]
+      }
     }
-  }],
-  "transfer-bulk-receive-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Stock Transfers Received",
-      "data": [
-        {
-          "id": 1,
-          "from_location": {
+  ],
+  "transfer-bulk-receive-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Stock Transfers Received",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 24,
-          "received_qty": 22,
-          "status": "completed",
-          "note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 2,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "qty": 10,
-          "received_qty": 10,
-          "status": "completed",
-          "note": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ]
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "on_the_way",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "completed",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 20,
+                    "received_qty": 20,
+                    "status": "completed"
+                  },
+                  {
+                    "product": {
+                      "id": 2,
+                      "title": "Lux Soap",
+                      "sku": "LUX-SOAP",
+                      "unit": "piece"
+                    },
+                    "qty": 12,
+                    "received_qty": 10,
+                    "status": "completed"
+                  }
+                ]
+              },
+              {
+                "to_location": {
+                  "id": 3,
+                  "name": "Gulshan e Iqbal Block 2"
+                },
+                "status": "on_the_way",
+                "products": [
+                  {
+                    "product": {
+                      "id": 3,
+                      "title": "Basmati Rice",
+                      "sku": "BASMATI-RICE",
+                      "unit": "kg"
+                    },
+                    "qty": 8,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  },
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "on_the_way"
+                  }
+                ]
+              }
+            ],
+            "note": "Weekly refill — 2 soaps damaged — Line 2: received 10 of 12 (2 short)",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.891Z"
+          }
+        ]
+      }
     }
-  }],
-  "transfer-bulk-status-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Stock Transfer Status Updated",
-      "data": [
-        {
-          "id": 3,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
+  ],
+  "transfer-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Stock Transfer Status Updated",
+        "data": [
+          {
             "id": 3,
-            "name": "Gulshan e Iqbal Block 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 10,
-          "received_qty": null,
-          "status": "cancelled",
-          "note": "Weekend stock",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ]
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "cancelled",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 3,
+                  "name": "Gulshan e Iqbal Block 2"
+                },
+                "status": "cancelled",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "cancelled"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 3,
+              "name": "Gulshan e Iqbal Block 2"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "qty": 10,
+            "received_qty": null,
+            "note": "Weekend stock",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
+          }
+        ]
+      }
     }
-  }],
+  ],
   "order-bulk-patch": [{
     "label": "200 OK",
     "status": 200,
@@ -2803,124 +2996,135 @@ export const SAMPLE_RESPONSES = {
       ]
     }
   }],
-  "offer-bulk-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Offers Updated",
-      "data": [
-        {
-          "id": 1,
-          "type": "promotional",
-          "name": "Weekend 10% off",
-          "apply_to": "category",
-          "category": {
+  "offer-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Offers Updated",
+        "data": [
+          {
             "id": 1,
-            "name": "Beverages"
+            "type": "promotional",
+            "name": "Weekend 10% off",
+            "apply_to": "category",
+            "products": [],
+            "categories": [
+              {
+                "id": 1,
+                "name": "Beverages"
+              }
+            ],
+            "discount_type": "percentage",
+            "discount_value": 15,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2027-01-15T23:59:59.000Z",
+            "min_qty": null,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "all",
+            "locations": [],
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
           },
-          "discount_type": "percentage",
-          "discount_value": 15,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2027-01-15T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "all",
-          "locations": [],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          }
-        },
-        {
-          "id": 2,
-          "type": "bulk_discount",
-          "name": "Buy 3 save 5%",
-          "apply_to": "product",
-          "product": {
+          {
             "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "discount_type": "percentage",
-          "discount_value": 5,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": 6,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "selected",
-          "locations": [
-            {
+            "type": "bulk_discount",
+            "name": "Buy 3 save 5%",
+            "apply_to": "product",
+            "products": [
+              {
+                "id": 2,
+                "title": "Lux Soap",
+                "sku": "LUX-SOAP",
+                "unit": "piece",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [],
+            "discount_type": "percentage",
+            "discount_value": 5,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "min_qty": 6,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "is_active": true,
+            "status": "active",
+            "staff": {
               "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
             }
-          ],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
           }
-        }
-      ]
+        ]
+      }
     }
-  }],
-  "offer-bulk-status-patch": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "Offer Status Updated",
-      "data": [
-        {
-          "id": 3,
-          "type": "bogo",
-          "name": "Buy 2 get 1 free",
-          "apply_to": "product",
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "discount_type": null,
-          "discount_value": null,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": 2,
-          "get_qty": 1,
-          "location_scope": "selected",
-          "locations": [
-            {
+  ],
+  "offer-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Offer Status Updated",
+        "data": [
+          {
+            "id": 3,
+            "type": "bogo",
+            "name": "Buy 2 get 1 free",
+            "apply_to": "product",
+            "products": [
+              {
+                "id": 1,
+                "title": "1 Litre Pepsi",
+                "sku": "1-LITRE-PEPSI",
+                "unit": "bottle",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [],
+            "discount_type": null,
+            "discount_value": null,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "min_qty": null,
+            "buy_qty": 2,
+            "get_qty": 1,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "is_active": false,
+            "status": "inactive",
+            "staff": {
               "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
             }
-          ],
-          "is_active": false,
-          "status": "inactive",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
           }
-        }
-      ]
+        ]
+      }
     }
-  }],
+  ],
   "location-bulk-patch": [{
     "label": "200 OK",
     "status": 200,
@@ -4971,217 +5175,294 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "transfer-list": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 1,
-          "from_location": {
+  "transfer-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
             "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "completed",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "completed",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 24,
+                    "received_qty": 22,
+                    "status": "completed"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 1,
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "qty": 24,
+            "received_qty": 22,
+            "note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
           },
-          "to_location": {
+          {
             "id": 2,
-            "name": "Branch 2"
+            "from_location": {
+              "id": 1,
+              "name": "Gulshan e Iqbal Block 13 D"
+            },
+            "status": "completed",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 2,
+                  "name": "Branch 2"
+                },
+                "status": "completed",
+                "products": [
+                  {
+                    "product": {
+                      "id": 2,
+                      "title": "Lux Soap",
+                      "sku": "LUX-SOAP",
+                      "unit": "piece"
+                    },
+                    "qty": 10,
+                    "received_qty": 10,
+                    "status": "completed"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 2,
+              "name": "Branch 2"
+            },
+            "product": {
+              "id": 2,
+              "title": "Lux Soap",
+              "sku": "LUX-SOAP",
+              "unit": "piece"
+            },
+            "qty": 10,
+            "received_qty": 10,
+            "note": null,
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
           },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 24,
-          "received_qty": 22,
-          "status": "completed",
-          "note": "Weekly refill + 4 — 2 bottles broken — Received 22 of 24 (2 short)",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 2,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
-            "id": 2,
-            "name": "Branch 2"
-          },
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "qty": 10,
-          "received_qty": 10,
-          "status": "completed",
-          "note": null,
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        },
-        {
-          "id": 3,
-          "from_location": {
-            "id": 1,
-            "name": "Gulshan e Iqbal Block 13 D"
-          },
-          "to_location": {
+          {
             "id": 3,
-            "name": "Gulshan e Iqbal Block 2"
-          },
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "qty": 10,
-          "received_qty": null,
-          "status": "cancelled",
-          "note": "Weekend stock",
-          "staff": {
-            "id": 2,
-            "name": "Ahmed Malik",
-            "role": "manager"
-          },
-          "created_at": "2026-10-31T09:27:35.000Z"
-        }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 3,
-        "total_pages": 1
-      }
-    }
-  }],
-  "offer-list": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": [
-        {
-          "id": 1,
-          "type": "promotional",
-          "name": "Weekend 10% off",
-          "apply_to": "category",
-          "category": {
-            "id": 1,
-            "name": "Beverages"
-          },
-          "discount_type": "percentage",
-          "discount_value": 15,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2027-01-15T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "all",
-          "locations": [],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          }
-        },
-        {
-          "id": 2,
-          "type": "bulk_discount",
-          "name": "Buy 3 save 5%",
-          "apply_to": "product",
-          "product": {
-            "id": 2,
-            "title": "Lux Soap",
-            "sku": "LUX-SOAP",
-            "unit": "piece"
-          },
-          "discount_type": "percentage",
-          "discount_value": 5,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": 6,
-          "buy_qty": null,
-          "get_qty": null,
-          "location_scope": "selected",
-          "locations": [
-            {
+            "from_location": {
               "id": 1,
               "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
-          "is_active": true,
-          "status": "active",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
-          }
-        },
-        {
-          "id": 3,
-          "type": "bogo",
-          "name": "Buy 2 get 1 free",
-          "apply_to": "product",
-          "product": {
-            "id": 1,
-            "title": "1 Litre Pepsi",
-            "sku": "1-LITRE-PEPSI",
-            "unit": "bottle"
-          },
-          "discount_type": null,
-          "discount_value": null,
-          "promo_price": null,
-          "free_product": null,
-          "start_at": "2026-09-01T00:00:00.000Z",
-          "end_at": "2026-12-31T23:59:59.000Z",
-          "min_qty": null,
-          "buy_qty": 2,
-          "get_qty": 1,
-          "location_scope": "selected",
-          "locations": [
-            {
+            },
+            "status": "cancelled",
+            "destinations": [
+              {
+                "to_location": {
+                  "id": 3,
+                  "name": "Gulshan e Iqbal Block 2"
+                },
+                "status": "cancelled",
+                "products": [
+                  {
+                    "product": {
+                      "id": 1,
+                      "title": "1 Litre Pepsi",
+                      "sku": "1-LITRE-PEPSI",
+                      "unit": "bottle"
+                    },
+                    "qty": 10,
+                    "received_qty": null,
+                    "status": "cancelled"
+                  }
+                ]
+              }
+            ],
+            "to_location": {
+              "id": 3,
+              "name": "Gulshan e Iqbal Block 2"
+            },
+            "product": {
               "id": 1,
-              "name": "Gulshan e Iqbal Block 13 D"
-            }
-          ],
-          "is_active": false,
-          "status": "inactive",
-          "staff": {
-            "id": 1,
-            "name": "Zayan Ahmed",
-            "role": "store_admin"
+              "title": "1 Litre Pepsi",
+              "sku": "1-LITRE-PEPSI",
+              "unit": "bottle"
+            },
+            "qty": 10,
+            "received_qty": null,
+            "note": "Weekend stock",
+            "staff": {
+              "id": 2,
+              "name": "Ahmed Malik",
+              "role": "manager"
+            },
+            "created_at": "2026-10-31T09:27:35.000Z"
           }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 3,
+          "total_pages": 1
         }
-      ],
-      "pagination": {
-        "page": 1,
-        "limit": 20,
-        "total": 3,
-        "total_pages": 1
       }
     }
-  }],
+  ],
+  "offer-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 1,
+            "type": "promotional",
+            "name": "Weekend 10% off",
+            "apply_to": "category",
+            "products": [],
+            "categories": [
+              {
+                "id": 1,
+                "name": "Beverages"
+              }
+            ],
+            "discount_type": "percentage",
+            "discount_value": 15,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2027-01-15T23:59:59.000Z",
+            "min_qty": null,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "all",
+            "locations": [],
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          },
+          {
+            "id": 2,
+            "type": "bulk_discount",
+            "name": "Buy 3 save 5%",
+            "apply_to": "product",
+            "products": [
+              {
+                "id": 2,
+                "title": "Lux Soap",
+                "sku": "LUX-SOAP",
+                "unit": "piece",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [],
+            "discount_type": "percentage",
+            "discount_value": 5,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "min_qty": 6,
+            "buy_qty": null,
+            "get_qty": null,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "is_active": true,
+            "status": "active",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          },
+          {
+            "id": 3,
+            "type": "bogo",
+            "name": "Buy 2 get 1 free",
+            "apply_to": "product",
+            "products": [
+              {
+                "id": 1,
+                "title": "1 Litre Pepsi",
+                "sku": "1-LITRE-PEPSI",
+                "unit": "bottle",
+                "promo_price": null,
+                "free_product": null
+              }
+            ],
+            "categories": [],
+            "discount_type": null,
+            "discount_value": null,
+            "start_at": "2026-09-01T00:00:00.000Z",
+            "end_at": "2026-12-31T23:59:59.000Z",
+            "min_qty": null,
+            "buy_qty": 2,
+            "get_qty": 1,
+            "location_scope": "selected",
+            "locations": [
+              {
+                "id": 1,
+                "name": "Gulshan e Iqbal Block 13 D"
+              }
+            ],
+            "is_active": false,
+            "status": "inactive",
+            "staff": {
+              "id": 1,
+              "name": "Zayan Ahmed",
+              "role": "store_admin"
+            }
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 3,
+          "total_pages": 1
+        }
+      }
+    }
+  ],
   "sup-list": [{
     "label": "200 OK",
     "status": 200,

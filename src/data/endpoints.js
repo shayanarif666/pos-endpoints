@@ -215,35 +215,46 @@ const OFFER_DATES = [
   ["is_active", true],
 ]
 
+// Each offer applies to products and / or categories (several of each).
 const OFFER_ROWS = [
   [
-    ["name", "Weekend 10% off"],
+    ["name", "Eid Sale 10%"],
     ["type", "promotional"],
-    ["apply_to", "category"],
     ["discount_type", "percentage"],
     ["discount_value", 10],
-    ["category_id", 1],
+    ["products", [1, 2]],
+    ["categories", [3]],
     ...OFFER_DATES,
   ],
   [
-    ["name", "Buy 3 save 5%"],
-    ["type", "bulk_discount"],
-    ["apply_to", "product"],
-    ["discount_type", "percentage"],
-    ["discount_value", 5],
-    ["product_id", 2],
-    ["min_qty", 3],
+    ["name", "Flash Sale"],
+    ["type", "flash_sale"],
+    [
+      "products",
+      [
+        { product_id: 1, promo_price: 90 },
+        { product_id: 2, promo_price: 95 },
+      ],
+    ],
     ...OFFER_DATES,
   ],
   [
     ["name", "Buy 2 get 1 free"],
     ["type", "bogo"],
-    ["apply_to", "product"],
-    ["product_id", 1],
     ["buy_qty", 2],
     ["get_qty", 1],
+    ["products", [1]],
+    ["categories", [2]],
     ...OFFER_DATES,
-    ["free_product_id", 1, "optional"],
+  ],
+  [
+    ["name", "Buy 3 save 5%"],
+    ["type", "bulk_discount"],
+    ["discount_type", "percentage"],
+    ["discount_value", 5],
+    ["min_qty", 3],
+    ["categories", [1, 2]],
+    ...OFFER_DATES,
   ],
 ]
 
@@ -1290,7 +1301,7 @@ export const endpoints = [
     path: "/api/v1/stock-transfers",
     summary: "Stock Transfer",
     description:
-      "Stock transfers sent from or arriving at the location, newest first: { id, from_location, to_location, product, qty, status (on_the_way | completed | cancelled), note, staff }. Filters: status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (transfer time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Stock transfers sent from or arriving at the location, newest first: { id, from_location, status (on_the_way until every line is received or cancelled), destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. A transfer with one product also has the flat to_location / product / qty / received_qty. Filters: status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only transfers from or to their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (transfer time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1316,14 +1327,19 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Stock Transfer",
-    description: "Store admin. { items: [ ...transfers ] } — each sends stock of one product from one location to another (location / product numbers or UUIDs) and stays on_the_way until the destination completes it (POST /stock-transfers/:id/complete). storeId and staffId are sent once, before items[]. On channel=pos the response data is [ { id, from_location, to_location, product, qty, status, note, staff }, ... ], in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ storeId, staffId, items: [ ...transfers ] }. One transfer sends stock from one location to one or more destinations, each with its own products and qty (location / product numbers or UUIDs): { from_location_id, note, destinations: [{ to_location_id, products: [{ product_id, qty }] }] }. The example sends products 1 and 2 to location 2 and products 3 and 1 to location 3. The source must hold, per product, the qty of every destination together. Each destination stays on_the_way until it receives its part (Bulk Transfer Receive): the source gives up the qty that left, the destination gets what arrived. The older single form { from_location_id, to_location_id, product_id, qty } still works. On channel=pos the response data is one transfer per item: { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       staffId: 2,
       items: [
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 20, note: "Weekly refill" },
-        { from_location_id: 1, to_location_id: 2, product_id: 2, qty: 12, note: "" },
-        { from_location_id: 1, to_location_id: 2, product_id: 1, qty: 10, note: "Weekend stock" },
+        {
+          from_location_id: 1,
+          note: "Weekly refill",
+          destinations: [
+            { to_location_id: 2, products: [{ product_id: 1, qty: 20 }, { product_id: 2, qty: 12 }] },
+            { to_location_id: 3, products: [{ product_id: 3, qty: 8 }, { product_id: 1, qty: 10 }] },
+          ],
+        },
       ],
     },
   }),
@@ -1371,7 +1387,7 @@ export const endpoints = [
     path: "/api/v1/offers",
     summary: "Offers",
     description:
-      "Offers running at the location (store admin: every offer, or one location with location_id): { id, type, apply_to, product | category, discount_type, discount_value, start_at, end_at, min_qty, buy_qty, get_qty, staff, name, is_active }. Filters: type, pos=1 (only offers live right now). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Offers running at the location (store admin: every offer, or one location with location_id): { id, type, name, apply_to (product | category | mixed), products [{ id, title, sku, unit, promo_price, free_product }], categories [{ id, name }], discount_type, discount_value, start_at, end_at, min_qty, buy_qty, get_qty, location_scope, locations, staff, is_active }. Filters: type, pos=1 (only offers live right now). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1389,7 +1405,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/offers/bulk",
     summary: "Bulk Offer Creation",
-    description: "{ items: [ ...offers ] }. Each flat item creates the offer and its target: apply_to category needs category_id, apply_to product needs product_id (number or UUID). type: promotional | flash_sale | bulk_discount | bogo — the example sends a category promotion, a product bulk discount (min_qty) and a BOGO (buy_qty + get_qty, free_product_id). storeId and staffId are sent once, before items[]. Where it runs is set on each offer (any role): location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all and [1]. A manager / cashier sends their own location (left out = their token's location). On channel=pos the response is { success, message (\"Offers Successfully Created\"), data: [ { id, type, name, category | product }, ... ] }, in order. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ storeId, staffId, items: [ ...offers ] }. Each offer applies to products[] and / or categories[] — several of each in one offer (numbers or UUIDs); apply_to is set by the server: product, category or mixed. products[] may hold plain numbers or { product_id, promo_price (flash_sale), free_product_id (bogo) }. A product listed itself wins over its category (e.g. its own flash-sale price); one offer per line, offers never stack. type: promotional | flash_sale | bulk_discount (min_qty) | bogo (buy_qty + get_qty) — a flash_sale on categories needs discount_type + discount_value. Where it runs is set on each offer: location_scope all or selected + location_ids. On channel=pos the response data is one offer per item, in order: { id, type, name, apply_to, products [{ id, title, sku, unit, promo_price, free_product }], categories [{ id, name }], discount_type, discount_value, ... }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: offerBuilder(),
   }),
 
@@ -1877,8 +1893,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Update Stock Transfers",
-    description: `${BULK_UPDATE_NOTE} A transfer still on the way: qty, to_location_id (location number), note. The source must have the qty. Store admin.`,
-    body: { items: [{ id: 1, qty: 24, note: "Weekly refill + 4" }, { id: 3, to_location_id: 3 }] },
+    description: `${BULK_UPDATE_NOTE} Lines still on the way: products [{ product_id, to_location_id, qty }] (to_location_id picks the destination when a product goes to more than one), and note. The source must have the qty. A transfer with one product may still send qty / to_location_id. Store admin.`,
+    body: { items: [{ id: 1, products: [{ product_id: 1, to_location_id: 2, qty: 24 }], note: "Weekly refill + 4" }] },
   }),
   ep({
     id: "transfer-bulk-qty-patch",
@@ -1886,8 +1902,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk/qty",
     summary: "Bulk Transfer Qty",
-    description: `${BULK_UPDATE_NOTE} { id, qty } of transfers still on the way. Store admin.`,
-    body: { items: [{ id: 2, qty: 10 }] },
+    description: `${BULK_UPDATE_NOTE} { id, products: [{ product_id, to_location_id, qty }] } — new qty of lines still on the way. Store admin.`,
+    body: { items: [{ id: 1, products: [{ product_id: 3, to_location_id: 3, qty: 10 }] }] },
   }),
   ep({
     id: "transfer-bulk-status-patch",
@@ -1895,8 +1911,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk/status",
     summary: "Bulk Transfer Status",
-    description: `${BULK_UPDATE_NOTE} { id, status: completed | cancelled }. completed = everything arrived: stock leaves the source and reaches the destination. cancelled = nothing moves.`,
-    body: { items: [{ id: 3, status: "cancelled" }] },
+    description: `${BULK_UPDATE_NOTE} { id, status: completed | cancelled, to_location_id? }. completed = everything still on the way arrived in full: stock leaves the source and reaches the destination. cancelled = nothing moves. to_location_id = only that destination (a manager / cashier: their own location only).`,
+    body: { items: [{ id: 1, status: "cancelled", to_location_id: 3 }] },
   }),
   ep({
     id: "transfer-bulk-receive-patch",
@@ -1904,8 +1920,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk/receive",
     summary: "Bulk Transfer Receive",
-    description: `${BULK_UPDATE_NOTE} { id, received_qty, note? }: what actually arrived. The source gives up the full qty that left; the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Received 10 of 12 (2 short)"). Reply: the transfers with received_qty and status completed.`,
-    body: { items: [{ id: 1, received_qty: 22, note: "2 bottles broken" }, { id: 2, received_qty: 10 }] },
+    description: `${BULK_UPDATE_NOTE} { id, to_location_id, products: [{ product_id, received_qty }], note? } — what actually arrived at that destination. For each product the source gives up the qty that left and the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Line 2: received 10 of 12 (2 short)"). A manager / cashier receives only at their own location. Reply: the transfers, each destination's lines with received_qty and status.`,
+    body: { items: [{ id: 1, to_location_id: 2, products: [{ product_id: 1, received_qty: 20 }, { product_id: 2, received_qty: 10 }], note: "2 soaps damaged" }] },
   }),
   ep({
     id: "order-bulk-patch",
@@ -2003,8 +2019,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/offers/bulk",
     summary: "Bulk Update Offers",
-    description: `${BULK_UPDATE_NOTE} name, type, apply_to, discount_type / discount_value, min_qty, buy_qty / get_qty, start_at / end_at (e.g. extend a sale), location_scope / location_ids, is_active. Targets: PUT /offers/:id/targets.`,
-    body: { items: [{ id: 1, discount_value: 15, end_at: "2027-01-15T23:59:59.000Z" }, { id: 2, min_qty: 6 }] },
+    description: `${BULK_UPDATE_NOTE} name, type, discount_type / discount_value, min_qty, buy_qty / get_qty, start_at / end_at (e.g. extend a sale), location_scope / location_ids, is_active — and products[] / categories[], which replace what the offer applies to (apply_to follows).`,
+    body: { items: [{ id: 1, discount_value: 15, end_at: "2027-01-15T23:59:59.000Z" }, { id: 4, min_qty: 6, products: [3], categories: [1] }] },
   }),
   ep({
     id: "offer-bulk-status-patch",
