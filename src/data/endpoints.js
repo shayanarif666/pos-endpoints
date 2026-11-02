@@ -75,7 +75,8 @@ const productWithVariants = ({ title, sku, barcode, category, unit, threshold, s
   ["image", ""],
   ...scope,
   ...stockScope,
-  ["variants", variants],
+  // Each variant says whether it is sold by weight (kg); its stock comes last.
+  ["variants", variants.map(({ stock, ...variant }) => ({ ...variant, is_weight_based: variant.is_weight_based ?? false, stock }))],
   ["is_published", false, "optional"],
   ...VISIBILITY_OPTIONAL,
 ]

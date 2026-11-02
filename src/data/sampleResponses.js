@@ -390,6 +390,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -431,6 +432,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -472,6 +474,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -518,6 +521,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -612,6 +616,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 780,
                 "pack_selling_price": 950,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -653,6 +658,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 630,
                 "pack_selling_price": 800,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -694,6 +700,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 800,
                 "pack_selling_price": 1020,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -740,6 +747,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 720,
                 "pack_selling_price": 920,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -834,6 +842,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -883,6 +892,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -932,6 +942,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2558,6 +2569,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2599,6 +2611,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2640,6 +2653,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2686,6 +2700,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": null,
                 "pack_selling_price": null,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2780,6 +2795,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 780,
                 "pack_selling_price": 950,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2821,6 +2837,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 630,
                 "pack_selling_price": 800,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2862,6 +2879,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 800,
                 "pack_selling_price": 1020,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2908,6 +2926,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 720,
                 "pack_selling_price": 920,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -2949,6 +2968,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 600,
                 "pack_selling_price": 780,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -3043,6 +3063,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -3092,6 +3113,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -3141,6 +3163,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 1080,
                 "pack_selling_price": 1320,
                 "sell_loose": true,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -5198,6 +5221,7 @@ export const SAMPLE_RESPONSES = {
               "pack_cost_price": null,
               "pack_selling_price": null,
               "sell_loose": false,
+              "is_weight_based": false,
               "taxes": [
                 {
                   "name": "GST",
@@ -5239,6 +5263,7 @@ export const SAMPLE_RESPONSES = {
               "pack_cost_price": null,
               "pack_selling_price": null,
               "sell_loose": false,
+              "is_weight_based": false,
               "taxes": [
                 {
                   "name": "GST",
@@ -5280,6 +5305,7 @@ export const SAMPLE_RESPONSES = {
               "pack_cost_price": null,
               "pack_selling_price": null,
               "sell_loose": false,
+              "is_weight_based": false,
               "taxes": [
                 {
                   "name": "GST",
@@ -5326,6 +5352,7 @@ export const SAMPLE_RESPONSES = {
               "pack_cost_price": null,
               "pack_selling_price": null,
               "sell_loose": false,
+              "is_weight_based": false,
               "taxes": [
                 {
                   "name": "GST",
@@ -5488,6 +5515,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 780,
                 "pack_selling_price": 950,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -5529,6 +5557,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 630,
                 "pack_selling_price": 800,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -5570,6 +5599,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 800,
                 "pack_selling_price": 1020,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -5616,6 +5646,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 720,
                 "pack_selling_price": 920,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
@@ -5657,6 +5688,7 @@ export const SAMPLE_RESPONSES = {
                 "pack_cost_price": 600,
                 "pack_selling_price": 780,
                 "sell_loose": false,
+                "is_weight_based": false,
                 "taxes": [
                   {
                     "name": "GST",
