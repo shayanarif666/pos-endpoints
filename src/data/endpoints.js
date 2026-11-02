@@ -301,7 +301,7 @@ const ORDER_ROWS = [
         taxes: [tax("product", "GST", 18, 18), tax("category", "GST", 10, 10), tax("sales", "Sales Tax", 18, 18)],
       },
     ],
-    payments: [{ method: "cash", tax_rate: 16, tax_amount: 63.97, amount: 463.77, paid: 1000 }],
+    payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 63.97, amount: 463.77, paid: 1000 }],
     total: 463.77,
   }),
   orderRow({
@@ -311,7 +311,7 @@ const ORDER_ROWS = [
       { title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount: null, taxes: [tax("sales", "Sales Tax", 18, 18)] },
       { title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount: null, taxes: [tax("sales", "Sales Tax", 18, 21.6)] },
     ],
-    payments: [{ method: "cash", tax_rate: 16, tax_amount: 41.54, amount: 301.14, paid: 500 }],
+    payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 41.54, amount: 301.14, paid: 500 }],
     total: 301.14,
   }),
   orderRow({
@@ -329,8 +329,8 @@ const ORDER_ROWS = [
       },
     ],
     payments: [
-      { method: "card", tax_rate: 5, tax_amount: 2.38, amount: 50, paid: 50 },
-      { method: "cash", tax_rate: 16, tax_amount: 12.68, amount: 91.96, paid: 100 },
+      { method: "card", surcharge_type: "percentage", surcharge_value: 5, surcharge_amount: 2.38, amount: 50, paid: 50 },
+      { method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 12.68, amount: 91.96, paid: 100 },
     ],
     total: 141.96,
   }),
@@ -350,7 +350,7 @@ const ORDER_ROWS = [
         taxes: [tax("product", "GST", 18, 342)],
       },
     ],
-    payments: [{ method: "cash", tax_rate: 0, tax_amount: 0, amount: 2242, paid: 2500 }],
+    payments: [{ method: "cash", surcharge_amount: 0, amount: 2242, paid: 2500 }],
     total: 2242,
   }),
 ]
@@ -493,6 +493,10 @@ export const RESOURCE_ENUMS = {
   taxes: {
     type: ["percentage", "fixed"],
     product_scope: ["all", "selected"],
+  },
+  surcharges: {
+    method: ["cash", "card", "jazzcash", "easypaisa", "cod"],
+    type: ["percentage", "fixed"],
   },
   suppliers: {
     location_scope: ["all", "selected"],
@@ -666,8 +670,14 @@ export const tags = [
   {
     id: "taxes",
     name: "Taxes",
-    description: "Taxes page: a tax for every product or the selected ones.",
+    description: "Settings › Taxes: a tax for every product or the selected ones.",
     enums: RESOURCE_ENUMS.taxes,
+  },
+  {
+    id: "surcharges",
+    name: "Payment Method Surcharges",
+    description: "Settings › Payment Method Surcharges: what paying by a method adds to the bill.",
+    enums: RESOURCE_ENUMS.surcharges,
   },
   {
     id: "suppliers",
@@ -752,6 +762,7 @@ export const postSections = [
   { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk"] },
+  { id: "surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
   { id: "customers", name: "Customers", tag: "customers", ids: ["customer-create", "customer-bulk"] },
   { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
@@ -765,6 +776,7 @@ export const patchSections = [
   { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch", "transfer-bulk-qty-patch", "transfer-bulk-status-patch", "transfer-bulk-receive-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
   { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
+  { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch", "staff-bulk-status-patch", "staff-bulk-location-patch", "staff-bulk-password-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
@@ -783,6 +795,7 @@ export const getSections = [
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
+  { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list", "surcharge-get"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["rep-all-locations", "rep-location", "rep-profit"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
@@ -1465,7 +1478,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -1730,6 +1743,38 @@ export const endpoints = [
     ],
   }),
 
+  ep({
+    id: "surcharge-list",
+    tag: "surcharges",
+    method: "GET",
+    path: "/api/v1/payment-surcharges",
+    summary: "Payment Method Surcharges",
+    description: "Every payment method surcharge, by number: { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }. Any role (the POS adds them to the bill). A percentage is of that payment's share of the bill; fixed is once per payment. They replace the old payment-method GST rates (no longer used).",
+  }),
+  ep({
+    id: "surcharge-get",
+    tag: "surcharges",
+    method: "GET",
+    path: "/api/v1/payment-surcharges/:id",
+    summary: "Surcharge Detail",
+    description: "One surcharge — :id is its number (surcharge_number, e.g. 1) or its UUID: both work. { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+  }),
+  ep({
+    id: "surcharge-bulk",
+    tag: "surcharges",
+    method: "POST",
+    path: "/api/v1/payment-surcharges/bulk",
+    summary: "Bulk Surcharge Creation",
+    description: "Store admin. { storeId, items: [{ method, charges, type, isActive }] } — one surcharge per method (a second one for the same method fails: update it instead). The example: card 2% of its share, JazzCash Rs 25 per payment. On an order the till adds each payment's surcharge and sends it as payments [{ method, surcharge_type, surcharge_value, surcharge_amount, amount }]; a split payment adds each method's own surcharge on its part. A row that fails is listed in failed[]; the others still save. Reply: the created surcharges { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }.",
+    body: {
+      storeId: 1,
+      items: [
+        { method: "card", charges: 2, type: "percentage", isActive: true },
+        { method: "jazzcash", charges: 25, type: "fixed", isActive: true },
+      ],
+    },
+  }),
   ep({
     id: "tax-list",
     tag: "taxes",
@@ -2062,6 +2107,24 @@ export const endpoints = [
     summary: "Bulk Payment Method",
     description: "The cashier pressed the wrong method: { locationId?, items: [{ id, payment_method }] }. Only a one-method sale with no refund while its batch is open, and only between methods with the same payment tax (e.g. easypaisa 5% → card 5%). The drawer moves the amount to the new method. cash 16% → card 5% would change the bill, so it is refused (409): void it and ring it up again. Store admin / manager.",
     body: { locationId: 1, items: [{ id: 7, payment_method: "card" }] },
+  }),
+  ep({
+    id: "surcharge-bulk-patch",
+    tag: "surcharges",
+    method: "PATCH",
+    path: "/api/v1/payment-surcharges/bulk",
+    summary: "Bulk Update Surcharges",
+    description: `${BULK_UPDATE_NOTE} Store admin. items[].id = the surcharge's number (surcharge_number, e.g. 1) or its UUID — both work. Any field: method, charges, type, isActive. Reply: the updated surcharges.`,
+    body: { items: [{ id: 1, charges: 2.5 }, { id: 2, type: "fixed", charges: 30 }] },
+  }),
+  ep({
+    id: "surcharge-bulk-status-patch",
+    tag: "surcharges",
+    method: "PATCH",
+    path: "/api/v1/payment-surcharges/bulk/status",
+    summary: "Bulk Surcharge Status",
+    description: `${BULK_UPDATE_NOTE} Store admin. { id (surcharge number or UUID), is_active }: an inactive surcharge is not added to any bill.`,
+    body: { items: [{ id: 2, is_active: false }] },
   }),
   ep({
     id: "tax-bulk-patch",

@@ -5790,6 +5790,149 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
+  "surcharge-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Surcharges Created",
+        "data": {
+          "created": [
+            {
+              "id": 1,
+              "uuid": "5b8e2c14-3a7d-4f9e-8c21-6d4a1b9e7f30",
+              "method": "card",
+              "type": "percentage",
+              "charges": 2,
+              "is_active": true,
+              "created_at": "2026-11-03T10:00:00.000Z",
+              "updated_at": "2026-11-03T10:00:00.000Z"
+            },
+            {
+              "id": 2,
+              "uuid": "9c4f1e27-8b3a-4d6c-a1e5-2f7b0c8d3e91",
+              "method": "jazzcash",
+              "type": "fixed",
+              "charges": 25,
+              "is_active": true,
+              "created_at": "2026-11-03T10:00:00.000Z",
+              "updated_at": "2026-11-03T10:00:00.000Z"
+            }
+          ],
+          "failed": [],
+          "created_count": 2,
+          "failed_count": 0
+        }
+      }
+    }
+  ],
+  "surcharge-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 1,
+            "uuid": "5b8e2c14-3a7d-4f9e-8c21-6d4a1b9e7f30",
+            "method": "card",
+            "type": "percentage",
+            "charges": 2,
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          },
+          {
+            "id": 2,
+            "uuid": "9c4f1e27-8b3a-4d6c-a1e5-2f7b0c8d3e91",
+            "method": "jazzcash",
+            "type": "fixed",
+            "charges": 25,
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "surcharge-get": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 1,
+          "uuid": "5b8e2c14-3a7d-4f9e-8c21-6d4a1b9e7f30",
+          "method": "card",
+          "type": "percentage",
+          "charges": 2,
+          "is_active": true,
+          "created_at": "2026-11-03T10:00:00.000Z",
+          "updated_at": "2026-11-03T10:00:00.000Z"
+        }
+      }
+    }
+  ],
+  "surcharge-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Surcharges Updated",
+        "data": [
+          {
+            "id": 1,
+            "uuid": "5b8e2c14-3a7d-4f9e-8c21-6d4a1b9e7f30",
+            "method": "card",
+            "type": "percentage",
+            "charges": 2.5,
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          },
+          {
+            "id": 2,
+            "uuid": "9c4f1e27-8b3a-4d6c-a1e5-2f7b0c8d3e91",
+            "method": "jazzcash",
+            "type": "fixed",
+            "charges": 30,
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "surcharge-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Surcharge Status Updated",
+        "data": [
+          {
+            "id": 2,
+            "uuid": "9c4f1e27-8b3a-4d6c-a1e5-2f7b0c8d3e91",
+            "method": "jazzcash",
+            "type": "fixed",
+            "charges": 25,
+            "is_active": false,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
   "prod-list": [
     {
       "label": "200 OK",

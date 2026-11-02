@@ -195,6 +195,15 @@ const TAX_CREATE = {
 }
 const TAX_ID = must("The tax's number (1, 2, 3… — tax_number) or its UUID: both work")
 
+// A payment method surcharge: what paying by the method adds to the bill.
+const SURCHARGE_CREATE = {
+  method: must("cash | card | jazzcash | easypaisa | cod — one surcharge per method"),
+  charges: must("The % (percentage, 0–100) or the Rs amount (fixed)"),
+  type: note("percentage (default: of that payment's share of the bill) | fixed (once per payment)"),
+  isActive: note("Default true (is_active also works)"),
+}
+const SURCHARGE_ID = must("The surcharge's number (1, 2, 3… — surcharge_number) or its UUID: both work")
+
 const CUSTOMER_CREATE = {
   name: R,
   phone: O,
@@ -298,9 +307,10 @@ const POS_PRICED_ORDER = {
   coupon: note("null, or { code, amount } — amount is what the coupon takes off"),
   payments: must("One row per payment method; several rows = split payment"),
   "payments[].method": must("cash | card | jazzcash | easypaisa"),
-  "payments[].tax_rate": note("This method's payment tax %, e.g. cash 16, card 5"),
-  "payments[].tax_amount": must("This method's payment tax"),
-  "payments[].amount": must("What this method pays = its share of the bill + its payment tax"),
+  "payments[].surcharge_type": note("The method's surcharge (Payment Method Surcharges): percentage | fixed"),
+  "payments[].surcharge_value": note("Its % (percentage) or Rs (fixed), as set for the method"),
+  "payments[].surcharge_amount": must("What the surcharge added to this payment (0 when the method has none). tax_rate / tax_amount from older tills still work"),
+  "payments[].amount": must("What this method pays = its share of the bill + its surcharge"),
   "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change. Left out = amount"),
   "payments[].transaction_id": note("The card / wallet reference, if the till has one"),
   total_amount: must("The order total as the till worked it out. Saved as sent; paid less than it = udhaar for the customer"),
@@ -625,6 +635,7 @@ export const BODY_FIELDS = {
   "sup-create": SUPPLIER_CREATE,
   "sup-bulk": { ...TOP_STORE, ...bulkOf(SUPPLIER_CREATE) },
   "tax-bulk": { ...TOP_STORE, ...bulkOf(TAX_CREATE) },
+  "surcharge-bulk": { ...TOP_STORE, ...bulkOf(SURCHARGE_CREATE) },
   "sup-patch": allOptional(SUPPLIER_CREATE, { is_active: note("false = deactivate") }),
 
   // Locations
@@ -742,6 +753,14 @@ export const BODY_FIELDS = {
   "tax-bulk-patch": {
     ...bulkUpdateOf("tax", { ...allOptional(TAX_CREATE), product_ids: note("Replaces the products the tax applies to (with product_scope selected)") }),
     "items[].id": TAX_ID,
+  },
+  "surcharge-bulk-patch": {
+    ...bulkUpdateOf("surcharge", allOptional(SURCHARGE_CREATE)),
+    "items[].id": SURCHARGE_ID,
+  },
+  "surcharge-bulk-status-patch": {
+    ...bulkUpdateOf("surcharge", { is_active: must("false = not added to any bill, true = added again") }),
+    "items[].id": SURCHARGE_ID,
   },
   "tax-bulk-status-patch": {
     ...bulkUpdateOf("tax", { is_active: must("false = not charged on any sale, true = charged again") }),
