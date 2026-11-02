@@ -182,6 +182,19 @@ const MOVEMENT_CREATE = {
   ...VISIBILITY,
 }
 
+// A store tax (Taxes page): one tax for every product or for the products listed.
+const TAX_CREATE = {
+  name: must("e.g. GST, Sugar tax (taxName also works)"),
+  type: must("percentage | fixed (fixed = Rs per unit; taxType also works)"),
+  value: must("The % (0–100) or the amount per unit (amount also works)"),
+  product_scope: note("all (default) = every product, including ones added later — no product_ids needed | selected = only product_ids"),
+  product_ids: note("product_scope selected: product numbers (e.g. [1, 6]) or UUIDs — a product covers all its variants; { product_id, variant_id } for one variant only"),
+  "product_ids[].product_id": must("The product's number or UUID"),
+  "product_ids[].variant_id": note("The variant's number inside the product (1, 2, 3…) or UUID"),
+  is_active: note("Default true"),
+}
+const TAX_ID = must("The tax's number (1, 2, 3… — tax_number) or its UUID: both work")
+
 const CUSTOMER_CREATE = {
   name: R,
   phone: O,
@@ -277,7 +290,7 @@ const POS_PRICED_ORDER = {
   "lines[].cost_price": note("Cost of one unit, for profit reports. Left out = the product's cost price"),
   "lines[].discount": note("null = no discount, else { source, offer_id?, amount, free_qty? } — source: product | category | product+category | bulk_tier | offer | custom; offer_id: the offer number when source is offer; amount: the discount on the whole line; free_qty: BOGO free units"),
   "lines[].taxes": note("Every tax on the line, worked out by the till. Empty = no tax"),
-  "lines[].taxes[].level": must("product | category | sales"),
+  "lines[].taxes[].level": must("product | store (a Taxes page tax — the product's store_taxes) | category | sales"),
   "lines[].taxes[].name": note("Label on the receipt, e.g. GST"),
   "lines[].taxes[].rate": note("The % (a fixed tax: its amount per unit)"),
   "lines[].taxes[].amount": must("Tax on the whole line"),
@@ -611,6 +624,7 @@ export const BODY_FIELDS = {
   // Suppliers
   "sup-create": SUPPLIER_CREATE,
   "sup-bulk": { ...TOP_STORE, ...bulkOf(SUPPLIER_CREATE) },
+  "tax-bulk": { ...TOP_STORE, ...bulkOf(TAX_CREATE) },
   "sup-patch": allOptional(SUPPLIER_CREATE, { is_active: note("false = deactivate") }),
 
   // Locations
@@ -725,6 +739,14 @@ export const BODY_FIELDS = {
     { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
   ),
   "sup-bulk-patch": bulkUpdateOf("supplier", { ...allOptional(SUPPLIER_CREATE), is_active: O }),
+  "tax-bulk-patch": {
+    ...bulkUpdateOf("tax", { ...allOptional(TAX_CREATE), product_ids: note("Replaces the products the tax applies to (with product_scope selected)") }),
+    "items[].id": TAX_ID,
+  },
+  "tax-bulk-status-patch": {
+    ...bulkUpdateOf("tax", { is_active: must("false = not charged on any sale, true = charged again") }),
+    "items[].id": TAX_ID,
+  },
   "staff-bulk-patch": bulkUpdateOf("staff member", {
     name: O,
     phone: O,

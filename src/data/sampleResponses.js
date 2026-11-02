@@ -5563,6 +5563,233 @@ export const SAMPLE_RESPONSES = {
       }
     }
   ],
+  "tax-bulk": [
+    {
+      "label": "201 Created",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Taxes Created",
+        "data": {
+          "created": [
+            {
+              "id": 1,
+              "uuid": "3f1c6a52-6a0e-4b8f-9d2e-1b7c4e5a9f01",
+              "name": "GST",
+              "type": "percentage",
+              "value": 18,
+              "product_scope": "all",
+              "product_ids": [],
+              "products": [],
+              "is_active": true,
+              "created_at": "2026-11-03T10:00:00.000Z",
+              "updated_at": "2026-11-03T10:00:00.000Z"
+            },
+            {
+              "id": 2,
+              "uuid": "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44",
+              "name": "Sugar tax",
+              "type": "fixed",
+              "value": 5,
+              "product_scope": "selected",
+              "product_ids": [
+                1,
+                6
+              ],
+              "products": [
+                {
+                  "id": 1,
+                  "uuid": "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+                  "title": "Pepsi",
+                  "variant": {
+                    "id": 3,
+                    "name": "2L"
+                  }
+                },
+                {
+                  "id": 6,
+                  "uuid": "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e",
+                  "title": "Pack Of Pepsi",
+                  "variant": null
+                }
+              ],
+              "is_active": true,
+              "created_at": "2026-11-03T10:00:00.000Z",
+              "updated_at": "2026-11-03T10:00:00.000Z"
+            }
+          ],
+          "failed": [],
+          "created_count": 2,
+          "failed_count": 0
+        }
+      }
+    }
+  ],
+  "tax-list": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": [
+          {
+            "id": 1,
+            "uuid": "3f1c6a52-6a0e-4b8f-9d2e-1b7c4e5a9f01",
+            "name": "GST",
+            "type": "percentage",
+            "value": 18,
+            "product_scope": "all",
+            "product_ids": [],
+            "products": [],
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          },
+          {
+            "id": 2,
+            "uuid": "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44",
+            "name": "Sugar tax",
+            "type": "fixed",
+            "value": 5,
+            "product_scope": "selected",
+            "product_ids": [
+              1,
+              6
+            ],
+            "products": [
+              {
+                "id": 1,
+                "uuid": "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+                "title": "Pepsi",
+                "variant": {
+                  "id": 3,
+                  "name": "2L"
+                }
+              },
+              {
+                "id": 6,
+                "uuid": "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e",
+                "title": "Pack Of Pepsi",
+                "variant": null
+              }
+            ],
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "tax-bulk-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Taxes Updated",
+        "data": [
+          {
+            "id": 1,
+            "uuid": "3f1c6a52-6a0e-4b8f-9d2e-1b7c4e5a9f01",
+            "name": "GST",
+            "type": "percentage",
+            "value": 17,
+            "product_scope": "all",
+            "product_ids": [],
+            "products": [],
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          },
+          {
+            "id": 2,
+            "uuid": "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44",
+            "name": "Sugar tax",
+            "type": "fixed",
+            "value": 5,
+            "product_scope": "selected",
+            "product_ids": [
+              1,
+              6,
+              11
+            ],
+            "products": [
+              {
+                "id": 1,
+                "uuid": "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+                "title": "Pepsi",
+                "variant": {
+                  "id": 3,
+                  "name": "2L"
+                }
+              },
+              {
+                "id": 6,
+                "uuid": "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e",
+                "title": "Pack Of Pepsi",
+                "variant": null
+              },
+              {
+                "id": 11,
+                "uuid": "e6a3d4c5-7f8b-4c9d-8e1f-2a3b4c5d6e7f",
+                "title": "Pack Of Lux Soap",
+                "variant": null
+              }
+            ],
+            "is_active": true,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
+  "tax-bulk-status-patch": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Tax Status Updated",
+        "data": [
+          {
+            "id": 2,
+            "uuid": "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44",
+            "name": "Sugar tax",
+            "type": "fixed",
+            "value": 5,
+            "product_scope": "selected",
+            "product_ids": [
+              1,
+              6
+            ],
+            "products": [
+              {
+                "id": 1,
+                "uuid": "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+                "title": "Pepsi",
+                "variant": {
+                  "id": 3,
+                  "name": "2L"
+                }
+              },
+              {
+                "id": 6,
+                "uuid": "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e",
+                "title": "Pack Of Pepsi",
+                "variant": null
+              }
+            ],
+            "is_active": false,
+            "created_at": "2026-11-03T10:00:00.000Z",
+            "updated_at": "2026-11-03T10:00:00.000Z"
+          }
+        ]
+      }
+    }
+  ],
   "prod-list": [
     {
       "label": "200 OK",
@@ -9967,41 +10194,48 @@ export const SAMPLE_RESPONSES = {
       }
     }
   }],
-  "tax-get": [{
-    "label": "200 OK",
-    "status": 200,
-    "body": {
-      "success": true,
-      "message": "OK",
-      "data": {
-        "ntn": "1234567-8",
-        "strn": "3277876123456",
-        "charge_tax_on_sales": true,
-        "sales_tax_enabled": true,
-        "sales_tax_rate": 18,
-        "payment_tax_enabled": true,
-        "fbr_invoice_enabled": false,
-        "rates": [
-          {
-            "payment_method": "cash",
-            "gst_percent": 16
-          },
-          {
-            "payment_method": "card",
-            "gst_percent": 5
-          },
-          {
-            "payment_method": "jazzcash",
-            "gst_percent": 5
-          },
-          {
-            "payment_method": "easypaisa",
-            "gst_percent": 5
-          }
-        ]
+  "tax-get": [
+    {
+      "label": "200 OK",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "OK",
+        "data": {
+          "id": 2,
+          "uuid": "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44",
+          "name": "Sugar tax",
+          "type": "fixed",
+          "value": 5,
+          "product_scope": "selected",
+          "product_ids": [
+            1,
+            6
+          ],
+          "products": [
+            {
+              "id": 1,
+              "uuid": "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d",
+              "title": "Pepsi",
+              "variant": {
+                "id": 3,
+                "name": "2L"
+              }
+            },
+            {
+              "id": 6,
+              "uuid": "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e",
+              "title": "Pack Of Pepsi",
+              "variant": null
+            }
+          ],
+          "is_active": true,
+          "created_at": "2026-11-03T10:00:00.000Z",
+          "updated_at": "2026-11-03T10:00:00.000Z"
+        }
       }
     }
-  }],
+  ],
   "transaction-list": [{
     "label": "200 OK",
     "status": 200,

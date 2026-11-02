@@ -490,6 +490,10 @@ export const RESOURCE_ENUMS = {
     period: ["daily", "weekly", "monthly", "yearly"],
     channel: ["web", "pos"],
   },
+  taxes: {
+    type: ["percentage", "fixed"],
+    product_scope: ["all", "selected"],
+  },
   suppliers: {
     location_scope: ["all", "selected"],
     entry_type: ["debit", "credit"],
@@ -660,6 +664,12 @@ export const tags = [
     enums: RESOURCE_ENUMS.reports,
   },
   {
+    id: "taxes",
+    name: "Taxes",
+    description: "Taxes page: a tax for every product or the selected ones.",
+    enums: RESOURCE_ENUMS.taxes,
+  },
+  {
     id: "suppliers",
     name: "Suppliers",
     description: "Suppliers page add / edit / deactivate.",
@@ -741,6 +751,7 @@ export const postSections = [
   { id: "categories", name: "Categories", tag: "categories", ids: ["cat-bulk"] },
   { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
+  { id: "taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
   { id: "customers", name: "Customers", tag: "customers", ids: ["customer-create", "customer-bulk"] },
   { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
@@ -753,6 +764,7 @@ export const patchSections = [
   { id: "patch-stock", name: "Stock Inventory", tag: "inventory", ids: ["stock-bulk-patch", "stock-bulk-qty-patch"] },
   { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch", "transfer-bulk-qty-patch", "transfer-bulk-status-patch", "transfer-bulk-receive-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
+  { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch", "staff-bulk-status-patch", "staff-bulk-location-patch", "staff-bulk-password-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
@@ -770,6 +782,7 @@ export const getSections = [
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
+  { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["rep-all-locations", "rep-location", "rep-profit"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
@@ -1718,6 +1731,43 @@ export const endpoints = [
   }),
 
   ep({
+    id: "tax-list",
+    tag: "taxes",
+    method: "GET",
+    path: "/api/v1/taxes",
+    summary: "Taxes",
+    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }. Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
+    query: [
+      { name: "is_active", default: "", required: false },
+      { name: "product_scope", default: "", required: false },
+      { name: "q", default: "", required: false },
+    ],
+  }),
+  ep({
+    id: "tax-get",
+    tag: "taxes",
+    method: "GET",
+    path: "/api/v1/taxes/:id",
+    summary: "Tax Detail",
+    description: "One tax — :id is its number (tax_number, e.g. 1) or its UUID: both work. { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+  }),
+  ep({
+    id: "tax-bulk",
+    tag: "taxes",
+    method: "POST",
+    path: "/api/v1/taxes/bulk",
+    summary: "Bulk Tax Creation",
+    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 sugar tax only on Pepsi 2L and Pack Of Pepsi. Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
+    body: {
+      storeId: 1,
+      items: [
+        { name: "GST", type: "percentage", value: 18, product_scope: "all" },
+        { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 6] },
+      ],
+    },
+  }),
+  ep({
     id: "sup-list",
     tag: "suppliers",
     method: "GET",
@@ -2012,6 +2062,29 @@ export const endpoints = [
     summary: "Bulk Payment Method",
     description: "The cashier pressed the wrong method: { locationId?, items: [{ id, payment_method }] }. Only a one-method sale with no refund while its batch is open, and only between methods with the same payment tax (e.g. easypaisa 5% → card 5%). The drawer moves the amount to the new method. cash 16% → card 5% would change the bill, so it is refused (409): void it and ring it up again. Store admin / manager.",
     body: { locationId: 1, items: [{ id: 7, payment_method: "card" }] },
+  }),
+  ep({
+    id: "tax-bulk-patch",
+    tag: "taxes",
+    method: "PATCH",
+    path: "/api/v1/taxes/bulk",
+    summary: "Bulk Update Taxes",
+    description: `${BULK_UPDATE_NOTE} Store admin. items[].id = the tax's number (tax_number, e.g. 1) or its UUID — both work. Any tax field: name, type, value, product_scope, product_ids (replaces the list), is_active. product_scope all drops the list (every product). Reply: the updated taxes.`,
+    body: {
+      items: [
+        { id: 1, name: "GST", value: 17 },
+        { id: 2, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 6, 11] },
+      ],
+    },
+  }),
+  ep({
+    id: "tax-bulk-status-patch",
+    tag: "taxes",
+    method: "PATCH",
+    path: "/api/v1/taxes/bulk/status",
+    summary: "Bulk Tax Status",
+    description: `${BULK_UPDATE_NOTE} Store admin. { id (tax number or UUID), is_active }: an inactive tax is not charged and leaves every product's store_taxes.`,
+    body: { items: [{ id: 2, is_active: false }] },
   }),
   ep({
     id: "sup-bulk-patch",
