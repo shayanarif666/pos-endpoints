@@ -196,7 +196,7 @@ const CUSTOMER_CREATE = {
 const STAFF_CREATE = {
   name: R,
   email: R,
-  password: must("Min 6 characters"),
+  password: note("Manager: required, min 6 characters (dashboard sign-in). Cashier: leave it out — a cashier works on the POS with the PIN only"),
   pin: must("4–6 digits. Must differ from every other user's PIN at this location (and from the store admin's); another location or store may reuse it"),
   role: must("manager | cashier"),
   location_id: note("Store admin only: the location number (e.g. 2) the manager / cashier works at. A manager's new staff get the manager's location"),
