@@ -152,6 +152,7 @@ const PRODUCT_CREATE = {
   "variants[].pack_cost": must("Pack variant: whole-pack cost; cost per unit = pack_cost ÷ pack_size"),
   "variants[].pack_price": must("Pack variant: whole-pack price; price per unit = pack_price ÷ pack_size"),
   "variants[].sell_loose": note("Pack variant: single units can also be sold"),
+  "variants[].is_weight_based": note("This variant is sold by weight (kg) on the scale. Left out = as the product's is_weight_based. Can be combined with a pack (e.g. a 25 kg bag sold by the kg)"),
   "variants[].taxes": note("Taxes on this variant only, added to the product's taxes: [{ name, type: percentage | fixed, value }]. When the product's taxes change, every variant gets them again plus its own"),
   "variants[].stock": note("Opening stock per location, [{ location_id, qty, expiry_date }]: each row is saved as a stock_in / opening_balance movement. Locations that hold the stock and are not listed get qty 0"),
   "variants[].stock[].location_id": must("The location number (e.g. 1) or UUID — one that holds the product's stock"),

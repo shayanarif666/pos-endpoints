@@ -627,12 +627,6 @@ export const tags = [
     enums: RESOURCE_ENUMS.staff,
   },
   {
-    id: "offers",
-    name: "Offers",
-    description: "Offers page plus live cards on the Point of Sale tab.",
-    enums: RESOURCE_ENUMS.offers,
-  },
-  {
     id: "orders",
     name: "Orders",
     description: "POS checkout, history, void, refund, receipts.",
@@ -726,7 +720,6 @@ export const postSections = [
   { id: "categories", name: "Categories", tag: "categories", ids: ["cat-bulk"] },
   { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
-  { id: "offers", name: "Offers", tag: "offers", ids: ["offer-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
   { id: "customers", name: "Customers", tag: "customers", ids: ["customer-create", "customer-bulk"] },
   { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
@@ -743,7 +736,6 @@ export const patchSections = [
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch", "staff-bulk-status-patch", "staff-bulk-location-patch", "staff-bulk-password-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
   { id: "patch-customers", name: "Customers", tag: "customers", ids: ["customer-bulk-patch"] },
-  { id: "patch-offers", name: "Offers", tag: "offers", ids: ["offer-bulk-patch", "offer-bulk-status-patch"] },
   { id: "patch-locations", name: "Locations", tag: "locations", ids: ["location-bulk-patch"] },
 ]
 
@@ -757,7 +749,6 @@ export const getSections = [
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
-  { id: "get-offers", name: "Offers", tag: "offers", ids: ["offer-list"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["rep-all-locations", "rep-location", "rep-profit"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
@@ -1434,35 +1425,6 @@ export const endpoints = [
   }),
 
   ep({
-    id: "offer-list",
-    tag: "offers",
-    method: "GET",
-    path: "/api/v1/offers",
-    summary: "Offers",
-    description:
-      "Offers running at the location (store admin: every offer, or one location with location_id): { id, type, name, apply_to (product | category | mixed), products [{ id, title, sku, unit, promo_price, free_product }], categories [{ id, name }], discount_type, discount_value, start_at, end_at, min_qty, buy_qty, get_qty, location_scope, locations, staff, is_active }. Filters: type, pos=1 (only offers live right now). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    query: [
-      { name: "page", default: "1", required: false },
-      { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
-      { name: "from", default: "", required: false },
-      { name: "to", default: "", required: false },
-      { name: "type", default: "", required: false },
-      { name: "pos", default: "", required: false },
-      { name: "location_id", default: "", required: false },
-    ],
-  }),
-  ep({
-    id: "offer-bulk",
-    tag: "offers",
-    method: "POST",
-    path: "/api/v1/offers/bulk",
-    summary: "Bulk Offer Creation",
-    description: "{ storeId, staffId, items: [ ...offers ] }. Each offer applies to products[] and / or categories[] — several of each in one offer (numbers or UUIDs); apply_to is set by the server: product, category or mixed. products[] may hold plain numbers or { product_id, promo_price (flash_sale), free_product_id (bogo) }. A product listed itself wins over its category (e.g. its own flash-sale price); one offer per line, offers never stack. type: promotional | flash_sale | bulk_discount (min_qty) | bogo (buy_qty + get_qty) — a flash_sale on categories needs discount_type + discount_value. Where it runs is set on each offer: location_scope all or selected + location_ids. On channel=pos the response data is one offer per item, in order: { id, type, name, apply_to, products [{ id, title, sku, unit, promo_price, free_product }], categories [{ id, name }], discount_type, discount_value, ... }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    bodyBuilder: offerBuilder(),
-  }),
-
-  ep({
     id: "order-bulk",
     tag: "orders",
     method: "POST",
@@ -2092,24 +2054,6 @@ export const endpoints = [
     summary: "Bulk Update Customers",
     description: `${BULK_UPDATE_NOTE} name, email, phone, location_id (location number), debt_notes, is_active. Udhaar payments go through POST /customers/:id/credit, not here.`,
     body: { items: [{ id: 1, phone: "03009998888", debt_notes: "Pays every Friday" }] },
-  }),
-  ep({
-    id: "offer-bulk-patch",
-    tag: "offers",
-    method: "PATCH",
-    path: "/api/v1/offers/bulk",
-    summary: "Bulk Update Offers",
-    description: `${BULK_UPDATE_NOTE} name, type, discount_type / discount_value, min_qty, buy_qty / get_qty, start_at / end_at (e.g. extend a sale), location_scope / location_ids, is_active — and products[] / categories[], which replace what the offer applies to (apply_to follows).`,
-    body: { items: [{ id: 1, discount_value: 15, end_at: "2027-01-15T23:59:59.000Z" }, { id: 4, min_qty: 6, products: [3], categories: [1] }] },
-  }),
-  ep({
-    id: "offer-bulk-status-patch",
-    tag: "offers",
-    method: "PATCH",
-    path: "/api/v1/offers/bulk/status",
-    summary: "Bulk Offer Status",
-    description: `${BULK_UPDATE_NOTE} { id, status: active | inactive } (is_active true / false also works). An inactive offer is never applied to any product or category until it is active again.`,
-    body: { items: [{ id: 3, status: "inactive" }] },
   }),
   ep({
     id: "location-bulk-patch",

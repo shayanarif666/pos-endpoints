@@ -30,6 +30,7 @@ const defaults = {
   licenseKey: "",
   // Captured from login: store-admin-only body fields are shown only to a store admin.
   role: "",
+  // Edited request bodies live in memory only: a page refresh shows the default payloads again.
   bodies: {},
 }
 
@@ -75,18 +76,16 @@ export function loadSession() {
     if (OLD_BASE_URLS.includes(parsed.baseUrl) || OTHER_BASE_URLS.includes(parsed.baseUrl)) {
       parsed = { ...parsed, baseUrl: defaults.baseUrl, accessToken: "", refreshToken: "", licenseKey: "", role: "" }
     }
-    const bodies = {}
-    for (const [id, text] of Object.entries(parsed.bodies || {})) {
-      bodies[id] = migrateLegacyPlanBody(text)
-    }
-    return { ...parsed, bodies }
+    return { ...parsed, bodies: {} }
   } catch {
     return { ...defaults }
   }
 }
 
 export function saveSession(next) {
-  localStorage.setItem(KEY, JSON.stringify(next))
+  // Bodies are never stored (an older session's saved bodies are dropped on the next save).
+  const { bodies: _bodies, ...rest } = next
+  localStorage.setItem(KEY, JSON.stringify(rest))
 }
 
 export function defaultHeaders(
