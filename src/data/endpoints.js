@@ -1392,7 +1392,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Stock Transfer",
-    description: "{ storeId, staffId, items: [ ...transfers ] }. One transfer sends stock from one location to one or more destinations, each with its own products and qty (location / product numbers or UUIDs): { from_location_id, note, destinations: [{ to_location_id, products: [{ product_id, qty }] }] }. The example sends products 1 and 2 to location 2 and products 3 and 1 to location 3. The source must hold, per product, the qty of every destination together. Each destination stays on_the_way until it receives its part (Bulk Transfer Receive): the source gives up the qty that left, the destination gets what arrived. The older single form { from_location_id, to_location_id, product_id, qty } still works. On channel=pos the response data is one transfer per item: { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ storeId, staffId, items: [ ...transfers ] }. One transfer sends stock from one location to one or more destinations, each with its own products and qty (location / product numbers or UUIDs): { from_location_id, note, destinations: [{ to_location_id, products: [{ product_id, variant_id, qty }] }] }. A product with variants names the variant sent with variant_id (its number inside the product: 1, 2, 3…); leave it out on a product without variants. The example sends Pepsi 1L and Lux Green to location 2, and Pack Of Pepsi 1L x 10 and more Pepsi 1L to location 3. The source must hold, per product, the qty of every destination together. Each destination stays on_the_way until it receives its part (Bulk Transfer Receive): the source gives up the qty that left, the destination gets what arrived. The older single form { from_location_id, to_location_id, product_id, qty } still works. On channel=pos the response data is one transfer per item: { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       staffId: 2,
@@ -1401,8 +1401,8 @@ export const endpoints = [
           from_location_id: 1,
           note: "Weekly refill",
           destinations: [
-            { to_location_id: 2, products: [{ product_id: 1, qty: 20 }, { product_id: 2, qty: 12 }] },
-            { to_location_id: 3, products: [{ product_id: 3, qty: 8 }, { product_id: 1, qty: 10 }] },
+            { to_location_id: 2, products: [{ product_id: 1, variant_id: 1, qty: 20 }, { product_id: 11, variant_id: 2, qty: 12 }] },
+            { to_location_id: 3, products: [{ product_id: 6, variant_id: 1, qty: 8 }, { product_id: 1, variant_id: 1, qty: 10 }] },
           ],
         },
       ],
@@ -1983,8 +1983,8 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk/receive",
     summary: "Bulk Transfer Receive",
-    description: `${BULK_UPDATE_NOTE} { id, to_location_id, products: [{ product_id, received_qty }], note? } — what actually arrived at that destination. For each product the source gives up the qty that left and the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Line 2: received 10 of 12 (2 short)"). A manager / cashier receives only at their own location. Reply: the transfers, each destination's lines with received_qty and status.`,
-    body: { items: [{ id: 1, to_location_id: 2, products: [{ product_id: 1, received_qty: 20 }, { product_id: 2, received_qty: 10 }], note: "2 soaps damaged" }] },
+    description: `${BULK_UPDATE_NOTE} { id, to_location_id, products: [{ product_id, variant_id (a product with variants), received_qty }], note? } — what actually arrived at that destination. For each product the source gives up the qty that left and the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Line 2: received 10 of 12 (2 short)"). A manager / cashier receives only at their own location. Reply: the transfers, each destination's lines with received_qty and status.`,
+    body: { items: [{ id: 1, to_location_id: 2, products: [{ product_id: 1, variant_id: 1, received_qty: 20 }, { product_id: 11, variant_id: 2, received_qty: 10 }], note: "2 soaps damaged" }] },
   }),
   ep({
     id: "order-bulk-patch",

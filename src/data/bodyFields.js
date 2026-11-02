@@ -301,6 +301,7 @@ const TRANSFER_CREATE = {
   "destinations[].to_location_id": must("Location number (e.g. 2) or UUID — not the source"),
   "destinations[].products": must("What this destination gets: one row per product"),
   "destinations[].products[].product_id": must("Product number (e.g. 1) or UUID"),
+  "destinations[].products[].variant_id": note("A product with variants: the variant sent — its number inside the product (1, 2, 3…) or UUID. Left out on a product without variants"),
   "destinations[].products[].qty": must("Above 0. The source must hold, per product, the qty of every destination together"),
 }
 
@@ -701,6 +702,7 @@ export const BODY_FIELDS = {
       to_location_id: note("The destination receiving. Left out = a manager's / cashier's own location (store admin: every destination)"),
       products: must("What arrived: [{ product_id, received_qty }] — 0 up to the qty sent. A product left out stays on the way"),
       "products[].product_id": must("Product number (e.g. 1) or UUID"),
+      "products[].variant_id": note("A product with variants: the variant's number (1, 2, 3…), as sent"),
       "products[].received_qty": must("What arrived of it"),
       note: note("e.g. why some is short"),
     },

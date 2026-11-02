@@ -1416,9 +1416,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 20,
                     "received_qty": null,
@@ -1426,10 +1430,14 @@ export const SAMPLE_RESPONSES = {
                   },
                   {
                     "product": {
-                      "id": 2,
-                      "title": "Lux Soap",
-                      "sku": "LUX-SOAP",
-                      "unit": "piece"
+                      "id": 11,
+                      "title": "Pack Of Lux Soap",
+                      "sku": "LUX-GREEN",
+                      "unit": "piece",
+                      "variant": {
+                        "id": 2,
+                        "name": "Fresh Splash (Green)"
+                      }
                     },
                     "qty": 12,
                     "received_qty": null,
@@ -1446,10 +1454,14 @@ export const SAMPLE_RESPONSES = {
                 "products": [
                   {
                     "product": {
-                      "id": 3,
-                      "title": "Basmati Rice",
-                      "sku": "BASMATI-RICE",
-                      "unit": "kg"
+                      "id": 6,
+                      "title": "Pack Of Pepsi",
+                      "sku": "PEPSI-PACK-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L x 10"
+                      }
                     },
                     "qty": 8,
                     "received_qty": null,
@@ -1458,9 +1470,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -3909,9 +3925,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 24,
                     "received_qty": null,
@@ -3926,9 +3946,13 @@ export const SAMPLE_RESPONSES = {
             },
             "product": {
               "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "unit": "bottle"
+              "title": "Pepsi",
+              "sku": "PEPSI-1L",
+              "unit": "bottle",
+              "variant": {
+                "id": 1,
+                "name": "1L"
+              }
             },
             "qty": 24,
             "received_qty": null,
@@ -3958,9 +3982,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -3975,9 +4003,13 @@ export const SAMPLE_RESPONSES = {
             },
             "product": {
               "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "unit": "bottle"
+              "title": "Pepsi",
+              "sku": "PEPSI-1L",
+              "unit": "bottle",
+              "variant": {
+                "id": 1,
+                "name": "1L"
+              }
             },
             "qty": 10,
             "received_qty": null,
@@ -4018,10 +4050,14 @@ export const SAMPLE_RESPONSES = {
                 "products": [
                   {
                     "product": {
-                      "id": 2,
-                      "title": "Lux Soap",
-                      "sku": "LUX-SOAP",
-                      "unit": "piece"
+                      "id": 11,
+                      "title": "Pack Of Lux Soap",
+                      "sku": "LUX-GREEN",
+                      "unit": "piece",
+                      "variant": {
+                        "id": 2,
+                        "name": "Fresh Splash (Green)"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -4035,10 +4071,14 @@ export const SAMPLE_RESPONSES = {
               "name": "Branch 2"
             },
             "product": {
-              "id": 2,
-              "title": "Lux Soap",
-              "sku": "LUX-SOAP",
-              "unit": "piece"
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-GREEN",
+              "unit": "piece",
+              "variant": {
+                "id": 2,
+                "name": "Fresh Splash (Green)"
+              }
             },
             "qty": 10,
             "received_qty": null,
@@ -4080,9 +4120,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 20,
                     "received_qty": 20,
@@ -4090,10 +4134,14 @@ export const SAMPLE_RESPONSES = {
                   },
                   {
                     "product": {
-                      "id": 2,
-                      "title": "Lux Soap",
-                      "sku": "LUX-SOAP",
-                      "unit": "piece"
+                      "id": 11,
+                      "title": "Pack Of Lux Soap",
+                      "sku": "LUX-GREEN",
+                      "unit": "piece",
+                      "variant": {
+                        "id": 2,
+                        "name": "Fresh Splash (Green)"
+                      }
                     },
                     "qty": 12,
                     "received_qty": 10,
@@ -4110,10 +4158,14 @@ export const SAMPLE_RESPONSES = {
                 "products": [
                   {
                     "product": {
-                      "id": 3,
-                      "title": "Basmati Rice",
-                      "sku": "BASMATI-RICE",
-                      "unit": "kg"
+                      "id": 6,
+                      "title": "Pack Of Pepsi",
+                      "sku": "PEPSI-PACK-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L x 10"
+                      }
                     },
                     "qty": 8,
                     "received_qty": null,
@@ -4122,9 +4174,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -4171,9 +4227,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -4188,9 +4248,13 @@ export const SAMPLE_RESPONSES = {
             },
             "product": {
               "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "unit": "bottle"
+              "title": "Pepsi",
+              "sku": "PEPSI-1L",
+              "unit": "bottle",
+              "variant": {
+                "id": 1,
+                "name": "1L"
+              }
             },
             "qty": 10,
             "received_qty": null,
@@ -7419,9 +7483,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 24,
                     "received_qty": 22,
@@ -7436,9 +7504,13 @@ export const SAMPLE_RESPONSES = {
             },
             "product": {
               "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "unit": "bottle"
+              "title": "Pepsi",
+              "sku": "PEPSI-1L",
+              "unit": "bottle",
+              "variant": {
+                "id": 1,
+                "name": "1L"
+              }
             },
             "qty": 24,
             "received_qty": 22,
@@ -7467,10 +7539,14 @@ export const SAMPLE_RESPONSES = {
                 "products": [
                   {
                     "product": {
-                      "id": 2,
-                      "title": "Lux Soap",
-                      "sku": "LUX-SOAP",
-                      "unit": "piece"
+                      "id": 11,
+                      "title": "Pack Of Lux Soap",
+                      "sku": "LUX-GREEN",
+                      "unit": "piece",
+                      "variant": {
+                        "id": 2,
+                        "name": "Fresh Splash (Green)"
+                      }
                     },
                     "qty": 10,
                     "received_qty": 10,
@@ -7484,10 +7560,14 @@ export const SAMPLE_RESPONSES = {
               "name": "Branch 2"
             },
             "product": {
-              "id": 2,
-              "title": "Lux Soap",
-              "sku": "LUX-SOAP",
-              "unit": "piece"
+              "id": 11,
+              "title": "Pack Of Lux Soap",
+              "sku": "LUX-GREEN",
+              "unit": "piece",
+              "variant": {
+                "id": 2,
+                "name": "Fresh Splash (Green)"
+              }
             },
             "qty": 10,
             "received_qty": 10,
@@ -7517,9 +7597,13 @@ export const SAMPLE_RESPONSES = {
                   {
                     "product": {
                       "id": 1,
-                      "title": "1 Litre Pepsi",
-                      "sku": "1-LITRE-PEPSI",
-                      "unit": "bottle"
+                      "title": "Pepsi",
+                      "sku": "PEPSI-1L",
+                      "unit": "bottle",
+                      "variant": {
+                        "id": 1,
+                        "name": "1L"
+                      }
                     },
                     "qty": 10,
                     "received_qty": null,
@@ -7534,9 +7618,13 @@ export const SAMPLE_RESPONSES = {
             },
             "product": {
               "id": 1,
-              "title": "1 Litre Pepsi",
-              "sku": "1-LITRE-PEPSI",
-              "unit": "bottle"
+              "title": "Pepsi",
+              "sku": "PEPSI-1L",
+              "unit": "bottle",
+              "variant": {
+                "id": 1,
+                "name": "1L"
+              }
             },
             "qty": 10,
             "received_qty": null,
