@@ -284,6 +284,7 @@ const ORDER_ROWS = [
       {
         product_id: 1,
         variant_id: 1,
+        sale_unit: "unit",
         qty: 2,
         unit_price: 100,
         cost_price: 50,
@@ -332,6 +333,25 @@ const ORDER_ROWS = [
       { method: "cash", tax_rate: 16, tax_amount: 12.68, amount: 91.96, paid: 100 },
     ],
     total: 141.96,
+  }),
+  // Sold by the pack: 2 packs of Pack Of Pepsi 1L x 10 (stock goes down by 20 bottles).
+  orderRow({
+    id: "POS1-20261024-0004",
+    placed_at: "2026-10-24T12:15:00.000Z",
+    lines: [
+      {
+        product_id: 6,
+        variant_id: 1,
+        sale_unit: "pack",
+        qty: 2,
+        unit_price: 950,
+        cost_price: 780,
+        discount: null,
+        taxes: [tax("product", "GST", 18, 342)],
+      },
+    ],
+    payments: [{ method: "cash", tax_rate: 0, tax_amount: 0, amount: 2242, paid: 2500 }],
+    total: 2242,
   }),
 ]
 
@@ -1432,7 +1452,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, tax_rate, tax_amount, amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {

@@ -1759,6 +1759,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Beverages"
                 },
                 "qty": 2,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 20,
                 "subtotal": 180,
@@ -1798,6 +1799,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Soap"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 0,
                 "subtotal": 100,
@@ -1956,6 +1958,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Soap"
                 },
                 "qty": 12,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 60,
                 "subtotal": 1140,
@@ -1995,6 +1998,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Beverages"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 10,
                 "subtotal": 90,
@@ -2184,6 +2188,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Beverages"
                 },
                 "qty": 3,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 100,
                 "subtotal": 200,
@@ -2223,6 +2228,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Soap"
                 },
                 "qty": 2,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 0,
                 "subtotal": 200,
@@ -2368,6 +2374,7 @@ export const SAMPLE_RESPONSES = {
                   "unit": "piece"
                 },
                 "qty": 12,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "amount": 1140,
                 "tax": 780.97
@@ -2382,6 +2389,7 @@ export const SAMPLE_RESPONSES = {
                   "unit": "bottle"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "amount": 90,
                 "tax": 56.46
@@ -2450,6 +2458,7 @@ export const SAMPLE_RESPONSES = {
                   "unit": "bottle"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "amount": 90,
                 "tax": 57.2
@@ -2499,6 +2508,7 @@ export const SAMPLE_RESPONSES = {
                   "unit": "piece"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "amount": 100,
                 "tax": 69.37
@@ -4341,6 +4351,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Beverages"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 10,
                 "subtotal": 90,
@@ -4443,6 +4454,7 @@ export const SAMPLE_RESPONSES = {
                   "name": "Beverages"
                 },
                 "qty": 1,
+                "sale_unit": "unit",
                 "unit_price": 100,
                 "discount_amount": 10,
                 "subtotal": 90,
@@ -6264,6 +6276,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "qty": 2,
+              "sale_unit": "unit",
               "unit_price": 100,
               "gross_amount": 200,
               "product": {
@@ -6317,6 +6330,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 2,
               "qty": 1,
+              "sale_unit": "unit",
               "unit_price": 100,
               "gross_amount": 100,
               "product": {
@@ -6440,6 +6454,7 @@ export const SAMPLE_RESPONSES = {
                     "unit": "piece"
                   },
                   "qty": 1,
+                  "sale_unit": "unit",
                   "unit_price": 100,
                   "amount": 100,
                   "tax": 69.37
@@ -6492,6 +6507,7 @@ export const SAMPLE_RESPONSES = {
                     "unit": "bottle"
                   },
                   "qty": 1,
+                  "sale_unit": "unit",
                   "unit_price": 100,
                   "amount": 90,
                   "tax": 57.2
@@ -10146,6 +10162,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 1,
               "qty": 2,
+              "sale_unit": "unit",
               "unit_price": 100,
               "gross_amount": 200,
               "product": {
@@ -10199,6 +10216,7 @@ export const SAMPLE_RESPONSES = {
             {
               "id": 2,
               "qty": 1,
+              "sale_unit": "unit",
               "unit_price": 100,
               "gross_amount": 100,
               "product": {
