@@ -1749,7 +1749,7 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/payment-surcharges",
     summary: "Payment Method Surcharges",
-    description: "Every payment method surcharge, by number: { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }. Any role (the POS adds them to the bill). A percentage is of that payment's share of the bill; fixed is once per payment. They replace the old payment-method GST rates (no longer used).",
+    description: "Every payment method surcharge, by number: { id (surcharge_number), method, type (percentage | fixed), charges, is_active }. Any role (the POS adds them to the bill). A percentage is of that payment's share of the bill; fixed is once per payment. They replace the old payment-method GST rates (no longer used).",
   }),
   ep({
     id: "surcharge-get",
@@ -1757,7 +1757,7 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/payment-surcharges/:id",
     summary: "Surcharge Detail",
-    description: "One surcharge — :id is its number (surcharge_number, e.g. 1) or its UUID: both work. { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }.",
+    description: "One surcharge — :id is its number (surcharge_number, e.g. 1) or its UUID: both work. { id (surcharge_number), method, type (percentage | fixed), charges, is_active }.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -1766,7 +1766,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/payment-surcharges/bulk",
     summary: "Bulk Surcharge Creation",
-    description: "Store admin. { storeId, items: [{ method, charges, type, isActive }] } — one surcharge per method (a second one for the same method fails: update it instead). The example: card 2% of its share, JazzCash Rs 25 per payment. On an order the till adds each payment's surcharge and sends it as payments [{ method, surcharge_type, surcharge_value, surcharge_amount, amount }]; a split payment adds each method's own surcharge on its part. A row that fails is listed in failed[]; the others still save. Reply: the created surcharges { id (surcharge_number), uuid, method, type (percentage | fixed), charges, is_active }.",
+    description: "Store admin. { storeId, items: [{ method, charges, type, isActive }] } — one surcharge per method (a second one for the same method fails: update it instead). The example: card 2% of its share, JazzCash Rs 25 per payment. On an order the till adds each payment's surcharge and sends it as payments [{ method, surcharge_type, surcharge_value, surcharge_amount, amount }]; a split payment adds each method's own surcharge on its part. A row that fails is listed in failed[]; the others still save. Reply: the created surcharges { id (surcharge_number), method, type (percentage | fixed), charges, is_active }.",
     body: {
       storeId: 1,
       items: [
