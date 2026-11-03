@@ -197,7 +197,7 @@ const TAX_ID = must("The tax's number (1, 2, 3… — tax_number) or its UUID: b
 
 // A payment method surcharge: what paying by the method adds to the bill.
 const SURCHARGE_CREATE = {
-  method: must("cash | card | jazzcash | easypaisa | cod — one surcharge per method"),
+  method: must("cash | card | jazzcash | easypaisa | cod | bank_transfer | raast | sadapay | nayapay | upaisa | digital_wallet | cheque | online | other — one surcharge per method"),
   charges: must("The % (percentage, 0–100) or the Rs amount (fixed)"),
   type: note("percentage (default: of that payment's share of the bill) | fixed (once per payment)"),
   isActive: note("Default true (is_active also works)"),
@@ -275,7 +275,7 @@ const ORDER_CREATE = {
   items: R,
   ...ORDER_ITEM,
   payments: note("One row per payment method; several rows = split payment. Each method pays its own share of the bill plus its own payment tax. Leave out to pay the full total by payment_method"),
-  "payments[].method": must("cash | card | jazzcash | easypaisa"),
+  "payments[].method": must("cash | card | jazzcash | easypaisa | cod | bank_transfer | raast | sadapay | nayapay | upaisa | digital_wallet | cheque | online | other"),
   "payments[].bill_share": note("This method's share of the bill before payment tax. Leave out on cash to cover the rest of the bill"),
   "payments[].amount": note("What this method pays toward the bill = bill_share + its payment tax (e.g. cash 16%: 500 → 580). Required on a card / wallet row without bill_share"),
   "payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change"),
@@ -306,7 +306,7 @@ const POS_PRICED_ORDER = {
   order_discount: note("null, or { type: percentage | fixed, value, amount } — amount is what comes off the bill. Cashiers need an approval_request_id"),
   coupon: note("null, or { code, amount } — amount is what the coupon takes off"),
   payments: must("One row per payment method; several rows = split payment"),
-  "payments[].method": must("cash | card | jazzcash | easypaisa"),
+  "payments[].method": must("cash | card | jazzcash | easypaisa | cod | bank_transfer | raast | sadapay | nayapay | upaisa | digital_wallet | cheque | online | other"),
   "payments[].surcharge_type": note("The method's surcharge (Payment Method Surcharges): percentage | fixed"),
   "payments[].surcharge_value": note("Its % (percentage) or Rs (fixed), as set for the method"),
   "payments[].surcharge_amount": must("What the surcharge added to this payment (0 when the method has none). tax_rate / tax_amount from older tills still work"),

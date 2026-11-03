@@ -484,7 +484,7 @@ export const RESOURCE_ENUMS = {
     is_web_visible: ["true", "false"],
     order_status: ["pending", "completed", "voided", "cancelled", "refunded"],
     payment_status: ["pending", "paid", "failed", "refunded"],
-    payment_method: ["cash", "card", "jazzcash", "easypaisa", "cod", "mixed"],
+    payment_method: ["cash", "card", "jazzcash", "easypaisa", "cod", "bank_transfer", "raast", "sadapay", "nayapay", "upaisa", "digital_wallet", "cheque", "online", "other", "mixed"],
   },
   reports: {
     period: ["daily", "weekly", "monthly", "yearly"],
@@ -495,7 +495,7 @@ export const RESOURCE_ENUMS = {
     product_scope: ["all", "selected"],
   },
   surcharges: {
-    method: ["cash", "card", "jazzcash", "easypaisa", "cod"],
+    method: ["cash", "card", "jazzcash", "easypaisa", "cod", "bank_transfer", "raast", "sadapay", "nayapay", "upaisa", "digital_wallet", "cheque", "online", "other"],
     type: ["percentage", "fixed"],
   },
   suppliers: {
