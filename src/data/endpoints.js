@@ -59,6 +59,8 @@ const CATEGORY_TOGGLES = [
 
 const GST = [{ name: "GST", type: "percentage", value: 18 }]
 const at = (...rows) => rows.map(([location_id, qty, expiry_date]) => ({ location_id, qty, ...(expiry_date ? { expiry_date } : {}) }))
+// Pack stock counted in whole packs: stock_unit "pack" (the server keeps packs × pack_size units).
+const packs = (...rows) => rows.map(([location_id, qty, expiry_date]) => ({ location_id, qty, stock_unit: "pack", ...(expiry_date ? { expiry_date } : {}) }))
 const pack = (size, cost, price, sellLoose) => ({ is_pack_product: true, pack_size: size, pack_cost: cost, pack_price: price, sell_loose: sellLoose })
 
 // A product with variants: where it is sold, where its stock is held, then each variant with its
@@ -100,10 +102,10 @@ const PRODUCT_PEPSI_PACK_ROW = productWithVariants({
   scope: [["location_scope", "selected"], ["location_ids", [1, 2]]],
   stockScope: [["stock_scope", "all"]],
   variants: [
-    { name: "1L x 10", sku: "PEPSI-PACK-1L", barcode: "8961014200018", ...pack(10, 780, 950, false), stock: at([1, 100], [2, 50]) },
-    { name: "1.5L x 6", sku: "PEPSI-PACK-1-5L", barcode: "8961014200025", ...pack(6, 630, 800, false), stock: at([1, 60], [2, 36]) },
-    { name: "2L x 6", sku: "PEPSI-PACK-2L", barcode: "8961014200032", ...pack(6, 800, 1020, false), taxes: [{ name: "Sugar tax", type: "fixed", value: 5 }], stock: at([1, 36], [2, 24]) },
-    { name: "Jumbo x 4", sku: "PEPSI-PACK-JUMBO", barcode: "8961014200049", ...pack(4, 720, 920, false), stock: at([1, 20], [2, 8]) },
+    { name: "1L x 10", sku: "PEPSI-PACK-1L", barcode: "8961014200018", ...pack(10, 780, 950, false), stock: packs([1, 10], [2, 5]) },
+    { name: "1.5L x 6", sku: "PEPSI-PACK-1-5L", barcode: "8961014200025", ...pack(6, 630, 800, false), stock: packs([1, 10], [2, 6]) },
+    { name: "2L x 6", sku: "PEPSI-PACK-2L", barcode: "8961014200032", ...pack(6, 800, 1020, false), taxes: [{ name: "Sugar tax", type: "fixed", value: 5 }], stock: packs([1, 6], [2, 4]) },
+    { name: "Jumbo x 4", sku: "PEPSI-PACK-JUMBO", barcode: "8961014200049", ...pack(4, 720, 920, false), stock: packs([1, 5], [2, 2]) },
   ],
 })
 
@@ -113,7 +115,7 @@ const PRODUCT_LUX_PACK_ROW = productWithVariants({
   scope: [["location_scope", "all"]],
   stockScope: [["stock_scope", "all"]],
   variants: [
-    { name: "Soft Rose (Pink)", sku: "LUX-PINK", barcode: "8961014300015", ...pack(12, 1080, 1320, true), stock: at([1, 48], [2, 24], [3, 24]) },
+    { name: "Soft Rose (Pink)", sku: "LUX-PINK", barcode: "8961014300015", ...pack(12, 1080, 1320, true), stock: packs([1, 4], [2, 2], [3, 2]) },
     { name: "Fresh Splash (Green)", sku: "LUX-GREEN", barcode: "8961014300022", ...pack(12, 1080, 1320, true), stock: at([1, 36], [2, 12], [3, 12]) },
     { name: "Sandal & Cream (Yellow)", sku: "LUX-YELLOW", barcode: "8961014300039", ...pack(12, 1080, 1320, true), stock: at([1, 24], [3, 12]) },
   ],
@@ -778,8 +780,9 @@ export const patchSections = [
   { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
   { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
-  { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch", "staff-bulk-status-patch", "staff-bulk-location-patch", "staff-bulk-password-patch"] },
+  { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
+  { id: "patch-batches", name: "Batches", tag: "shifts", ids: ["batch-bulk-patch"] },
   { id: "patch-customers", name: "Customers", tag: "customers", ids: ["customer-bulk-patch"] },
   { id: "patch-locations", name: "Locations", tag: "locations", ids: ["location-bulk-patch"] },
 ]
@@ -939,12 +942,15 @@ export const endpoints = [
     path: "/api/v1/auth/login",
     summary: "Login",
     description:
-      "Store admin or manager only — a cashier never signs in, the till verifies them with POST /auth/pin/verify (cashier email login returns 403). channel=pos returns { token, store, locations | location, users }: the signed-in user is the first row of users[] (no separate user object) — each row { id (user number), name, email, pin, role, phone, is_active }; store { id, name, status (trial | active), trial_ended_at }; a store admin gets locations[] ({ id, name, address }) and users[] (the store admin first with locationId null, then every manager and cashier, with locationId); a manager gets location{} and users[] (the manager first, then the cashiers of that location). The token gives the store and location (and the store admin picks a location with location_id in the body). channel=web returns the dashboard's access_token + refresh_token.",
+      "Store admin or manager only — a cashier never signs in, the till verifies them with POST /auth/pin/verify (cashier email login returns 403). channel=pos returns { token, store, locations | location, users }: the signed-in user is the first row of users[] (no separate user object) — each row { id (user number), name, email, pin, role, phone, is_active }; store { id, name, status (trial | active), trial_ended_at }; a store admin gets locations[] ({ id, name, address }) and users[] (the store admin first with locationId null, then every manager and cashier, with locationId); a manager gets location{} and users[] (the manager first, then the cashiers of that location). The token gives the store and location (and the store admin picks a location with location_id in the body). channel=web returns the dashboard's access_token + refresh_token. A deactivated (suspended) staff account with the right password gets 403 'Account Suspended'; a token of staff deactivated later stops working with 401 'Account Suspended'.",
     auth: "public",
     body: {
       email: "zayan@acadex.co",
       password: "ChangeMe123",
     },
+    responses: [
+      { label: "Staff deactivated (403)", body: { success: false, message: "Account Suspended", errors: null } },
+    ],
     capture: {
       accessToken: ["data.token", "data.access_token"],
       refreshToken: "data.refresh_token",
@@ -959,8 +965,11 @@ export const endpoints = [
     path: "/api/v1/auth/pin/verify",
     summary: "PIN Verification",
     description:
-      "On a signed-in till (store admin / manager token). Checks the PIN of a cashier, manager or the store admin at this location and returns { id, name, email, role, pin, phone, status, is_active } — no token. The POS then sends that id as staff_id (or id) on the cashier's clock in, batch, orders, refunds and stock.",
+      "On a signed-in till (store admin / manager token). Checks the PIN of a cashier, manager or the store admin at this location and returns { id, name, email, role, pin, phone, status, is_active } — no token. The POS then sends that id as staff_id (or id) on the cashier's clock in, batch, orders, refunds and stock. The PIN of a deactivated (suspended) staff member gets 403 'Account Suspended'; an unknown PIN 401 'Invalid PIN'.",
     body: { pin: "2222" },
+    responses: [
+      { label: "Staff deactivated (403)", body: { success: false, message: "Account Suspended", errors: null } },
+    ],
   }),
 
   ep({
@@ -1269,7 +1278,7 @@ export const endpoints = [
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "{ storeId, items: [ ...products ] }. Product and stock in one request: the frontend never posts the opening stock separately. Each product says where it is sold (location_scope all | selected + location_ids) and which of those locations hold its stock (stock_scope all | selected + stock_location_ids). Its stock comes per location: on each variant (variants[].stock) or, without variants, on the product (stock) — [{ location_id, qty, expiry_date }]. Every row is saved as a stock_in / opening_balance movement; a stock location that is not listed gets qty 0. The example: Pepsi — four loose sizes, sold everywhere, stock at locations 1 and 2 (Jumbo only at 1); Pack Of Pepsi — the same sizes by the pack (10, 6, 6 and 4 bottles), sold and stocked at 1 and 2; Pack Of Lux Soap — a box of 12 in three colours, single bars sold too, at every location. The product has its own sku and barcode, and so does each variant; a barcode already in use never fails the request: a new 13-digit one (starting with 2) is saved. Variants are numbered 1, 2, 3… inside each product: that is the variant id used by edits and stock movements. A pack variant's unit cost / price = pack price ÷ pack size. Taxes on a variant are added to the product's taxes. A manager / cashier: the product is sold and stocked at their own location only (location / stock scope they send is ignored; stock for another location is skipped and named in stock_warnings). On channel=pos the reply is every product with short numbers, its variants with id (variant number), product_id (the variant's own product number) and their stock per location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "{ storeId, items: [ ...products ] }. Product and stock in one request: the frontend never posts the opening stock separately. Each product says where it is sold (location_scope all | selected + location_ids) and which of those locations hold its stock (stock_scope all | selected + stock_location_ids). Its stock comes per location: on each variant (variants[].stock) or, without variants, on the product (stock) — [{ location_id, qty, stock_unit, expiry_date }]. stock_unit says what qty counts: unit (loose items, default) or pack (whole packs of a pack product / pack variant — saved as packs × pack_size items; refused for a loose product). Every row is saved as a stock_in / opening_balance movement; a stock location that is not listed gets qty 0. The example: Pepsi — four loose sizes, sold everywhere, stock at locations 1 and 2 (Jumbo only at 1); Pack Of Pepsi — the same sizes by the pack (10, 6, 6 and 4 bottles), sold and stocked at 1 and 2, stock given in packs (stock_unit pack: 10 packs of 1L x 10 = 100 bottles); Pack Of Lux Soap — a box of 12 in three colours, single bars sold too, at every location (Soft Rose given in boxes, the others in loose bars). The product has its own sku and barcode, and so does each variant; a barcode already in use never fails the request: a new 13-digit one (starting with 2) is saved. Variants are numbered 1, 2, 3… inside each product: that is the variant id used by edits and stock movements. A pack variant's unit cost / price = pack price ÷ pack size. Taxes on a variant are added to the product's taxes. A manager / cashier: the product is sold and stocked at their own location only (location / stock scope they send is ignored; stock for another location is skipped and named in stock_warnings). On channel=pos the reply is every product with short numbers, its variants with id (variant number), product_id (the variant's own product number) and their stock per location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
   }),
@@ -1362,7 +1371,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk Stock Movements",
-    description: "New stock and losses after the product was created: { storeId, staffId, items: [ ...products ] }. One item per product and reason; a product with variants sends variants [{ id (variant number 1, 2, 3…), stock: [{ location_id, qty, expiry_date }] }], a product without variants sends stock [{ location_id, qty }]. One movement is written per variant and location. qty is in units and positive: stock_in adds it, stock_out takes it away (an adjustment keeps its sign). Reasons — stock_in: purchase, customer_return · stock_out: damage, expiry, waste, theft, return_to_supplier · adjustment: count · any: other. opening_balance is refused: it is written by product create, and a count by product edit. Each location must be one the product is sold at; a manager / cashier may only name their own. A variant / location that fails (unknown variant, location not allowed, not enough stock) is listed in failed[] with the item's index; the others still save. On channel=pos the reply data is one row per movement, in order: { id, location, product (the product), variant { id, name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }.",
+    description: "New stock and losses after the product was created: { storeId, staffId, items: [ ...products ] }. One item per product and reason; a product with variants sends variants [{ id (variant number 1, 2, 3…), stock: [{ location_id, qty, expiry_date }] }], a product without variants sends stock [{ location_id, qty }]. One movement is written per variant and location. qty is positive and counts stock_unit: unit (loose items, default) or pack (whole packs of a pack product — moved as packs × pack_size items; refused for a loose product): stock_in adds it, stock_out takes it away (an adjustment keeps its sign). Reasons — stock_in: purchase, customer_return · stock_out: damage, expiry, waste, theft, return_to_supplier · adjustment: count · any: other. opening_balance is refused: it is written by product create, and a count by product edit. Each location must be one the product is sold at; a manager / cashier may only name their own. A variant / location that fails (unknown variant, location not allowed, not enough stock) is listed in failed[] with the item's index; the others still save. On channel=pos the reply data is one row per movement, in order: { id, location, product (the product), variant { id, name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }.",
     body: {
       storeId: 1,
       staffId: 2,
@@ -1375,7 +1384,7 @@ export const endpoints = [
           reason_note: "Bill #4521",
           variants: [
             { id: 1, stock: [{ location_id: 1, qty: 120, expiry_date: "2027-06-30" }, { location_id: 2, qty: 60, expiry_date: "2027-06-30" }] },
-            { id: 3, stock: [{ location_id: 1, qty: 48, expiry_date: "2027-06-30" }] },
+            { id: 3, stock: [{ location_id: 1, qty: 48, stock_unit: "unit", expiry_date: "2027-06-30" }] },
           ],
         },
         {
@@ -1383,7 +1392,7 @@ export const endpoints = [
           movement_type: "stock_out",
           reason: "damage",
           reason_note: "Delivery mein 1 pack phata hua aaya",
-          variants: [{ id: 2, stock: [{ location_id: 2, qty: 6 }] }],
+          variants: [{ id: 2, stock: [{ location_id: 2, qty: 1, stock_unit: "pack" }] }],
         },
         {
           product_id: 6,
@@ -1397,7 +1406,7 @@ export const endpoints = [
           reason: "purchase",
           supplier_id: 2,
           variants: [
-            { id: 1, stock: [{ location_id: 1, qty: 24 }, { location_id: 3, qty: 12 }] },
+            { id: 1, stock: [{ location_id: 1, qty: 2, stock_unit: "pack" }, { location_id: 3, qty: 1, stock_unit: "pack" }] },
             { id: 2, stock: [{ location_id: 1, qty: 24 }, { location_id: 2, qty: 12 }] },
             { id: 3, stock: [{ location_id: 2, qty: 12 }] },
           ],
@@ -2164,35 +2173,17 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/staff/bulk",
     summary: "Bulk Update Staff",
-    description: `${BULK_UPDATE_NOTE} Any staff field, as in create: name, phone, role (store admin only), location_id (location number), is_active, password, pin. The store admin is edited from My Account.`,
-    body: { items: [{ id: 3, name: "Ameer Hamza", phone: "03001112222" }, { id: 4, phone: "03004445555" }] },
+    description: `${BULK_UPDATE_NOTE} The one staff edit: every field except the password — name, email (unique in the store), phone, role (store admin only), location_id (location number; a manager only within their own; the PIN must be free there), is_active (false = suspended: 'Account Suspended' on sign-in and PIN), pin. A password is not changed here (staff reset it with POST /auth/forgot-password). The store admin is edited from My Account.`,
+    body: { items: [{ id: 3, name: "Ameer Hamza", email: "ameer@acadex.co", phone: "03001112222" }, { id: 4, location_id: 2, pin: "4545" }, { id: 5, is_active: false }] },
   }),
   ep({
-    id: "staff-bulk-status-patch",
+    id: "staff-delete",
     tag: "staff",
-    method: "PATCH",
-    path: "/api/v1/staff/bulk/status",
-    summary: "Bulk Staff Status",
-    description: `${BULK_UPDATE_NOTE} { id, is_active }: false = left the job — cannot log in or use a PIN; their sales and history stay.`,
-    body: { items: [{ id: 4, is_active: false }] },
-  }),
-  ep({
-    id: "staff-bulk-location-patch",
-    tag: "staff",
-    method: "PATCH",
-    path: "/api/v1/staff/bulk/location",
-    summary: "Bulk Staff Location",
-    description: `${BULK_UPDATE_NOTE} { id, location_id (location number) }: moved to another branch (store admin; a manager only within their own). The PIN must be free at the new branch.`,
-    body: { items: [{ id: 4, location_id: 2 }] },
-  }),
-  ep({
-    id: "staff-bulk-password-patch",
-    tag: "staff",
-    method: "PATCH",
-    path: "/api/v1/staff/bulk/password",
-    summary: "Bulk Reset Password / PIN",
-    description: `${BULK_UPDATE_NOTE} { id, password?, pin? }: a manager resets a forgotten password (min 6) or PIN (unique at the branch). Staff can also use POST /auth/forgot-password with their email.`,
-    body: { items: [{ id: 4, password: "yasirali123", pin: "4545" }] },
+    method: "DELETE",
+    path: "/api/v1/staff/:id",
+    summary: "Delete Staff",
+    description: "Soft delete: the staff member leaves the staff list and can no longer sign in (401 Invalid credentials) or use their PIN; their tokens stop working and an open clock-in is closed. The row stays in the database, so their sales, batches and history still show their name (GET /staff?include_deleted=1 lists them with deleted: true). :id = the staff UUID. The store admin and your own account cannot be deleted; a manager cannot delete another manager. Response { id (user number), deleted: true }.",
+    pathParams: [{ name: "id", default: UUID, required: true }],
   }),
   ep({
     id: "staff-session-bulk-patch",
@@ -2201,7 +2192,34 @@ export const endpoints = [
     path: "/api/v1/staff-sessions/bulk",
     summary: "Bulk Update Staff Sessions",
     description: `${BULK_UPDATE_NOTE} A manager corrects attendance: { id (session number), clock_in_at?, clock_out_at? } (ISO date-time). Setting clock_out_at closes the session (e.g. the cashier forgot to clock out). Store admin / manager.`,
-    body: { items: [{ id: 1, clock_out_at: "2026-10-24T18:30:00.000Z" }] },
+    body: { items: [{ id: 1, clock_out_at: "2026-10-24T18:30:00.000Z" }, { id: 2, clock_in_at: "2026-10-24T09:00:00.000Z", clock_out_at: "2026-10-24T17:00:00.000Z" }] },
+  }),
+  ep({
+    id: "staff-session-delete",
+    tag: "shifts",
+    method: "DELETE",
+    path: "/api/v1/staff-sessions/:id",
+    summary: "Delete Staff Session",
+    description: "Soft delete: the attendance session leaves the session history and the reports; its row stays in the database. :id = the session number (e.g. 1) or UUID. Store admin / manager (a manager only at their own location). Response { id, deleted: true }.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+  }),
+  ep({
+    id: "batch-bulk-patch",
+    tag: "shifts",
+    method: "PATCH",
+    path: "/api/v1/batches/bulk",
+    summary: "Bulk Update Batches",
+    description: `${BULK_UPDATE_NOTE} A manager corrects a cash drawer batch: { id (batch number), opening_cash?, cash_in?, cash_out?, counted_cash? (a closed batch), opened_at?, closed_at? (a closed batch), note? }. Expected cash (opening + cash in + cash sales − cash out) and the variance (counted − expected) are worked out again. Takings come from the sales and are not edited. Store admin / manager (a manager only at their own location).`,
+    body: { items: [{ id: 1, opening_cash: 5000, note: "Float topped up" }, { id: 2, counted_cash: 18250, closed_at: "2026-10-24T22:05:00.000Z" }] },
+  }),
+  ep({
+    id: "batch-delete",
+    tag: "shifts",
+    method: "DELETE",
+    path: "/api/v1/batches/:id",
+    summary: "Delete Batch",
+    description: "Soft delete: the batch leaves Batch History and the reports (Z-reports); its row stays in the database and its orders keep their sales. :id = the batch number (e.g. 1) or UUID. Store admin / manager (a manager only at their own location). Response { id, deleted: true }.",
+    pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
     id: "customer-bulk-patch",
