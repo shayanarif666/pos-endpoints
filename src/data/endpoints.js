@@ -290,7 +290,8 @@ const ORDER_ROWS = [
         qty: 2,
         unit_price: 100,
         cost_price: 50,
-        discount: { source: "offer", offer_id: 1, amount: 20 },
+        discount_amount: 20,
+        discount: [{ discount_id: 1 }],
         taxes: [tax("product", "GST", 18, 32.4), tax("category", "GST", 5, 9), tax("sales", "Sales Tax", 18, 32.4)],
       },
       {
@@ -299,7 +300,7 @@ const ORDER_ROWS = [
         qty: 1,
         unit_price: 100,
         cost_price: 75,
-        discount: null,
+        discount: [],
         taxes: [tax("product", "GST", 18, 18), tax("category", "GST", 10, 10), tax("sales", "Sales Tax", 18, 18)],
       },
     ],
@@ -310,8 +311,8 @@ const ORDER_ROWS = [
     id: "POS1-20261024-0002",
     placed_at: "2026-10-24T10:20:00.000Z",
     lines: [
-      { title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount: null, taxes: [tax("sales", "Sales Tax", 18, 18)] },
-      { title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount: null, taxes: [tax("sales", "Sales Tax", 18, 21.6)] },
+      { title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount: [], taxes: [tax("sales", "Sales Tax", 18, 18)] },
+      { title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount: [], taxes: [tax("sales", "Sales Tax", 18, 21.6)] },
     ],
     payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 41.54, amount: 301.14, paid: 500 }],
     total: 301.14,
@@ -326,7 +327,8 @@ const ORDER_ROWS = [
         qty: 1,
         unit_price: 100,
         cost_price: 50,
-        discount: { source: "offer", offer_id: 1, amount: 10 },
+        discount_amount: 10,
+        discount: [{ discount_id: 1 }],
         taxes: [tax("product", "GST", 18, 16.2), tax("category", "GST", 5, 4.5), tax("sales", "Sales Tax", 18, 16.2)],
       },
     ],
@@ -348,7 +350,7 @@ const ORDER_ROWS = [
         qty: 2,
         unit_price: 950,
         cost_price: 780,
-        discount: null,
+        discount: [],
         taxes: [tax("product", "GST", 18, 342)],
       },
     ],
@@ -537,6 +539,77 @@ function endpointEnums(resourceEnums, fields) {
   return rows.length ? Object.fromEntries(rows) : null
 }
 
+// ---- Products: one sample reply per request variant (built from the captured product rows) ----
+
+const SAMPLE_PRODUCTS = Object.fromEntries(
+  ["prod-bulk-status-patch"]
+    .flatMap((key) => SAMPLE_RESPONSES[key]?.[0]?.body?.data || [])
+    .map((row) => [row.id, row])
+)
+
+/** A captured product with some fields changed. */
+const sampleProduct = (id, fields = {}) => ({ ...SAMPLE_PRODUCTS[id], ...fields })
+
+
+// ---- Stock edit samples (stock movements / product stocks bulk updates and deletes) ----
+// Short numbers only, as the API replies: every reference is { id (its number), name… }.
+const SAMPLE_PEPSI = { id: 1, title: "Pepsi", sku: "PEPSI", barcode: "2565770472474", unit: "bottle" }
+const PEPSI_1_5L = { ...SAMPLE_PEPSI, variant: { id: 4, title: "1.5L", sku: "SKU-PEPSI-1.5L", barcode: "2355804798478" } }
+const PEPSI_350ML = { ...SAMPLE_PEPSI, variant: { id: 1, title: "350ML", sku: "SKU-PEPSI-350ML", barcode: "2355804798461" } }
+const GULISTAN = { id: 1, name: "Gulistan e Johar" }
+const DEFENSE = { id: 2, name: "Defense View" }
+const ZAYAN = { id: 1, name: "Zayan Ahmed", role: "store_admin" }
+
+const sampleMovement = (fields) => ({
+  id: fields.id,
+  location: fields.location || GULISTAN,
+  product: fields.product || PEPSI_1_5L,
+  staff: ZAYAN,
+  supplier: fields.supplier === undefined ? null : fields.supplier,
+  movement_type: fields.movement_type,
+  reason: fields.reason,
+  reason_note: fields.reason_note ?? null,
+  qty: fields.qty,
+  qty_after: fields.qty_after,
+  created_at: fields.created_at || "2026-11-05T00:12:00.000Z",
+  updated_at: fields.updated_at === undefined ? "2026-11-06T09:10:00.000Z" : fields.updated_at,
+  ...(fields.deleted_at ? { deleted_at: fields.deleted_at } : {}),
+})
+
+/** A loose item: pack fields null. A pack item: pack_size, number_of_packs, loose_units, sell_loose. */
+const sampleStock = (fields) => {
+  const qty = fields.qty
+  const size = fields.pack_size ?? null
+  const threshold = fields.low_stock_threshold ?? 5
+  return {
+    location: fields.location || GULISTAN,
+    product: fields.product || PEPSI_1_5L,
+    qty,
+    pack_size: size,
+    number_of_packs: size ? Math.floor(qty / size) : null,
+    loose_units: size ? qty - Math.floor(qty / size) * size : null,
+    sell_loose: size ? fields.sell_loose ?? true : null,
+    expiry_date: fields.expiry_date ?? "2026-11-30",
+    low_stock_threshold: threshold,
+    is_low: qty <= threshold,
+    updated_at: fields.updated_at || "2026-11-06T09:10:00.000Z",
+    ...(fields.deleted_at ? { deleted_at: fields.deleted_at } : {}),
+  }
+}
+
+
+/** Bulk Stock Transfer's sample transfer, as the Update Stock Transfers example leaves it. */
+function transferSample() {
+  const created = SAMPLE_RESPONSES["transfer-bulk"]?.[0]?.body?.data?.[0]
+  const copy = JSON.parse(JSON.stringify(created || {}))
+  copy.note = "Weekly refill — Branch 2 needs more Pepsi"
+  const first = copy.destinations?.[0]
+  if (first) first.products = first.products.slice(0, 1).map((line) => ({ ...line, qty: 25 }))
+  return copy
+}
+
+const okReply = (label, variant, message, data) => ({ label, variant, status: 200, body: { success: true, message, data } })
+
 function ep({
   id,
   tag,
@@ -560,6 +633,8 @@ function ep({
   adminOnly = [],
   // Sample replies: [{ label, body }], shown under View Response.
   responses = [],
+  // true = `responses` replace the captured ones (e.g. one reply per bodyBuilder variant).
+  ownResponses = false,
 }) {
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
@@ -579,7 +654,7 @@ function ep({
     computed,
     adminOnly,
     // Captured replies first (shown under the request), then the hand-written edge cases.
-    responses: [...(SAMPLE_RESPONSES[id] || []), ...responses],
+    responses: ownResponses ? responses : [...(SAMPLE_RESPONSES[id] || []), ...responses],
     files,
     capture,
     enums: endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
@@ -772,10 +847,10 @@ export const postSections = [
 
 // The PUT & PATCH group: the bulk updates by section, then every other PUT / PATCH under "Other".
 export const patchSections = [
-  { id: "patch-products", name: "Products", tag: "products", ids: ["prod-bulk-patch", "prod-bulk-weight-patch", "prod-bulk-price-patch", "prod-bulk-status-patch", "prod-bulk-visibility-patch"] },
-  { id: "patch-categories", name: "Categories", tag: "categories", ids: ["cat-bulk-patch", "cat-bulk-status-patch"] },
-  { id: "patch-stock", name: "Stock Inventory", tag: "inventory", ids: ["stock-bulk-patch", "stock-bulk-qty-patch"] },
-  { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch", "transfer-bulk-qty-patch", "transfer-bulk-status-patch", "transfer-bulk-receive-patch"] },
+  { id: "patch-products", name: "Products", tag: "products", ids: ["prod-bulk-patch", "prod-bulk-status-patch"] },
+  { id: "patch-categories", name: "Categories", tag: "categories", ids: ["cat-bulk-patch", "cat-bulk-status-patch", "cat-locations-patch"] },
+  { id: "patch-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-patch", "stock-entry-patch"] },
+  { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
   { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
   { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
@@ -1487,7 +1562,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount { source, offer_id, amount }, taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -1928,8 +2003,8 @@ export const endpoints = [
     tag: "products",
     method: "PATCH",
     path: "/api/v1/products/bulk",
-    summary: "Bulk Update Products",
-    description: `${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids and stock_scope / stock_location_ids (location numbers, store admin only). Stock is the counted total per location, not a change: variants[].stock (or stock for a product without variants) = [{ location_id, qty }]; the server writes the difference as an adjustment / count movement, and nothing when it is the same. variants[] with id (the variant number 1, 2, 3…) changes that variant; without id it adds a new one (numbered next) whose stock is its opening balance. A location that newly holds the stock gets qty 0 for each variant. The example: Pepsi 1L counted 48 at location 1 (was 50: -2 written) and Jumbo 6 at location 2 with a new price; a new 500ml pack in Pack Of Pepsi; Lux stock now at locations 1 and 3, Green counted 40 at 1. Reply: the updated products (same shape as create), with stock_warnings when a stock row was skipped.`,
+    summary: "Normal Product Edit",
+    description: `Edit mode 1 of 2 — the full edit (the dashboard's Edit product page; the POS sends every edit made offline here). ${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids and stock_scope / stock_location_ids (location numbers, store admin only). Stock is the counted total per location, not a change: variants[].stock (or stock for a product without variants) = [{ location_id, qty }]; the server writes the difference as an adjustment / count movement, and nothing when it is the same. variants[] with id (the variant number 1, 2, 3…) changes that variant; without id it adds a new one (numbered next) whose stock is its opening balance. A location that newly holds the stock gets qty 0 for each variant. The example: Pepsi 1L counted 48 at location 1 (was 50: -2 written) and Jumbo 6 at location 2 with a new price; a new 500ml pack in Pack Of Pepsi; Lux stock now at locations 1 and 3, Green counted 40 at 1. Reply: the updated products (same shape as create), with stock_warnings when a stock row was skipped.`,
 
     body: {
       items: [
@@ -1965,27 +2040,26 @@ export const endpoints = [
     body: { items: [{ id: 3, is_weight_based: true }, { id: 1, is_weight_based: false }] },
   }),
   ep({
-    id: "prod-bulk-price-patch",
-    tag: "products",
-    method: "PATCH",
-    path: "/api/v1/products/bulk/price",
-    summary: "Bulk Update Prices",
-    description: `${BULK_UPDATE_NOTE} { id, price?, cost?, pack_price?, pack_cost? } (same names as create; selling_price / cost_price / pack_selling_price / pack_cost_price also work) — at least one price. A pack product's unit prices are worked out from its pack prices. Sales already made keep the price they were sold at.`,
-    body: {
-      items: [
-        { id: 1, price: 110, cost: 55 },
-        { id: 2, pack_price: 1260, pack_cost: 950 },
-      ],
-    },
-  }),
-  ep({
     id: "prod-bulk-status-patch",
     tag: "products",
     method: "PATCH",
     path: "/api/v1/products/bulk/status",
-    summary: "Bulk Product Status",
-    description: `${BULK_UPDATE_NOTE} { id, is_active }: false takes the product off sale without deleting it (old sales and stock history stay); true puts it back.`,
-    body: { items: [{ id: 1, is_active: true }, { id: 3, is_active: false }] },
+    summary: "Multiple Products Status Update",
+    description: `Edit mode 2 of 2 — switch several products on or off at once (dashboard: tick products → Update Status). ${BULK_UPDATE_NOTE} { id, is_active }: false takes the product off sale without deleting it (old sales and stock history stay); true puts it back. A product with variants: its variants follow. Rows may differ (one on, one off) — the dashboard sends the same value for every selected product. Pick Active or Disabled above to see each request and its reply.`,
+    bodyBuilder: {
+      bulk: true,
+      variantsLabel: "Status",
+      variants: [
+        { id: "active", label: "Active", rows: [[["id", 1], ["is_active", true]], [["id", 3], ["is_active", true]]] },
+        { id: "disabled", label: "Disabled", rows: [[["id", 1], ["is_active", false]], [["id", 3], ["is_active", false]]] },
+      ],
+      toggles: [],
+    },
+    ownResponses: true,
+    responses: [
+      okReply("200 OK — Active", "active", "Product Status Updated", [sampleProduct(1, { is_active: true }), sampleProduct(3, { is_active: true })]),
+      okReply("200 OK — Disabled", "disabled", "Product Status Updated", [sampleProduct(1, { is_active: false }), sampleProduct(3, { is_active: false })]),
+    ],
   }),
   ep({
     id: "prod-bulk-visibility-patch",
@@ -2020,75 +2094,143 @@ export const endpoints = [
     body: { items: [{ id: 2, is_active: true }, { id: 3, is_active: true }] },
   }),
   ep({
-    id: "stock-bulk-patch",
-    tag: "inventory",
+    id: "cat-locations-patch",
+    tag: "categories",
     method: "PATCH",
-    path: "/api/v1/product-stocks/bulk",
-    summary: "Bulk Update Stock",
-    description: "POS offline sync: { locationId, staff_id?, items: [...] } — locationId (location number) and staff_id are sent once; an item may carry its own staff_id. Each item: product_id (product number) and its own change — qty (the new stock, e.g. after a physical count) or delta (+ adds / − takes away), expiry_date, low_stock_threshold, reason (purchase, count, damage, expiry, waste, theft, return_to_supplier, other…), movement_type (stock_in | stock_out | adjustment — must match the direction), note. Every qty change writes a stock movement. Reply: each product's stock { product, location, qty, number_of_packs, expiry_date, low_stock_threshold, is_low }.",
-    body: {
-      locationId: 1,
-      staff_id: 3,
-      items: [
-        { product_id: 1, qty: 40, reason: "count", movement_type: "adjustment", note: "Physical count", expiry_date: "2026-12-31" },
-        { product_id: 2, delta: -2, reason: "damage", movement_type: "stock_out", note: "2 soaps damaged", low_stock_threshold: 12 },
+    path: "/api/v1/categories/locations",
+    summary: "Update Category Locations",
+    description:
+      "Store admin only. Sets where several categories are sold in one call: { category_ids, location_scope, location_ids }. category_ids = the categories' numbers (1, 2, 3…; UUIDs also work). location_scope all = every location, including ones added later (location_ids is ignored and the old location links are removed); location_scope selected = only the locations in location_ids (one or several location numbers), which replace each category's current locations. Every category gets the same locations. All or nothing: if any category or location is not in this store, nothing changes (404). Pick All Locations or Specific Locations above to see each request. Reply: { success, message (\"Category Locations Updated\"), data: [ ...the updated categories ] } in the same shape as Bulk Update Categories, ordered by category number.",
+    bodyBuilder: {
+      bulk: false,
+      variantsLabel: "Sold at",
+      variants: [
+        {
+          id: "all",
+          label: "All Locations",
+          rows: [[["category_ids", [1, 2, 3]], ["location_scope", "all"]]],
+        },
+        {
+          id: "selected",
+          label: "Specific Locations",
+          rows: [[["category_ids", [1, 3]], ["location_scope", "selected"], ["location_ids", [1, 2]]]],
+        },
       ],
+      toggles: [],
     },
   }),
   ep({
-    id: "stock-bulk-qty-patch",
+    id: "movement-patch",
     tag: "inventory",
     method: "PATCH",
-    path: "/api/v1/product-stocks/bulk/qty",
-    summary: "Bulk Qty (same type & reason)",
-    description: "One movement_type and reason for every item, e.g. a supplier delivery: { locationId, staff_id?, movement_type, reason, note?, items: [{ product_id, qty }] }. stock_in adds qty, stock_out takes qty away, adjustment sets the stock to qty.",
+    path: "/api/v1/stock-movements/bulk",
+    summary: "Update Stock Movements",
+    description: "Fixes wrong movements, one or many: { items: [{ id, movement_type?, reason?, qty?, reason_note? }] } — always an array, even for one movement (the POS sends its queued edits together; the dashboard's Stock Movements → Edit sends one). id = the movement number (1, 2, 3…), never the UUID. Only what is sent changes: movement_type (stock_in | stock_out | adjustment), reason (stock_in: purchase, customer_return, other · stock_out: damage, expiry, waste, theft, return_to_supplier, other · adjustment: count, other), qty (the amount moved: stock_in adds it, stock_out takes it away whatever the sign, an adjustment keeps its + / − sign; a new type without qty keeps the old amount), reason_note. The difference (new qty − old qty) goes on the stock of that product at that location at once, and the stock after of this movement and of every later one there moves by the same amount. Each row saves on its own: a row that fails (stock below 0, a sale / refund / transfer movement, not found) is listed in failed[] ({ index, message, status }) and the rest still save; when every row fails the reply is that first error. Store admin / manager (a manager only at their own location). Reply data: one { movement, stock } per row, short numbers only — movement { id, location, product (with variant), staff, supplier, movement_type, reason, reason_note, qty, qty_after, created_at, updated_at } and the stock now { location, product, qty, pack_size, number_of_packs, loose_units, sell_loose, expiry_date, low_stock_threshold, is_low, updated_at }. The example: movement 12 (a stock in of 5 Pepsi 1.5L, stock 50 → 55) was really 8 (+3 → 58); movement 14 (a stock in of 5 Pepsi 350ML) was 5 broken bottles (−10 → 45).",
     body: {
-      locationId: 1,
-      staff_id: 3,
-      movement_type: "stock_in",
-      reason: "purchase",
-      note: "Nestle Distributor delivery",
       items: [
-        { product_id: 1, qty: 24 },
-        { product_id: 3, qty: 50 },
+        { id: 12, qty: 8, reason_note: "Bill #4521 was 8 bottles, not 5" },
+        { id: 14, movement_type: "stock_out", reason: "damage", qty: 5, reason_note: "5 bottles broken — not a purchase" },
       ],
     },
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Movements Updated", [
+        {
+          movement: sampleMovement({ id: 12, movement_type: "stock_in", reason: "purchase", reason_note: "Bill #4521 was 8 bottles, not 5", qty: 8, qty_after: 58, supplier: { id: 1, name: "Mustafa Traders" } }),
+          stock: sampleStock({ qty: 58 }),
+        },
+        {
+          movement: sampleMovement({ id: 14, product: PEPSI_350ML, movement_type: "stock_out", reason: "damage", reason_note: "5 bottles broken — not a purchase", qty: -5, qty_after: 45 }),
+          stock: sampleStock({ product: PEPSI_350ML, qty: 45, pack_size: 10, expiry_date: "2026-12-31", low_stock_threshold: 10 }),
+        },
+      ]),
+      {
+        label: "200 OK — one row failed",
+        status: 200,
+        body: {
+          success: true,
+          message: "Stock Movements Updated",
+          data: [
+            {
+              movement: sampleMovement({ id: 12, movement_type: "stock_in", reason: "purchase", reason_note: "Bill #4521 was 8 bottles, not 5", qty: 8, qty_after: 58, supplier: { id: 1, name: "Mustafa Traders" } }),
+              stock: sampleStock({ qty: 58 }),
+            },
+          ],
+          failed: [{ index: 1, message: "Stock cannot go below 0: there are 3 left, and this change takes away 10", status: 400 }],
+        },
+      },
+      { label: "409 — sale movement", status: 409, body: { success: false, message: "This sale movement comes from a sale, refund or transfer and cannot be edited here", data: [], failed: [{ index: 0, message: "This sale movement comes from a sale, refund or transfer and cannot be edited here", status: 409 }] } },
+    ],
+  }),
+  ep({
+    id: "stock-entry-patch",
+    tag: "inventory",
+    method: "PATCH",
+    path: "/api/v1/product-stocks/bulk",
+    summary: "Update Product Stock",
+    description: "Sets the stock of products at locations, one or many: { locationId?, staff_id?, items: [...] } — always an array, even for one row (the POS syncs its stock changes; the dashboard's Product Stock & Expiry → Edit sends one). Each item: product_id (the product number), variant_id (the variant number inside it, for a product with variants), location_id (the location number; or send locationId once next to items[]; a manager / cashier only their own), then the new stock — qty (the total in units, not a change), or delta (+ adds / − takes away), or for a pack product number_of_packs (+ loose_units when it sells loose; total = packs × pack_size + loose_units) — and / or expiry_date (YYYY-MM-DD, null clears it), low_stock_threshold (the alert level at this location; null = the level set on the product), reason (for a qty change: count (default), purchase, damage, expiry, waste, theft, return_to_supplier, customer_return, other), movement_type (stock_in | stock_out | adjustment (default) — must match the direction), reason_note. A qty change writes a movement for the difference, so Stock Movements shows it; only the expiry date / alert level changing writes none (movement null). Each row saves on its own (failed[] lists the ones that did not). Reply data: one { stock, movement } per row, short numbers only (same shapes as Update Stock Movements). The example: Pepsi 1.5L at location 1 counted 28 (was 30); Pepsi 350ML (a pack of 10 that also sells loose) at location 2 set to 4 packs + 8 (48, was 50) with a new expiry date and alert level.",
+    body: {
+      items: [
+        { product_id: 1, variant_id: 4, location_id: 1, qty: 28, reason: "count", reason_note: "Shelf count" },
+        { product_id: 1, variant_id: 1, location_id: 2, number_of_packs: 4, loose_units: 8, expiry_date: "2026-12-31", low_stock_threshold: 10, reason: "damage", reason_note: "2 bottles leaked" },
+      ],
+    },
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Updated", [
+        {
+          stock: sampleStock({ qty: 28 }),
+          movement: sampleMovement({ id: 15, movement_type: "adjustment", reason: "count", reason_note: "Shelf count", qty: -2, qty_after: 28, created_at: "2026-11-06T09:15:00.000Z", updated_at: null }),
+        },
+        {
+          stock: sampleStock({ location: DEFENSE, product: PEPSI_350ML, qty: 48, pack_size: 10, expiry_date: "2026-12-31", low_stock_threshold: 10 }),
+          movement: sampleMovement({ id: 16, location: DEFENSE, product: PEPSI_350ML, movement_type: "adjustment", reason: "damage", reason_note: "2 bottles leaked", qty: -2, qty_after: 48, created_at: "2026-11-06T09:15:00.000Z", updated_at: null }),
+        },
+      ]),
+      okReply("200 OK — expiry date only", null, "Stock Updated", [
+        { stock: sampleStock({ qty: 30, expiry_date: "2026-12-15" }), movement: null },
+      ]),
+      {
+        label: "200 OK — one row failed",
+        status: 200,
+        body: {
+          success: true,
+          message: "Stock Updated",
+          data: [{ stock: sampleStock({ qty: 28 }), movement: sampleMovement({ id: 15, movement_type: "adjustment", reason: "count", reason_note: "Shelf count", qty: -2, qty_after: 28, created_at: "2026-11-06T09:15:00.000Z", updated_at: null }) }],
+          failed: [{ index: 1, message: "Pepsi - 350ML is sold only in whole packs: send number_of_packs without loose_units", status: 400 }],
+        },
+      },
+    ],
   }),
   ep({
     id: "transfer-bulk-patch",
     tag: "inventory",
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk",
-    summary: "Bulk Update Stock Transfers",
-    description: `${BULK_UPDATE_NOTE} Lines still on the way: products [{ product_id, to_location_id, qty }] (to_location_id picks the destination when a product goes to more than one), and note. The source must have the qty. A transfer with one product may still send qty / to_location_id. Store admin.`,
-    body: { items: [{ id: 1, products: [{ product_id: 1, to_location_id: 2, qty: 24 }], note: "Weekly refill + 4" }] },
-  }),
-  ep({
-    id: "transfer-bulk-qty-patch",
-    tag: "inventory",
-    method: "PATCH",
-    path: "/api/v1/stock-transfers/bulk/qty",
-    summary: "Bulk Transfer Qty",
-    description: `${BULK_UPDATE_NOTE} { id, products: [{ product_id, to_location_id, qty }] } — new qty of lines still on the way. Store admin.`,
-    body: { items: [{ id: 1, products: [{ product_id: 3, to_location_id: 3, qty: 10 }] }] },
-  }),
-  ep({
-    id: "transfer-bulk-status-patch",
-    tag: "inventory",
-    method: "PATCH",
-    path: "/api/v1/stock-transfers/bulk/status",
-    summary: "Bulk Transfer Status",
-    description: `${BULK_UPDATE_NOTE} { id, status: completed | cancelled, to_location_id? }. completed = everything still on the way arrived in full: stock leaves the source and reaches the destination. cancelled = nothing moves. to_location_id = only that destination (a manager / cashier: their own location only).`,
-    body: { items: [{ id: 1, status: "cancelled", to_location_id: 3 }] },
-  }),
-  ep({
-    id: "transfer-bulk-receive-patch",
-    tag: "inventory",
-    method: "PATCH",
-    path: "/api/v1/stock-transfers/bulk/receive",
-    summary: "Bulk Transfer Receive",
-    description: `${BULK_UPDATE_NOTE} { id, to_location_id, products: [{ product_id, variant_id (a product with variants), received_qty }], note? } — what actually arrived at that destination. For each product the source gives up the qty that left and the destination gets received_qty; a shortfall (broken / lost on the way) is noted on the transfer ("Line 2: received 10 of 12 (2 short)"). A manager / cashier receives only at their own location. Reply: the transfers, each destination's lines with received_qty and status.`,
-    body: { items: [{ id: 1, to_location_id: 2, products: [{ product_id: 1, variant_id: 1, received_qty: 20 }, { product_id: 11, variant_id: 2, received_qty: 10 }], note: "2 soaps damaged" }] },
+    summary: "Update Stock Transfers",
+    description: "The one transfer update — the same request and reply as Bulk Stock Transfer (create), plus id: { items: [{ id, from_location_id?, note?, destinations?: [{ to_location_id, products: [{ product_id, variant_id?, qty }] }] }] } — always an array, even for one transfer. id = the transfer number (1, 2, 3…), never the UUID; location / product / variant ids are their numbers as on create. destinations replace every product of the transfer (send the whole list, as when it was created); left out, the products stay and only from_location_id / note change. The source must hold, per product, the qty of every destination together. Only a transfer nothing of which has been received can change (its stock has not moved yet): otherwise 409. Each item saves on its own: one that fails is listed in failed[] ({ index, message, status }) and the rest still save; when every item fails the reply is that first error. Store admin. Reply data: one transfer per item, the create shape — { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff, created_at }. The example: transfer 1 now sends 25 Pepsi 1L (was 20) to location 2 and drops the Lux Green, with a new note.",
+    body: {
+      items: [
+        {
+          id: 1,
+          from_location_id: 1,
+          note: "Weekly refill — Branch 2 needs more Pepsi",
+          destinations: [
+            { to_location_id: 2, products: [{ product_id: 1, variant_id: 1, qty: 25 }] },
+            { to_location_id: 3, products: [{ product_id: 6, variant_id: 1, qty: 8 }, { product_id: 1, variant_id: 1, qty: 10 }] },
+          ],
+        },
+      ],
+    },
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Transfers Updated", [transferSample()]),
+      {
+        label: "409 — already received",
+        status: 409,
+        body: { success: false, message: "Part of transfer 1 has been received, so its stock has moved: it cannot be changed", data: [], failed: [{ index: 0, message: "Part of transfer 1 has been received, so its stock has moved: it cannot be changed", status: 409 }] },
+      },
+    ],
   }),
   ep({
     id: "order-bulk-patch",
@@ -2193,6 +2335,53 @@ export const endpoints = [
     summary: "Bulk Update Staff Sessions",
     description: `${BULK_UPDATE_NOTE} A manager corrects attendance: { id (session number), clock_in_at?, clock_out_at? } (ISO date-time). Setting clock_out_at closes the session (e.g. the cashier forgot to clock out). Store admin / manager.`,
     body: { items: [{ id: 1, clock_out_at: "2026-10-24T18:30:00.000Z" }, { id: 2, clock_in_at: "2026-10-24T09:00:00.000Z", clock_out_at: "2026-10-24T17:00:00.000Z" }] },
+  }),
+  ep({
+    id: "movement-delete",
+    tag: "inventory",
+    method: "DELETE",
+    path: "/api/v1/stock-movements/:id",
+    summary: "Delete Stock Movement",
+    description: "Dashboard: Stock Movements → Delete. Soft delete of a wrong movement: its qty is taken back off the stock (a +5 stock in takes 5 away, a −5 stock out puts 5 back), the stock after of every later movement there moves the same way, and the movement leaves every list, report and total; its row stays in the database. :id = the movement number (e.g. 12). 400 when the stock would go below 0; 409 for a sale, refund or transfer movement. Store admin / manager (a manager only at their own location). Reply: { movement (with deleted_at), stock (now) }, short numbers only.",
+    pathParams: [{ name: "id", default: "12", required: true }],
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Movement Deleted", {
+        movement: sampleMovement({ id: 12, movement_type: "stock_in", reason: "purchase", reason_note: "Bill #4521", qty: 5, qty_after: 55, supplier: { id: 1, name: "Mustafa Traders" }, updated_at: null, deleted_at: "2026-11-06T09:20:00.000Z" }),
+        stock: sampleStock({ qty: 50 }),
+      }),
+    ],
+  }),
+  ep({
+    id: "stock-entry-delete",
+    tag: "inventory",
+    method: "DELETE",
+    path: "/api/v1/product-stocks/:id",
+    summary: "Delete Product Stock",
+    description: "Dashboard: Product Stock & Expiry → Delete. Soft delete of a stock entry (a product at a location): its qty goes to 0 through an adjustment movement (reason other, note \"Stock entry deleted\" + the optional reason_note sent in the body), then the entry leaves Product Stock & Expiry and the stock lists; its row stays. The next stock change for that product there brings it back (without the old expiry date). :id = the stock entry's id from GET /products/expiry (stocks[0].id). Store admin / manager (a manager only at their own location). Reply: { stock (qty 0, deleted_at), movement (null when it was already 0) }, short numbers only.",
+    pathParams: [{ name: "id", default: UUID, required: true }],
+    body: { reason_note: "Wrong batch entered" },
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Deleted", {
+        stock: sampleStock({ qty: 0, deleted_at: "2026-11-06T09:25:00.000Z" }),
+        movement: sampleMovement({ id: 17, movement_type: "adjustment", reason: "other", reason_note: "Stock entry deleted: Wrong batch entered", qty: -30, qty_after: 0, created_at: "2026-11-06T09:25:00.000Z", updated_at: null }),
+      }),
+    ],
+  }),
+  ep({
+    id: "transfer-delete",
+    tag: "inventory",
+    method: "DELETE",
+    path: "/api/v1/stock-transfers/:id",
+    summary: "Delete Stock Transfer",
+    description: "Dashboard: Stock Transfers → Delete. Soft delete: the transfer leaves the transfer list, the reports and the POS sync; its rows stay in the database. Only a transfer nothing of which has been received (on the way or cancelled) — no stock has moved for it, so stock stays as it is; a received one is 409. :id = the transfer number (e.g. 1). Store admin. Reply: the transfer as it was (the create shape) with deleted_at.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+    ownResponses: true,
+    responses: [
+      okReply("200 OK", null, "Stock Transfer Deleted", { ...transferSample(), deleted_at: "2026-11-06T10:30:00.000Z" }),
+      { label: "409 — already received", status: 409, body: { success: false, message: "Part of transfer 1 has been received, so its stock has moved: it cannot be deleted" } },
+    ],
   }),
   ep({
     id: "staff-session-delete",

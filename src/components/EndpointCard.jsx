@@ -459,7 +459,7 @@ export function EndpointCard({
             <ResponsePanel result={result} />
           ) : endpoint.responses?.length ? (
             <SampleResponsePanel
-              sample={endpoint.responses[0]}
+              sample={endpoint.responses.find((row) => row.variant && row.variant === variantId) || endpoint.responses[0]}
               more={endpoint.responses.length - 1}
               onMore={() => setModal("responses")}
             />
