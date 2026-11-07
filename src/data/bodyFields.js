@@ -8,6 +8,8 @@
  * Every key present in an endpoint's example body must be listed here (see missingBodyFields).
  */
 
+import { DEMO_FIELDS } from "./demo.js"
+
 const R = "required"
 const O = "optional"
 const note = (text) => [O, text]
@@ -130,6 +132,7 @@ const PRODUCT_CREATE = {
   low_stock_threshold: note("Default 10"),
   image: note("Image URL, saved as featured_image and images[0]. Empty string = no image"),
   is_weight_based: note("Sold by weight (kg). Can be combined with is_pack_product"),
+  colors: note("Optional. The colours the product comes in, as hex codes: [\"#E11D48\", \"#2563EB\"] (as many as needed; \"e11d48\" / \"#abc\" are saved as \"#E11D48\" / \"#AABBCC\", repeats dropped). With variants, send each variant's colours in variants[].colors instead. PATCH: the new list replaces the old; [] clears it"),
   is_published: note("Default false"),
   is_active: note("Default true"),
   ...VISIBILITY,
@@ -153,6 +156,8 @@ const PRODUCT_CREATE = {
   "variants[].pack_cost": must("Pack variant: whole-pack cost; cost per unit = pack_cost ÷ pack_size"),
   "variants[].pack_price": must("Pack variant: whole-pack price; price per unit = pack_price ÷ pack_size"),
   "variants[].sell_loose": note("Pack variant: single units can also be sold"),
+  "variants[].colors": note("Optional. This variant's colours, as hex codes: [\"#F59E0B\", \"#FFFFFF\"]. PATCH (an existing variant): the new list replaces the old; [] clears it; left out = stays"),
+  "variants[].image": note("Optional. This variant's own image URL (one per variant). PATCH: null removes it. Or upload a file with POST /api/v1/products/variant-image. No image = the POS shows the product's image"),
   "variants[].is_weight_based": note("This variant is sold by weight (kg) on the scale. Left out = as the product's is_weight_based. Can be combined with a pack (e.g. a 25 kg bag sold by the kg)"),
   "variants[].taxes": note("Taxes on this variant only, added to the product's taxes: [{ name, type: percentage | fixed, value }]. When the product's taxes change, every variant gets them again plus its own"),
   "variants[].stock": note("Opening stock per location, [{ location_id, qty, stock_unit, expiry_date }]: each row is saved as a stock_in / opening_balance movement. Locations that hold the stock and are not listed get qty 0"),
@@ -175,12 +180,14 @@ const MOVEMENT_CREATE = {
   "variants[].stock[].location_id": must("The location number (e.g. 1) or UUID — one the product is sold at. A manager / cashier: their own only"),
   "variants[].stock[].qty": must("Positive, in stock_unit (loose items by default): stock_in adds it, stock_out takes it away (an adjustment keeps its sign)"),
   "variants[].stock[].stock_unit": note("What qty counts: unit (loose items, default) | pack (whole packs — pack products / pack variants only; saved as packs × pack_size items)"),
-  "variants[].stock[].expiry_date": note("YYYY-MM-DD. Leave out to keep the location's current expiry date"),
+  "variants[].stock[].expiry_date": note("Stock in: YYYY-MM-DD — the lot of that expiry date (a new date = a new lot; the same date adds to that lot). Left out: a lot without an expiry date"),
+  "variants[].stock[].lot_id": note("Stock out / adjustment: the lot number to take from (GET /products/expiry; lot numbers are this variant's own, 1, 2, 3…). Left out = the lot that expires first (FEFO)"),
   stock: note("A product without variants: [{ location_id, qty, expiry_date }] (instead of variants)"),
   "stock[].location_id": must("The location number (e.g. 1) or UUID"),
   "stock[].qty": must("Positive, in stock_unit (as for variants)"),
   "stock[].stock_unit": note("What qty counts: unit (loose items, default) | pack (whole packs — pack products / pack variants only; saved as packs × pack_size items)"),
-  "stock[].expiry_date": note("YYYY-MM-DD"),
+  "stock[].expiry_date": note("Stock in: YYYY-MM-DD — the lot of that expiry date (a new date = a new lot)"),
+  "stock[].lot_id": note("Stock out / adjustment: the lot number to take from (this product's own, 1, 2, 3…). Left out = the lot that expires first (FEFO)"),
   qty: note("Older clients: one qty at locationId / the token's location (instead of variants / stock)"),
   expiry_date: note("With qty: YYYY-MM-DD"),
   ...VISIBILITY,
@@ -294,7 +301,7 @@ const POS_PRICED_ORDER = {
   customer_id: note("Customer number. Required when part of the bill is credit / udhaar"),
   lines: must("Every line of the sale, priced by the till. A line without product_id is a custom line (title + category)"),
   "lines[].product_id": note("Catalog line: the product number (e.g. 1) or UUID. A product with variants: its number, with variant_id. Leave out on a custom line"),
-  "lines[].variant_id": note("A product with variants: the variant sold — its number inside the product (1, 2, 3…) or UUID. Left out on a product without variants. (The variant's own product number as product_id, without variant_id, still works.)"),
+  "lines[].variant_id": note("A product with variants: the variant sold — its number inside the product (1, 2, 3…) or UUID. Left out on a product without variants."),
   "lines[].sale_unit": note("unit (default) | pack. pack = the line is sold by the whole pack (a pack product / variant): qty is the number of packs and unit_price / cost_price are one pack's. Stock goes down by qty × pack size"),
   "lines[].title": note("Custom line only: what was sold"),
   "lines[].category": note("Custom line only: the category typed at the till"),
@@ -551,6 +558,10 @@ export const BODY_FIELDS = {
   "prod-image-upload": {
     productId: must("The product number (e.g. 1) or UUID. Send the file in the image field (multipart/form-data)"),
   },
+  "prod-variant-image-upload": {
+    productId: must("The product number (e.g. 1) or UUID — the product the variant belongs to"),
+    variantId: must("The variant's number inside the product (variants[].id: 1, 2, 3…) or its UUID. Send the file in the image field (multipart/form-data)"),
+  },
   "prod-create": PRODUCT_CREATE,
   "prod-bulk": { ...TOP_STORE, ...bulkOf(PRODUCT_CREATE) },
   // category_id here is UUID-only, unlike create/bulk's flexible id-or-category_number.
@@ -618,19 +629,63 @@ export const BODY_FIELDS = {
     ...TOP_STORE,
     ...TOP_LOCATION,
     ...TOP_STAFF,
-    items: R,
-    "items[].order_id": must("Order number (e.g. 1) or UUID"),
-    "items[].order_item_id": must("The line's item number in that order, or its UUID"),
-    "items[].qty": R,
-    "items[].reason": R,
+    batchId: note("Once, before items[]: the batch the money leaves from — the drawer open now, not the sale's. An item's own batchId wins. Defaults to the staff member's open batch"),
+    items: must("One row per order — an array even for one; an order that fails is listed in failed[], the rest still save"),
+    "items[].client_local_id": must("The till's id for this refund — sent again, the saved refund comes back (no second refund)"),
+    "items[].refunded_at": note("When it happened at the till (ISO date-time, at most 30 days ago). Left out = now"),
+    "items[].order_id": must("The order number (e.g. 1)"),
+    "items[].reason": must("Shown on the refund receipt and reports"),
+    "items[].restock": note("true (default) = the qty goes back to stock; false = it does not (damaged / expired). For every line; a line's own restock wins"),
+    "items[].lines": must("The lines that come back: one row per order line"),
+    "items[].lines[].order_item_id": must("The line's item number in that order (1, 2, 3…)"),
+    "items[].lines[].qty": must("How many come back (packs on a pack line) — at most what is left on that line"),
+    "items[].lines[].restock": note("This line only: true = back to stock, false = not"),
+    "items[].lines[].discount_amount": note("The discount on the qty given back, worked out by the till"),
+    "items[].lines[].amount": must("What the qty given back costs after its discount, before tax"),
+    "items[].lines[].taxes": note("Every tax given back on this line: [{ level, name, rate, amount }] — product | store | category | sales"),
+    "items[].lines[].taxes[].level": must("product | store | category | sales — as on the sale"),
+    "items[].lines[].taxes[].name": note("Label on the refund receipt, e.g. GST"),
+    "items[].lines[].taxes[].rate": note("The % (a fixed tax: its amount per unit)"),
+    "items[].lines[].taxes[].amount": must("The tax given back on this line"),
+    "items[].lines[].total": must("amount + its taxes"),
+    "items[].payments": must("How the money goes back: one row per method (the POS may choose another method than the sale). method credit = off the customer's udhaar"),
+    "items[].payments[].method": must("cash | card | credit | … (as on orders)"),
+    "items[].payments[].surcharge_type": note("percentage | fixed — the Payment Method Surcharge given back"),
+    "items[].payments[].surcharge_value": note("The % (or fixed amount) of that surcharge"),
+    "items[].payments[].surcharge_amount": note("The surcharge given back on this method"),
+    "items[].payments[].amount": must("What goes back this way, surcharge included"),
+    "items[].total_amount": must("The whole refund — must equal the sum of payments[].amount"),
   },
   "order-refund-complete-bulk": {
     ...TOP_STORE,
     ...TOP_LOCATION,
     ...TOP_STAFF,
-    items: R,
-    "items[].order_id": must("Order number (e.g. 1) or UUID"),
-    "items[].reason": R,
+    batchId: note("Once, before items[]: the batch the money leaves from — the drawer open now, not the sale's. An item's own batchId wins. Defaults to the staff member's open batch"),
+    items: must("One row per order — an array even for one; an order that fails is listed in failed[], the rest still save"),
+    "items[].client_local_id": must("The till's id for this refund — sent again, the saved refund comes back (no second refund)"),
+    "items[].refunded_at": note("When it happened at the till (ISO date-time, at most 30 days ago). Left out = now"),
+    "items[].order_id": must("The order number (e.g. 1)"),
+    "items[].reason": must("Shown on the refund receipt and reports"),
+    "items[].restock": note("true (default) = the qty goes back to stock; false = it does not (damaged / expired). For every line; a line's own restock wins"),
+    "items[].lines": must("Every line still left on the order, with all of its remaining qty"),
+    "items[].lines[].order_item_id": must("The line's item number in that order (1, 2, 3…)"),
+    "items[].lines[].qty": must("All of what is left on that line"),
+    "items[].lines[].restock": note("This line only: true = back to stock, false = not"),
+    "items[].lines[].discount_amount": note("The discount on the qty given back, worked out by the till"),
+    "items[].lines[].amount": must("What the qty given back costs after its discount, before tax"),
+    "items[].lines[].taxes": note("Every tax given back on this line: [{ level, name, rate, amount }] — product | store | category | sales"),
+    "items[].lines[].taxes[].level": must("product | store | category | sales — as on the sale"),
+    "items[].lines[].taxes[].name": note("Label on the refund receipt, e.g. GST"),
+    "items[].lines[].taxes[].rate": note("The % (a fixed tax: its amount per unit)"),
+    "items[].lines[].taxes[].amount": must("The tax given back on this line"),
+    "items[].lines[].total": must("amount + its taxes"),
+    "items[].payments": must("How the money goes back: one row per method (the POS may choose another method than the sale). method credit = off the customer's udhaar"),
+    "items[].payments[].method": must("cash | card | credit | … (as on orders)"),
+    "items[].payments[].surcharge_type": note("percentage | fixed — the Payment Method Surcharge given back"),
+    "items[].payments[].surcharge_value": note("The % (or fixed amount) of that surcharge"),
+    "items[].payments[].surcharge_amount": note("The surcharge given back on this method"),
+    "items[].payments[].amount": must("What goes back this way, surcharge included"),
+    "items[].total_amount": must("The whole refund — must equal the sum of payments[].amount"),
   },
   "receipt-generate": { order_id: must("Order number (e.g. 1) or UUID") },
   "order-void": {
@@ -704,6 +759,7 @@ export const BODY_FIELDS = {
     "items[].reason": note("For a qty change: count (default), purchase, damage, expiry, waste, theft, return_to_supplier, customer_return, other"),
     "items[].movement_type": note("stock_in | stock_out | adjustment (default) — must match the direction"),
     "items[].reason_note": note("Saved on the movement"),
+    "items[].lot_id": note("One lot (its number, GET /products/expiry): qty / number_of_packs are that lot's new total and expiry_date its date. Left out: qty is the whole stock's new total (a cut comes off the lot that expires first) and expiry_date goes on that lot"),
   },
   "stock-entry-delete": {
     reason_note: note("Optional; saved on the movement that sets the qty to 0"),
@@ -812,6 +868,7 @@ export const BODY_FIELDS = {
 
 /** Rules for a body: explicit entry, or the generic `ids` rule of the data bulk-delete routes. */
 export function bodyFieldsFor(endpoint) {
+  if (DEMO_FIELDS[endpoint.id]) return DEMO_FIELDS[endpoint.id]
   if (BODY_FIELDS[endpoint.id]) return BODY_FIELDS[endpoint.id]
   if (endpoint.tag === "data" && endpoint.id.endsWith("-bulk")) return { ids: R }
   return null

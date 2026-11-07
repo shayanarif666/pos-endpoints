@@ -1,6 +1,7 @@
 import { bodyFieldsFor, enumsFromFields } from "./bodyFields.js"
 import { buildBody, defaultToggles } from "./bodyBuilder.js"
 import { SAMPLE_RESPONSES } from "./sampleResponses.js"
+import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -608,6 +609,183 @@ function transferSample() {
   return copy
 }
 
+// ---- Order refunds (partial and complete): the POS works out every figure, the server saves them ----
+const refundTax = (level, name, rate, amount) => ({ level, name, rate, amount })
+const PEPSI_TAXES = [refundTax("product", "GST", 18, 16.2), refundTax("category", "GST", 5, 4.5), refundTax("sales", "Sales Tax", 18, 16.2)]
+const LUX_TAXES = [refundTax("product", "GST", 18, 18), refundTax("category", "GST", 10, 10), refundTax("sales", "Sales Tax", 18, 18)]
+const REFUND_STAFF = { id: 2, name: "Ahmed Malik", role: "manager" }
+const REFUND_LOCATION = { id: 1, name: "Gulistan e Johar" }
+const REFUND_BATCH = { id: 3, status: "open" }
+
+const REFUND_PARTIAL_REQUEST = {
+  storeId: 1,
+  locationId: 1,
+  staffId: 2,
+  batchId: 3,
+  items: [
+    {
+      client_local_id: "POS1-R-20261106-0001",
+      refunded_at: "2026-11-06T09:20:00.000Z",
+      order_id: 1,
+      reason: "Customer return",
+      lines: [
+        { order_item_id: 1, qty: 1, restock: true, discount_amount: 10, amount: 90, taxes: PEPSI_TAXES, total: 126.9 },
+        { order_item_id: 2, qty: 1, restock: false, discount_amount: 0, amount: 100, taxes: LUX_TAXES, total: 146 },
+      ],
+      payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 43.66, amount: 316.56 }],
+      total_amount: 316.56,
+    },
+  ],
+}
+
+const REFUND_COMPLETE_REQUEST = {
+  storeId: 1,
+  locationId: 1,
+  staffId: 2,
+  batchId: 3,
+  items: [
+    {
+      client_local_id: "POS1-R-20261106-0002",
+      refunded_at: "2026-11-06T09:30:00.000Z",
+      order_id: 3,
+      reason: "Customer changed mind",
+      restock: true,
+      lines: [{ order_item_id: 1, qty: 1, discount_amount: 10, amount: 90, taxes: PEPSI_TAXES, total: 126.9 }],
+      payments: [
+        { method: "card", surcharge_type: "percentage", surcharge_value: 5, surcharge_amount: 2.38, amount: 50 },
+        { method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 12.68, amount: 91.96 },
+      ],
+      total_amount: 141.96,
+    },
+    {
+      client_local_id: "POS1-R-20261106-0003",
+      refunded_at: "2026-11-06T09:35:00.000Z",
+      order_id: 2,
+      reason: "Full return",
+      restock: false,
+      lines: [
+        { order_item_id: 1, qty: 2, discount_amount: 0, amount: 100, taxes: [refundTax("sales", "Sales Tax", 18, 18)], total: 118 },
+        { order_item_id: 2, qty: 1, discount_amount: 0, amount: 120, taxes: [refundTax("sales", "Sales Tax", 18, 21.6)], total: 141.6 },
+      ],
+      payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 41.54, amount: 301.14 }],
+      total_amount: 301.14,
+    },
+  ],
+}
+
+const REFUND_PARTIAL_ROW = {
+  id: 5,
+  refund_type: "partial",
+  client_local_id: "POS1-R-20261106-0001",
+  location: REFUND_LOCATION,
+  staff: REFUND_STAFF,
+  batch: REFUND_BATCH,
+  order: { id: 1, status: "partial_refunded" },
+  customer: null,
+  receiptId: 10,
+  currency: "PKR",
+  reason: "Customer return",
+  lines: [
+    {
+      order_item_id: 1,
+      product: { id: 1, title: "Pepsi", sku: "PEPSI", unit: "bottle", variant: { id: 1, name: "350ML" } },
+      qty: 1, sale_unit: "unit", unit_price: 100, discount_amount: 10, amount: 90,
+      taxes: PEPSI_TAXES, tax: 36.9, total: 126.9, restocked: true,
+    },
+    {
+      order_item_id: 2,
+      product: { id: 11, title: "Pack Of Lux Soap", sku: "LUX-GREEN", unit: "piece", variant: { id: 2, name: "Fresh Splash (Green)" } },
+      qty: 1, sale_unit: "unit", unit_price: 100, discount_amount: 0, amount: 100,
+      taxes: LUX_TAXES, tax: 46, total: 146, restocked: false,
+    },
+  ],
+  amount: 190,
+  discount_amount: 10,
+  tax: 82.9,
+  surcharge: 43.66,
+  total: 316.56,
+  payments: [{ method: "cash", bill_share: 272.9, surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 43.66, amount: 316.56 }],
+  refunded_at: "2026-11-06T09:20:00.000Z",
+  synced_at: "2026-11-06T09:25:12.000Z",
+}
+
+const REFUND_COMPLETE_ROWS = [
+  {
+    id: 6,
+    refund_type: "complete",
+    client_local_id: "POS1-R-20261106-0002",
+    location: REFUND_LOCATION,
+    staff: REFUND_STAFF,
+    batch: REFUND_BATCH,
+    order: { id: 3, status: "refunded" },
+    customer: null,
+    receiptId: 11,
+    currency: "PKR",
+    reason: "Customer changed mind",
+    lines: [
+      {
+        order_item_id: 1,
+        product: { id: 1, title: "Pepsi", sku: "PEPSI", unit: "bottle", variant: { id: 2, name: "500ML" } },
+        qty: 1, sale_unit: "unit", unit_price: 100, discount_amount: 10, amount: 90,
+        taxes: PEPSI_TAXES, tax: 36.9, total: 126.9, restocked: true,
+      },
+    ],
+    amount: 90,
+    discount_amount: 10,
+    tax: 36.9,
+    surcharge: 15.06,
+    total: 141.96,
+    payments: [
+      { method: "card", bill_share: 47.62, surcharge_type: "percentage", surcharge_value: 5, surcharge_amount: 2.38, amount: 50 },
+      { method: "cash", bill_share: 79.28, surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 12.68, amount: 91.96 },
+    ],
+    refunded_at: "2026-11-06T09:30:00.000Z",
+    synced_at: "2026-11-06T09:31:02.000Z",
+  },
+  {
+    id: 7,
+    refund_type: "complete",
+    client_local_id: "POS1-R-20261106-0003",
+    location: REFUND_LOCATION,
+    staff: REFUND_STAFF,
+    batch: REFUND_BATCH,
+    order: { id: 2, status: "refunded" },
+    customer: null,
+    receiptId: 12,
+    currency: "PKR",
+    reason: "Full return",
+    lines: [
+      {
+        order_item_id: 1, title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount_amount: 0, amount: 100,
+        taxes: [refundTax("sales", "Sales Tax", 18, 18)], tax: 18, total: 118, restocked: false,
+      },
+      {
+        order_item_id: 2, title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount_amount: 0, amount: 120,
+        taxes: [refundTax("sales", "Sales Tax", 18, 21.6)], tax: 21.6, total: 141.6, restocked: false,
+      },
+    ],
+    amount: 220,
+    discount_amount: 0,
+    tax: 39.6,
+    surcharge: 41.54,
+    total: 301.14,
+    payments: [{ method: "cash", bill_share: 259.6, surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 41.54, amount: 301.14 }],
+    refunded_at: "2026-11-06T09:35:00.000Z",
+    synced_at: "2026-11-06T09:36:40.000Z",
+  },
+]
+
+const refundCreated = (data) => ({ label: "201 Created", status: 201, body: { success: true, message: "Refunded Successfully", data } })
+const refundPage = (data) => ({
+  label: "200 OK",
+  status: 200,
+  body: { success: true, message: "OK", data, pagination: { page: 1, limit: 20, total: data.length, total_pages: 1 } },
+})
+const REFUND_ROW_SHAPE =
+  "Each refund: { id (refund number), refund_type (partial | complete), client_local_id, location, staff, batch, order { id, status }, customer, receiptId, currency, reason, lines [{ order_item_id, product { id, title, sku, unit, variant } (a custom line: title + category), qty, sale_unit, unit_price, discount_amount, amount, taxes [{ level, name, rate, amount }], tax, total, restocked }], amount (after discount, before tax), discount_amount, tax (line taxes), surcharge (payment surcharges), total, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount }], refunded_at (when it happened at the till), synced_at (when it reached the server) }. One refund and one receipt per order, all its lines in lines[]."
+const REFUND_RULES =
+  "The POS works out every figure and the server saves them as sent — nothing is calculated again (the same as orders): per line discount_amount, amount (after discount, before tax), taxes [{ level, name, rate, amount }] and total; per payment method surcharge_* and amount (what goes back that way — the POS may pay back another way than the sale, e.g. cash for a card sale; method credit takes it off the customer's udhaar); total_amount. The server only checks: the qty is not more than what is left to refund on that line, and total_amount = the sum of payments[].amount. client_local_id: the till's own id — sending it again returns the saved refund, never a second one (safe to retry offline). refunded_at: when it happened at the till (ISO; at most 30 days ago). batchId: the batch the money leaves from — the drawer open now, not the sale's (defaults to the staff member's open batch). restock: true = the qty goes back to stock (default), false = it does not (damaged, expired) — on a line, or once on the order for every line (a line's own wins). Each order saves on its own: one that fails is listed in failed[] ({ index, message, status }) and the rest still save; when all fail the reply is that first error."
+
 const okReply = (label, variant, message, data) => ({ label, variant, status: 200, body: { success: true, message, data } })
 
 function ep({
@@ -636,6 +814,21 @@ function ep({
   // true = `responses` replace the captured ones (e.g. one reply per bodyBuilder variant).
   ownResponses = false,
 }) {
+  // The demo store (demo.js) gives the request / replies of the entries it drives.
+  const demo = DEMO_EPS[id]
+  if (demo) {
+    if ("body" in demo) {
+      body = demo.body
+      bodyBuilder = null
+    }
+    if (demo.responses) {
+      responses = demo.responses
+      ownResponses = true
+    }
+    if (demo.description) description = demo.description
+    if (demo.query) query = demo.query
+    if (demo.pathParams) pathParams = demo.pathParams
+  }
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
     : body
@@ -663,6 +856,11 @@ function ep({
 }
 
 export const tags = [
+  {
+    id: "offers",
+    name: "Discounts",
+    description: "Discounts (offers): promotional, bulk discount, flash sale and buy X get Y. A sale line names the ones it used with discount_id.",
+  },
   {
     id: "plans",
     name: "Plans",
@@ -831,17 +1029,16 @@ export const postSections = [
   { id: "super-admin", name: "Super Admin Actions", tag: "plans", ids: ["plans-create", "admin-create-store", "admin-register-superadmin"] },
   { id: "authentication", name: "Authentication", tag: "auth", ids: ["auth-login", "auth-pin-verify"] },
   { id: "license", name: "License", tag: "license", ids: ["license-validate", "license-renew"] },
-  { id: "locations", name: "Locations", tag: "locations", ids: ["location-create"] },
   { id: "user-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-clock-in", "staff-clock-out"] },
   { id: "staff", name: "Staff", tag: "staff", ids: ["staff-bulk"] },
   { id: "batch-report", name: "Batch Report", tag: "shifts", ids: ["batch-open", "batch-close"] },
   { id: "categories", name: "Categories", tag: "categories", ids: ["cat-bulk"] },
-  { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload"] },
+  { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload", "prod-variant-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk"] },
   { id: "surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
-  { id: "customers", name: "Customers", tag: "customers", ids: ["customer-create", "customer-bulk"] },
+  { id: "customers", name: "Customers", tag: "customers", ids: ["customer-bulk"] },
   { id: "orders", name: "Orders", tag: "orders", ids: ["order-bulk", "order-refund-complete-bulk", "order-refund-bulk"] },
 ]
 
@@ -875,7 +1072,8 @@ export const getSections = [
   { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
   { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list", "surcharge-get"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
-  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["rep-all-locations", "rep-location", "rep-profit"] },
+  { id: "get-discounts", name: "Discounts", tag: "offers", ids: ["offer-list"] },
+  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-overview", "reporting-section", "rep-all-locations", "rep-location", "rep-profit"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
   { id: "get-order-history", name: "Complete Order History", tag: "orders", ids: ["order-history"] },
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
@@ -894,7 +1092,7 @@ const LOCATION_ROW = [
   ["is_default", false, "optional"],
 ]
 
-export const endpoints = [
+const BASE_ENDPOINTS = [
   ep({
     id: "plans-create",
     tag: "plans",
@@ -1353,7 +1551,7 @@ export const endpoints = [
     path: "/api/v1/products/bulk",
     summary: "Bulk Products",
     description:
-      "{ storeId, items: [ ...products ] }. Product and stock in one request: the frontend never posts the opening stock separately. Each product says where it is sold (location_scope all | selected + location_ids) and which of those locations hold its stock (stock_scope all | selected + stock_location_ids). Its stock comes per location: on each variant (variants[].stock) or, without variants, on the product (stock) — [{ location_id, qty, stock_unit, expiry_date }]. stock_unit says what qty counts: unit (loose items, default) or pack (whole packs of a pack product / pack variant — saved as packs × pack_size items; refused for a loose product). Every row is saved as a stock_in / opening_balance movement; a stock location that is not listed gets qty 0. The example: Pepsi — four loose sizes, sold everywhere, stock at locations 1 and 2 (Jumbo only at 1); Pack Of Pepsi — the same sizes by the pack (10, 6, 6 and 4 bottles), sold and stocked at 1 and 2, stock given in packs (stock_unit pack: 10 packs of 1L x 10 = 100 bottles); Pack Of Lux Soap — a box of 12 in three colours, single bars sold too, at every location (Soft Rose given in boxes, the others in loose bars). The product has its own sku and barcode, and so does each variant; a barcode already in use never fails the request: a new 13-digit one (starting with 2) is saved. Variants are numbered 1, 2, 3… inside each product: that is the variant id used by edits and stock movements. A pack variant's unit cost / price = pack price ÷ pack size. Taxes on a variant are added to the product's taxes. A manager / cashier: the product is sold and stocked at their own location only (location / stock scope they send is ignored; stock for another location is skipped and named in stock_warnings). On channel=pos the reply is every product with short numbers, its variants with id (variant number), product_id (the variant's own product number) and their stock per location. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "{ storeId, items: [ ...products ] }. Product and stock in one request: the frontend never posts the opening stock separately. Each product says where it is sold (location_scope all | selected + location_ids) and which of those locations hold its stock (stock_scope all | selected + stock_location_ids). Its stock comes per location: on each variant (variants[].stock) or, without variants, on the product (stock) — [{ location_id, qty, stock_unit, expiry_date }]. stock_unit says what qty counts: unit (loose items, default) or pack (whole packs of a pack product / pack variant — saved as packs × pack_size items; refused for a loose product). Every row is saved as a stock_in / opening_balance movement; a stock location that is not listed gets qty 0. The example (four products — product numbers 1, 9, 15 and 22, each variant also taking a number of its own: Pepsi's are 2–8): Pepsi — 7 sizes, each a pack of 5 bottles that also sells by the bottle, 5 packs (25 bottles) of each at location 1 (stock_unit pack); Garnier Cream — 5 creams sold by the piece, with the product's own import taxes (Import Duty 20%, Additional Customs Duty 2%, Regulatory Duty 20%, Import Sales Tax 25%) on every variant; Almonds — counted in grams (unit gram): 250 g / 500 g / 1 kg packs (pack_size 250 / 500 / 1000, stock in packs) and three loose kinds priced per gram (Rs 5,500 a kg = 5.5, stock 25000 g = 25 kg); Sugar — no variants, sold by the kg (cost 140, price 160, 100 kg in stock). The product has its own sku and barcode, and so does each variant; a barcode already in use never fails the request: a new 13-digit one (starting with 2) is saved. Variants are numbered 1, 2, 3… inside each product: that is the variant id used by edits and stock movements. A pack variant's unit cost / price = pack price ÷ pack size. Taxes on a variant are added to the product's taxes. A manager / cashier: the product is sold and stocked at their own location only (location / stock scope they send is ignored; stock for another location is skipped and named in stock_warnings). On channel=pos the reply is every product with short numbers, its variants with id (the variant number inside the product, sent as variant_id with the product's id) and their stock per location. colors: the colours it comes in as hex codes ([#E11D48, #2563EB]) — on the product, or on each variant (variants[].colors) when it has variants. Product numbers count products only (1, 2, 3…); a variant has no product number of its own. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: productBuilder(),
     computed: productTotals,
   }),
@@ -1364,8 +1562,19 @@ export const endpoints = [
     path: "/api/v1/products/image",
     summary: "Product Image Upload",
     description:
-      "multipart/form-data: productId (the product number, e.g. 1, or UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per product: a new upload replaces the old one. The file is stored on the image server and the product's image becomes its URL — the same image Bulk Products / Products return as image. POST /api/v1/products/:id/image does the same with the product in the path. Response { id (product number), title, image (URL) }. Store admin or manager.",
+      "multipart/form-data: productId (the product number, e.g. 1, or UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per product: a new upload replaces the old one. The file is stored on the image server and the product's image becomes its URL — the same image Bulk Products / Products return as image. POST /api/v1/products/:id/image does the same with the product in the path. A variant's image: Variant Image Upload. Response { id (product number), title, image (URL) }. Store admin or manager.",
     body: { productId: 1 },
+    files: [{ name: "image", label: "Image" }],
+  }),
+  ep({
+    id: "prod-variant-image-upload",
+    tag: "products",
+    method: "POST",
+    path: "/api/v1/products/variant-image",
+    summary: "Variant Image Upload",
+    description:
+      "multipart/form-data: productId (the product number, e.g. 1, or UUID), variantId (the variant's number inside that product — variants[].id: 1, 2, 3… — or its UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per variant: a new upload replaces the old one. Products return it as variants[].image (null = the variant has no image of its own: show the product's image). POST /api/v1/products/:id/variants/:variantId/image does the same with both in the path; DELETE /api/v1/products/:id/variants/:variantId/image removes it. A variant image URL can also be sent as variants[].image when creating / updating the product. Response { id (product number), title, variant { id (variant number), product_id (the variant's own product number), name, image (URL) } }. Store admin or manager.",
+    body: { productId: 1, variantId: 1 },
     files: [{ name: "image", label: "Image" }],
   }),
   ep({
@@ -1446,7 +1655,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-movements/bulk",
     summary: "Bulk Stock Movements",
-    description: "New stock and losses after the product was created: { storeId, staffId, items: [ ...products ] }. One item per product and reason; a product with variants sends variants [{ id (variant number 1, 2, 3…), stock: [{ location_id, qty, expiry_date }] }], a product without variants sends stock [{ location_id, qty }]. One movement is written per variant and location. qty is positive and counts stock_unit: unit (loose items, default) or pack (whole packs of a pack product — moved as packs × pack_size items; refused for a loose product): stock_in adds it, stock_out takes it away (an adjustment keeps its sign). Reasons — stock_in: purchase, customer_return · stock_out: damage, expiry, waste, theft, return_to_supplier · adjustment: count · any: other. opening_balance is refused: it is written by product create, and a count by product edit. Each location must be one the product is sold at; a manager / cashier may only name their own. A variant / location that fails (unknown variant, location not allowed, not enough stock) is listed in failed[] with the item's index; the others still save. On channel=pos the reply data is one row per movement, in order: { id, location, product (the product), variant { id, name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }.",
+    description: "New stock and losses after the product was created: { storeId, staffId, items: [ ...products ] }. Lots: a stock in with an expiry_date makes a lot of that date (the same date adds to that lot); a stock out / adjustment takes from lot_id when sent, else from the lot that expires first (FEFO); each movement in the reply lists its lots [{ id (lot number), qty, expiry_date }]. The example: 10 packs of Pepsi 350ML expiring 31 Mar 2027 become Lot #20; the cracked Garnier jar comes out of Lot #9; 50 kg Sugar expiring 30 Jun 2027 become Lot #21. One item per product and reason; a product with variants sends variants [{ id (variant number 1, 2, 3…), stock: [{ location_id, qty, expiry_date }] }], a product without variants sends stock [{ location_id, qty }]. One movement is written per variant and location. qty is positive and counts stock_unit: unit (loose items, default) or pack (whole packs of a pack product — moved as packs × pack_size items; refused for a loose product): stock_in adds it, stock_out takes it away (an adjustment keeps its sign). Reasons — stock_in: purchase, customer_return · stock_out: damage, expiry, waste, theft, return_to_supplier · adjustment: count · any: other. opening_balance is refused: it is written by product create, and a count by product edit. Each location must be one the product is sold at; a manager / cashier may only name their own. A variant / location that fails (unknown variant, location not allowed, not enough stock) is listed in failed[] with the item's index; the others still save. On channel=pos the reply data is one row per movement, in order: { id, location, product (the product), variant { id, name, sku } (null without variants), supplier, staff, order, movement_type, reason, reason_note, qty, qty_after, unit_sold, created_at }.",
     body: {
       storeId: 1,
       staffId: 2,
@@ -1502,7 +1711,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Bulk Stock Transfer",
-    description: "{ storeId, staffId, items: [ ...transfers ] }. One transfer sends stock from one location to one or more destinations, each with its own products and qty (location / product numbers or UUIDs): { from_location_id, note, destinations: [{ to_location_id, products: [{ product_id, variant_id, qty }] }] }. A product with variants names the variant sent with variant_id (its number inside the product: 1, 2, 3…); leave it out on a product without variants. The example sends Pepsi 1L and Lux Green to location 2, and Pack Of Pepsi 1L x 10 and more Pepsi 1L to location 3. The source must hold, per product, the qty of every destination together. Each destination stays on_the_way until it receives its part (Bulk Transfer Receive): the source gives up the qty that left, the destination gets what arrived. The older single form { from_location_id, to_location_id, product_id, qty } still works. On channel=pos the response data is one transfer per item: { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "{ storeId, staffId, items: [ ...transfers ] }. One transfer sends stock from one location to one or more destinations, each with its own products and qty (location / product numbers or UUIDs): { from_location_id, note, destinations: [{ to_location_id, products: [{ product_id, variant_id, qty }] }] }. A product with variants names the variant sent with variant_id (its number inside the product: 1, 2, 3…); leave it out on a product without variants. The example sends 10 Pepsi 1.5L (product 1, variant 4) and 5 Garnier Vitamin C 50g (product 9, variant 1) from location 1 to Branch 2. The source must hold, per product, the qty of every destination together. Each destination stays on_the_way until it receives its part (Bulk Transfer Receive): the source gives up the qty that left, the destination gets what arrived. The older single form { from_location_id, to_location_id, product_id, qty } still works. On channel=pos the response data is one transfer per item: { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       staffId: 2,
@@ -1562,7 +1771,7 @@ export const endpoints = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). The examples: a catalog sale with an offer paid cash, a custom sale, and a split card + cash payment. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the discounts of GET /offers it used; [] = none) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, synced_at. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -1715,17 +1924,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/orders/refunds/bulk",
     summary: "Bulk Order Items Refund",
-    description:
-      "How the server works out a partial refund — never from today's price: it is a share of what the customer actually paid for that line, rounded to 2 decimals. 1) qty must be ≤ sold qty − qty already refunded on that line. 2) Line value = the line's subtotal after its share of the order discount / coupon + its line tax. 3) Refunded share = value of everything refunded on the order so far (this refund included) ÷ value of the whole order. 4) Each payment method of the sale gets back that share of what it paid, minus what it already got back; its payment tax is split out at the rate it was charged (e.g. cash 16%). Udhaar comes off the customer's credit. 5) total = Σ method refunds · amount = the line value before tax · tax = total − amount. The cash part leaves the drawer, the qty goes back to stock, and the order turns partial_refunded (refunded once every line is fully back).",
-    body: {
-      storeId: 1,
-      locationId: 1,
-      staffId: 2,
-      items: [
-        { order_id: 1, order_item_id: 1, qty: 1, reason: "Customer return" },
-        { order_id: 1, order_item_id: 2, qty: 1, reason: "Damaged item" },
-      ],
-    },
+    description: "Partial refund — some items (or some of their qty) of an order come back: { storeId, locationId, staffId, batchId, items: [{ client_local_id, refunded_at, order_id, reason, restock?, lines: [{ order_item_id, qty, restock?, discount_amount, amount, taxes, total }], payments, total_amount }] }. storeId, locationId, staffId and batchId are sent once before items[] (numbers); an item may carry its own. order_id = the order number; order_item_id = the line's item number in that order (1, 2, 3…). " + REFUND_RULES + " The order turns partial_refunded, or refunded once every line is fully back. " + REFUND_ROW_SHAPE + " The examples, one from each order: order 1 gives back 1 Garnier Vitamin C (585 + its taxes 497.25 = 1082.25, back on the card with its 2% = 1103.90); order 2 gives back the gift wrapping (150 + 27 = 177 in cash — a custom line holds no stock); order 3 gives back 2 kg of the 5 kg Sugar (280 + 60.40 = 340.40 in cash).",
+    body: REFUND_PARTIAL_REQUEST,
+    ownResponses: true,
+    responses: [
+      refundCreated([REFUND_PARTIAL_ROW]),
+      { label: "400 — more than sold", status: 400, body: { success: false, message: "Order 1 line 1: only 1 left to refund (2 sent)", data: [], failed: [{ index: 0, message: "Order 1 line 1: only 1 left to refund (2 sent)", status: 400 }] } },
+      { label: "400 — total ≠ payments", status: 400, body: { success: false, message: "Order 1: total_amount 316.56 is not the sum of payments (300)", data: [], failed: [{ index: 0, message: "Order 1: total_amount 316.56 is not the sum of payments (300)", status: 400 }] } },
+    ],
   }),
   ep({
     id: "order-refund-complete-bulk",
@@ -1733,17 +1939,14 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/orders/refunds/complete/bulk",
     summary: "Bulk Order Refund",
-    description:
-      "POS sync: { storeId, locationId, staffId, items: [...] }. storeId, locationId and staffId are sent once, before items[] (location number, e.g. 1, or UUID) — any role: a store admin may name any location, a manager / cashier only their own (another location is refused with 403). Every order refunded must be at that location (else 'Order not found at this location'). Refunds whole orders: the remaining qty on every line of each order. Response data: one refund per order, in order — { id, location, staff (user number), order, receiptId, currency, reason, amount (before tax), tax, total, payments }. payments[] says how the refund is paid back: the same way the sale was paid, each method getting its own part back with the payment tax it was charged — { method, bill_share, payment_tax_percent, payment_tax_amount, amount }. E.g. a sale paid card 600 + cash 937.25 for 12 units gives back card 50 + cash 78.10 per unit; method credit means it was taken off the customer's udhaar. Only the cash part leaves the cash drawer. Refunding unit by unit returns exactly what each method paid (any paisa from rounding comes back on a later unit). Failed orders are listed in failed[]; when all fail the reply is success false with the first error. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
-    body: {
-      storeId: 1,
-      locationId: 1,
-      staffId: 2,
-      items: [
-        { order_id: 2, reason: "Full return" },
-        { order_id: 3, reason: "Customer changed mind" },
-      ],
-    },
+    description: "Complete refund — everything still left on the order comes back (after any partial refund, what remains): the same body as Bulk Order Items Refund, with every remaining line in lines[]: { storeId, locationId, staffId, batchId, items: [{ client_local_id, refunded_at, order_id, reason, restock?, lines: [{ order_item_id, qty, restock?, discount_amount, amount, taxes, total }], payments, total_amount }] }. " + REFUND_RULES + " Every line must be fully back after it (else 400 — use Bulk Order Items Refund for part of an order); the order turns refunded. " + REFUND_ROW_SHAPE + " The example: what is left of order 3 after its partial refund — 3 kg Sugar, the 3 Pepsi Cane (with the free one) and the 250 g Mamra almonds (2443.30) — goes back the way it was paid: card 1000 + 2% = 1020, JazzCash 783.70 + Rs 25 = 808.70, cash 659.60 (2488.30); with the 340.40 already refunded, all of 2828.70 is back and the order turns refunded.",
+    body: REFUND_COMPLETE_REQUEST,
+    ownResponses: true,
+    responses: [
+      refundCreated(REFUND_COMPLETE_ROWS),
+      { label: "200 — sent again (client_local_id)", status: 200, body: { success: true, message: "Refunded Successfully", data: [REFUND_COMPLETE_ROWS[0]] } },
+      { label: "400 — lines left out", status: 400, body: { success: false, message: "Order 3: a complete refund must give back every remaining line (line 2 has 1 left)", data: [], failed: [{ index: 0, message: "Order 3: a complete refund must give back every remaining line (line 2 has 1 left)", status: 400 }] } },
+    ],
   }),
   ep({
     id: "refund-list-complete",
@@ -1751,18 +1954,21 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/orders/refunds",
     summary: "Refunds Complete Orders",
-    description:
-      "Whole orders refunded with Bulk Order Refund (type=complete) — one entry per order, its lines added up. Each refund { id, location, staff, order, receiptId, currency, reason, amount (before tax), tax, total }. Filters: orderId, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refund time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Complete refunds (type=complete) made with Bulk Order Refund, newest first. " + REFUND_ROW_SHAPE + " Filters: type, orderId (order number), batchId, staffId, from / to, range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refunded_at): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
       { name: "range", default: "", required: false },
       { name: "type", default: "complete", required: false },
       { name: "orderId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "staffId", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
     ],
+    ownResponses: true,
+    responses: [refundPage([REFUND_COMPLETE_ROWS[1], REFUND_COMPLETE_ROWS[0]])],
   }),
   ep({
     id: "refund-list-partial",
@@ -1770,18 +1976,21 @@ export const endpoints = [
     method: "GET",
     path: "/api/v1/orders/refunds",
     summary: "Refunds Partial Order",
-    description:
-      "Item refunds made with Bulk Order Items Refund (type=partial) — one entry per refunded item. Each refund { id, location, staff, order, receiptId, currency, reason, amount (before tax), tax, total }. Filters: orderId, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refund time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Partial refunds (type=partial) made with Bulk Order Items Refund, newest first. " + REFUND_ROW_SHAPE + " Filters: type, orderId (order number), batchId, staffId, from / to, range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refunded_at): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
       { name: "range", default: "", required: false },
       { name: "type", default: "partial", required: false },
       { name: "orderId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "staffId", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
     ],
+    ownResponses: true,
+    responses: [refundPage([REFUND_PARTIAL_ROW])],
   }),
 
   ep({
@@ -1887,7 +2096,7 @@ export const endpoints = [
     method: "POST",
     path: "/api/v1/taxes/bulk",
     summary: "Bulk Tax Creation",
-    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 sugar tax only on Pepsi 2L and Pack Of Pepsi. Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
+    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 Sugar tax (per unit: a bottle, a kg) on Pepsi — all its variants — and Sugar (product numbers 1 and 22). Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
     body: {
       storeId: 1,
       items: [
@@ -2004,7 +2213,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/products/bulk",
     summary: "Normal Product Edit",
-    description: `Edit mode 1 of 2 — the full edit (the dashboard's Edit product page; the POS sends every edit made offline here). ${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids and stock_scope / stock_location_ids (location numbers, store admin only). Stock is the counted total per location, not a change: variants[].stock (or stock for a product without variants) = [{ location_id, qty }]; the server writes the difference as an adjustment / count movement, and nothing when it is the same. variants[] with id (the variant number 1, 2, 3…) changes that variant; without id it adds a new one (numbered next) whose stock is its opening balance. A location that newly holds the stock gets qty 0 for each variant. The example: Pepsi 1L counted 48 at location 1 (was 50: -2 written) and Jumbo 6 at location 2 with a new price; a new 500ml pack in Pack Of Pepsi; Lux stock now at locations 1 and 3, Green counted 40 at 1. Reply: the updated products (same shape as create), with stock_warnings when a stock row was skipped.`,
+    description: `Edit mode 1 of 2 — the full edit (the dashboard's Edit product page; the POS sends every edit made offline here). ${BULK_UPDATE_NOTE} Any product field, as in create — only the fields sent change: title, sku, barcode, category_id (category number), unit, cost / price, discount_*, taxes, pack fields, sell_loose, low_stock_threshold, is_active, is_pos_visible, is_web_visible, location_scope / location_ids and stock_scope / stock_location_ids (location numbers, store admin only). Stock is the counted total per location, not a change: variants[].stock (or stock for a product without variants) = [{ location_id, qty }]; the server writes the difference as an adjustment / count movement, and nothing when it is the same. variants[] with id (the variant number 1, 2, 3…) changes that variant; without id it adds a new one (numbered next) whose stock is its opening balance. A location that newly holds the stock gets qty 0 for each variant. The example: Pepsi 1.5L (product 1, variant 4) gets a new pack price and cost (1150 / 560 — its unit price 230), and Sugar (product 22) a new price (165 a kg) and low-stock level. Reply: the updated products (same shape as create), with stock_warnings when a stock row was skipped.`,
 
     body: {
       items: [
@@ -2125,7 +2334,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-movements/bulk",
     summary: "Update Stock Movements",
-    description: "Fixes wrong movements, one or many: { items: [{ id, movement_type?, reason?, qty?, reason_note? }] } — always an array, even for one movement (the POS sends its queued edits together; the dashboard's Stock Movements → Edit sends one). id = the movement number (1, 2, 3…), never the UUID. Only what is sent changes: movement_type (stock_in | stock_out | adjustment), reason (stock_in: purchase, customer_return, other · stock_out: damage, expiry, waste, theft, return_to_supplier, other · adjustment: count, other), qty (the amount moved: stock_in adds it, stock_out takes it away whatever the sign, an adjustment keeps its + / − sign; a new type without qty keeps the old amount), reason_note. The difference (new qty − old qty) goes on the stock of that product at that location at once, and the stock after of this movement and of every later one there moves by the same amount. Each row saves on its own: a row that fails (stock below 0, a sale / refund / transfer movement, not found) is listed in failed[] ({ index, message, status }) and the rest still save; when every row fails the reply is that first error. Store admin / manager (a manager only at their own location). Reply data: one { movement, stock } per row, short numbers only — movement { id, location, product (with variant), staff, supplier, movement_type, reason, reason_note, qty, qty_after, created_at, updated_at } and the stock now { location, product, qty, pack_size, number_of_packs, loose_units, sell_loose, expiry_date, low_stock_threshold, is_low, updated_at }. The example: movement 12 (a stock in of 5 Pepsi 1.5L, stock 50 → 55) was really 8 (+3 → 58); movement 14 (a stock in of 5 Pepsi 350ML) was 5 broken bottles (−10 → 45).",
+    description: "Fixes wrong movements, one or many: { items: [{ id, movement_type?, reason?, qty?, reason_note? }] } — always an array, even for one movement (the POS sends its queued edits together; the dashboard's Stock Movements → Edit sends one). id = the movement number (1, 2, 3…), never the UUID. Only what is sent changes: movement_type (stock_in | stock_out | adjustment), reason (stock_in: purchase, customer_return, other · stock_out: damage, expiry, waste, theft, return_to_supplier, other · adjustment: count, other), qty (the amount moved: stock_in adds it, stock_out takes it away whatever the sign, an adjustment keeps its + / − sign; a new type without qty keeps the old amount), reason_note. The difference (new qty − old qty) goes on the stock of that product at that location at once, and the stock after of this movement and of every later one there moves by the same amount. Each row saves on its own: a row that fails (stock below 0, a sale / refund / transfer movement, not found) is listed in failed[] ({ index, message, status }) and the rest still save; when every row fails the reply is that first error. Store admin / manager (a manager only at their own location). Reply data: one { movement, stock } per row, short numbers only — movement { id, location, product (with variant), staff, supplier, movement_type, reason, reason_note, qty, qty_after, created_at, updated_at } and the stock now { location, product, qty, pack_size, number_of_packs, loose_units, sell_loose, expiry_date, low_stock_threshold, is_low, updated_at }. The example: movement 20 (the stock in of 10 packs of Pepsi 350ML = 50 bottles) was really 12 packs (60: +10 → 85); movement 21 (1 Garnier Bright Complete damaged) was 2 jars (−1 more → 13).",
     body: {
       items: [
         { id: 12, qty: 8, reason_note: "Bill #4521 was 8 bottles, not 5" },
@@ -2168,7 +2377,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/product-stocks/bulk",
     summary: "Update Product Stock",
-    description: "Sets the stock of products at locations, one or many: { locationId?, staff_id?, items: [...] } — always an array, even for one row (the POS syncs its stock changes; the dashboard's Product Stock & Expiry → Edit sends one). Each item: product_id (the product number), variant_id (the variant number inside it, for a product with variants), location_id (the location number; or send locationId once next to items[]; a manager / cashier only their own), then the new stock — qty (the total in units, not a change), or delta (+ adds / − takes away), or for a pack product number_of_packs (+ loose_units when it sells loose; total = packs × pack_size + loose_units) — and / or expiry_date (YYYY-MM-DD, null clears it), low_stock_threshold (the alert level at this location; null = the level set on the product), reason (for a qty change: count (default), purchase, damage, expiry, waste, theft, return_to_supplier, customer_return, other), movement_type (stock_in | stock_out | adjustment (default) — must match the direction), reason_note. A qty change writes a movement for the difference, so Stock Movements shows it; only the expiry date / alert level changing writes none (movement null). Each row saves on its own (failed[] lists the ones that did not). Reply data: one { stock, movement } per row, short numbers only (same shapes as Update Stock Movements). The example: Pepsi 1.5L at location 1 counted 28 (was 30); Pepsi 350ML (a pack of 10 that also sells loose) at location 2 set to 4 packs + 8 (48, was 50) with a new expiry date and alert level.",
+    description: "Sets the stock of products at locations, one or many: { locationId?, staff_id?, items: [...] }. With lot_id an item changes ONE lot (the dashboard edits lot by lot): qty / number_of_packs are that lot's new total and expiry_date its new date; without it qty is the whole stock's new total. The reply: { stock (with lots [{ id, qty, expiry_date, days_left, expiry_status, received_at, source }], soonest first), lot (the one changed), movement (with its lots) }. — always an array, even for one row (the POS syncs its stock changes; the dashboard's Product Stock & Expiry → Edit sends one). Each item: product_id (the product number), variant_id (the variant number inside it, for a product with variants), location_id (the location number; or send locationId once next to items[]; a manager / cashier only their own), then the new stock — qty (the total in units, not a change), or delta (+ adds / − takes away), or for a pack product number_of_packs (+ loose_units when it sells loose; total = packs × pack_size + loose_units) — and / or expiry_date (YYYY-MM-DD, null clears it), low_stock_threshold (the alert level at this location; null = the level set on the product), reason (for a qty change: count (default), purchase, damage, expiry, waste, theft, return_to_supplier, customer_return, other), movement_type (stock_in | stock_out | adjustment (default) — must match the direction), reason_note. A qty change writes a movement for the difference, so Stock Movements shows it; only the expiry date / alert level changing writes none (movement null). Each row saves on its own (failed[] lists the ones that did not). Reply data: one { stock, movement } per row, short numbers only (same shapes as Update Stock Movements). The example: Pepsi 1.5L (a pack of 5 that also sells loose) at location 1 counted 3 packs + 2 bottles (17, was 20 — an adjustment of −3); Sugar at location 1 gets a new expiry date and alert level (no qty change, so no movement).",
     body: {
       items: [
         { product_id: 1, variant_id: 4, location_id: 1, qty: 28, reason: "count", reason_note: "Shelf count" },
@@ -2208,7 +2417,7 @@ export const endpoints = [
     method: "PATCH",
     path: "/api/v1/stock-transfers/bulk",
     summary: "Update Stock Transfers",
-    description: "The one transfer update — the same request and reply as Bulk Stock Transfer (create), plus id: { items: [{ id, from_location_id?, note?, destinations?: [{ to_location_id, products: [{ product_id, variant_id?, qty }] }] }] } — always an array, even for one transfer. id = the transfer number (1, 2, 3…), never the UUID; location / product / variant ids are their numbers as on create. destinations replace every product of the transfer (send the whole list, as when it was created); left out, the products stay and only from_location_id / note change. The source must hold, per product, the qty of every destination together. Only a transfer nothing of which has been received can change (its stock has not moved yet): otherwise 409. Each item saves on its own: one that fails is listed in failed[] ({ index, message, status }) and the rest still save; when every item fails the reply is that first error. Store admin. Reply data: one transfer per item, the create shape — { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff, created_at }. The example: transfer 1 now sends 25 Pepsi 1L (was 20) to location 2 and drops the Lux Green, with a new note.",
+    description: "The one transfer update — the same request and reply as Bulk Stock Transfer (create), plus id: { items: [{ id, from_location_id?, note?, destinations?: [{ to_location_id, products: [{ product_id, variant_id?, qty }] }] }] } — always an array, even for one transfer. id = the transfer number (1, 2, 3…), never the UUID; location / product / variant ids are their numbers as on create. destinations replace every product of the transfer (send the whole list, as when it was created); left out, the products stay and only from_location_id / note change. The source must hold, per product, the qty of every destination together. Only a transfer nothing of which has been received can change (its stock has not moved yet): otherwise 409. Each item saves on its own: one that fails is listed in failed[] ({ index, message, status }) and the rest still save; when every item fails the reply is that first error. Store admin. Reply data: one transfer per item, the create shape — { id, from_location, status, destinations [{ to_location, status, products [{ product, qty, received_qty, status }] }], note, staff, created_at }. The example: transfer 1 (location 1 → Branch 2) now sends 15 Pepsi 1.5L (was 10), the same 5 Garnier Vitamin C, and 20 kg Sugar as well.",
     body: {
       items: [
         {
@@ -2428,6 +2637,12 @@ export const endpoints = [
     description: `${BULK_UPDATE_NOTE} name, address_line, city, postal_code, phone, is_active, is_default, manager_* (a manager only their own branch).`,
     body: { items: [{ id: 3, phone: "03001234568", postal_code: "75300" }] },
   }),
+]
+
+// The documented list: the entries above (minus the ones no longer documented) and the demo store's new ones.
+export const endpoints = [
+  ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id)),
+  ...DEMO_NEW_EPS.map((spec) => ep(spec)),
 ]
 
 
