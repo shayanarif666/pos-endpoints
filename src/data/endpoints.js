@@ -1072,6 +1072,7 @@ export const getSections = [
   { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
   { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list", "surcharge-get"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
+  { id: "get-customers", name: "Customers", tag: "customers", ids: ["customer-list"] },
   { id: "get-discounts", name: "Discounts", tag: "offers", ids: ["offer-list"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-overview", "reporting-section", "rep-all-locations", "rep-location", "rep-profit"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
