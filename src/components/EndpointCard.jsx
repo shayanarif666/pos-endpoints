@@ -5,6 +5,7 @@ import { buildUrl, sendRequest } from "../lib/request.js"
 import { defaultOf, noteWithoutDefault, ruleOf, typeOf } from "../data/bodyFields.js"
 import { allToggles, buildBody, defaultToggles } from "../data/bodyBuilder.js"
 import { JsonEditor, JsonView, Modal, ViewButton } from "./DocUi.jsx"
+import { REPORT_COMMON, REPORT_SECTION, enumsFor, queryRowsFor } from "../data/reportSections.js"
 
 const METHOD_CLASS = {
   GET: "method-get",
@@ -100,6 +101,22 @@ export function EndpointCard({
   const [query, setQuery] = useState(
     Object.fromEntries(endpoint.query.map((q) => [q.name, q.default ?? ""]))
   )
+  // Detailed Reporting: the :section in the path decides which filters the query parameters show.
+  const hasSections = Boolean(endpoint.sections?.length)
+  const sectionId = hasSections ? String(pathParams.section || "").trim() : null
+  const queryRows = hasSections ? queryRowsFor(sectionId) : endpoint.query
+  const sectionEnums = hasSections ? enumsFor(sectionId) : null
+  // The section the "View Section Filters" dialog shows (null = the one in :section).
+  const [filterSection, setFilterSection] = useState(null)
+  useEffect(() => {
+    if (!hasSections) return
+    // Another section: keep the values of the parameters it shares (dates, location, page…), drop the rest.
+    setQuery((current) => {
+      const next = {}
+      for (const row of queryRowsFor(sectionId)) next[row.name] = row.name in current ? current[row.name] : row.default ?? ""
+      return next
+    })
+  }, [hasSections, sectionId])
   const [headerMap, setHeaderMap] = useState(() =>
     defaultHeaders(endpoint.auth, endpoint.method, session)
   )
@@ -266,7 +283,7 @@ export function EndpointCard({
     }
   }
 
-  const enumCount = endpoint.enums ? Object.keys(endpoint.enums).length : 0
+  const enumCount = hasSections ? Object.keys(sectionEnums).length : endpoint.enums ? Object.keys(endpoint.enums).length : 0
   // GET requests show their path parameters right above Execute instead of in a dialog.
   const inlinePathParams = endpoint.method === "GET" && endpoint.pathParams.length > 0
   const shownFields = fieldsForRole(endpoint.fields, adminOnly, session.role)
@@ -289,6 +306,13 @@ export function EndpointCard({
       bodyInvalid = true
     }
   }
+
+  // The sample reply under Execute: the section's own one (Detailed Reporting), else the variant's / the first.
+  const sampleShown = hasSections
+    ? endpoint.responses?.find((row) => row.section === sectionId)
+    : endpoint.responses?.find((row) => row.variant && row.variant === variantId) || endpoint.responses?.[0]
+  // View Response: the section in :section first.
+  const sampleList = hasSections ? [...(endpoint.responses || [])].sort((a, b) => Number(b.section === sectionId) - Number(a.section === sectionId)) : endpoint.responses
 
   return (
     <article className={`overflow-hidden rounded border ${OP_CLASS[endpoint.method]}`}>
@@ -332,12 +356,25 @@ export function EndpointCard({
                 onClick={() => setModal("path")}
               />
             ) : null}
-            {endpoint.query.length ? (
+            {queryRows.length ? (
               <ViewButton
                 label="View Query Parameters"
-                count={endpoint.query.length}
+                count={queryRows.length}
                 onClick={() => setModal("query")}
               />
+            ) : null}
+            {hasSections ? (
+              <>
+                <ViewButton label="View Section Names" count={endpoint.sections.length} onClick={() => setModal("sectionNames")} />
+                <ViewButton
+                  label="View Section Filters"
+                  count={REPORT_SECTION[sectionId]?.filters.length ?? 0}
+                  onClick={() => {
+                    setFilterSection(null)
+                    setModal("sectionFilters")
+                  }}
+                />
+              </>
             ) : null}
             {endpoint.responses?.length ? (
               <ViewButton
@@ -432,7 +469,11 @@ export function EndpointCard({
           {inlinePathParams ? (
             <section>
               <h4 className="mb-2 text-sm font-semibold text-slate-700">Path Parameters</h4>
-              <KeyValueInputs rows={endpoint.pathParams} values={pathParams} onChange={setPathParams} />
+              {hasSections ? (
+                <SectionInput sections={endpoint.sections} value={pathParams.section ?? ""} onChange={(value) => setPathParams({ ...pathParams, section: value })} />
+              ) : (
+                <KeyValueInputs rows={endpoint.pathParams} values={pathParams} onChange={setPathParams} />
+              )}
             </section>
           ) : null}
 
@@ -457,12 +498,8 @@ export function EndpointCard({
           {/* The live reply once executed; before that, the prepared sample reply. */}
           {result ? (
             <ResponsePanel result={result} />
-          ) : endpoint.responses?.length ? (
-            <SampleResponsePanel
-              sample={endpoint.responses.find((row) => row.variant && row.variant === variantId) || endpoint.responses[0]}
-              more={endpoint.responses.length - 1}
-              onMore={() => setModal("responses")}
-            />
+          ) : endpoint.responses?.length && sampleShown ? (
+            <SampleResponsePanel sample={sampleShown} more={endpoint.responses.length - 1} onMore={() => setModal("responses")} />
           ) : null}
         </div>
       ) : null}
@@ -491,7 +528,7 @@ export function EndpointCard({
       {modal === "responses" ? (
         <Modal title="Sample Responses" wide onClose={() => setModal(null)}>
           <div className="space-y-4">
-            {endpoint.responses.map((sample) => (
+            {sampleList.map((sample) => (
               <div key={sample.label} className="overflow-hidden rounded-md border border-slate-200">
                 <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                   {sample.label}
@@ -505,7 +542,10 @@ export function EndpointCard({
       ) : null}
       {modal === "enums" ? (
         <Modal title="Enums" onClose={() => setModal(null)}>
-          <ResourceEnums enums={endpoint.enums} />
+          {hasSections ? (
+            <p className="mb-3 text-sm text-slate-500">The values the filters of <code className="font-mono font-semibold">{sectionId}</code> accept. Change :section to see another section's.</p>
+          ) : null}
+          <ResourceEnums enums={hasSections ? sectionEnums : endpoint.enums} />
         </Modal>
       ) : null}
       {modal === "path" ? (
@@ -515,7 +555,40 @@ export function EndpointCard({
       ) : null}
       {modal === "query" ? (
         <Modal title="Query Parameters" onClose={() => setModal(null)}>
-          <KeyValueInputs rows={endpoint.query} values={query} onChange={setQuery} />
+          {hasSections ? (
+            <p className="mb-3 text-sm text-slate-500">
+              The parameters of the section <code className="font-mono font-semibold">{sectionId || "—"}</code>: the ones every section takes, then its own filters. They change when you change :section. A box left empty is not sent.
+            </p>
+          ) : null}
+          <KeyValueInputs rows={queryRows} values={query} onChange={setQuery} />
+        </Modal>
+      ) : null}
+      {modal === "sectionNames" ? (
+        <Modal title="Section Names" wide onClose={() => setModal(null)}>
+          <p className="mb-3 text-sm text-slate-500">
+            Put one of these in <code className="font-mono font-semibold">:section</code>. These ten are what the POS shows; the dashboard has more sections. Plan = the store plan that unlocks it.
+          </p>
+          <SectionNamesTable
+            sections={endpoint.sections}
+            active={sectionId}
+            onUse={(id) => {
+              setPathParams({ ...pathParams, section: id })
+              setModal(null)
+            }}
+          />
+        </Modal>
+      ) : null}
+      {modal === "sectionFilters" ? (
+        <Modal title="Section Filters" wide onClose={() => setModal(null)}>
+          <SectionFiltersPanel
+            sections={endpoint.sections}
+            value={filterSection ?? (REPORT_SECTION[sectionId] ? sectionId : endpoint.sections[0].id)}
+            onPick={setFilterSection}
+            onUse={(id) => {
+              setPathParams({ ...pathParams, section: id })
+              setModal(null)
+            }}
+          />
         </Modal>
       ) : null}
       {modal === "files" ? (
@@ -626,17 +699,32 @@ function KeyValueInputs({ rows, values, onChange }) {
           key={row.name}
           className="grid grid-cols-[200px_1fr] border-b border-slate-100 last:border-b-0"
         >
-          <div className="bg-slate-50 px-3 py-2.5">
+          <div className="bg-slate-50 px-3 py-2.5" title={row.description || undefined}>
             <div className="font-mono text-sm font-semibold text-slate-800">{row.name}</div>
             {row.required ? (
               <div className="text-[10px] font-semibold uppercase text-red-500">required</div>
+            ) : row.type ? (
+              <div className="text-[10px] uppercase text-slate-400">{row.type}</div>
             ) : null}
           </div>
-          <input
-            className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
-            value={values[row.name] ?? ""}
-            onChange={(e) => onChange({ ...values, [row.name]: e.target.value })}
-          />
+          {row.values ? (
+            <select
+              className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
+              value={values[row.name] ?? ""}
+              onChange={(e) => onChange({ ...values, [row.name]: e.target.value })}
+            >
+              <option value="">(not set)</option>
+              {row.values.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
+              value={values[row.name] ?? ""}
+              onChange={(e) => onChange({ ...values, [row.name]: e.target.value })}
+            />
+          )}
         </div>
       ))}
     </div>
@@ -824,5 +912,141 @@ function CalcNote({ note }) {
         ))}
       </div>
     </details>
+  )
+}
+
+const LEVEL_CLASS = { basic: "bg-emerald-50 text-emerald-700", standard: "bg-sky-50 text-sky-700", advanced: "bg-violet-50 text-violet-700" }
+
+/** The :section path parameter: a text box that suggests the section names. */
+function SectionInput({ sections, value, onChange }) {
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      <div className="grid grid-cols-[200px_1fr] border-b border-slate-100 last:border-b-0">
+        <div className="bg-slate-50 px-3 py-2.5">
+          <div className="font-mono text-sm font-semibold text-slate-800">section</div>
+          <div className="text-[10px] font-semibold uppercase text-red-500">required</div>
+        </div>
+        <input
+          list="report-section-names"
+          className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Pick or type a section name"
+        />
+        <datalist id="report-section-names">
+          {sections.map((section) => (
+            <option key={section.id} value={section.id}>{section.label}</option>
+          ))}
+        </datalist>
+      </div>
+    </div>
+  )
+}
+
+/** Every section: its name, plan and what it shows. "Use" puts it in :section. */
+function SectionNamesTable({ sections, active, onUse }) {
+  const grid = "grid-cols-[minmax(120px,0.8fr)_minmax(110px,0.8fr)_84px_84px_minmax(0,2fr)_56px]"
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      <div className={`grid ${grid} gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500`}>
+        <span>Section</span>
+        <span>Name</span>
+        <span>Plan</span>
+        <span>In the API</span>
+        <span>Shows</span>
+        <span />
+      </div>
+      {sections.map((section) => (
+        <div key={section.id} className={`grid ${grid} items-start gap-3 border-t border-slate-100 px-4 py-2.5 text-sm ${section.id === active ? "bg-[#f5f9ff]" : ""}`}>
+          <code className="break-all font-mono font-semibold text-slate-800">{section.id}</code>
+          <span className="font-medium text-slate-800">{section.label}</span>
+          <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold capitalize ${LEVEL_CLASS[section.level] || "bg-slate-100 text-slate-600"}`}>{section.level}</span>
+          <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold ${section.ready ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{section.ready ? "Ready" : "To build"}</span>
+          <span className="text-slate-600">
+            {section.about}
+            {section.today ? <span className="mt-1 block text-xs text-amber-700">{section.today}</span> : null}
+          </span>
+          <button type="button" onClick={() => onUse(section.id)} className="h-7 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-[#4990e2] hover:bg-slate-50">
+            Use
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const FILTER_GRID = "grid-cols-[minmax(120px,0.9fr)_72px_minmax(120px,1.1fr)_90px_104px_minmax(0,2fr)]"
+
+/** Filters as a table: name, type, accepted values, default, whether the API applies it, what it does. */
+function FilterTable({ rows, empty }) {
+  if (!rows.length) return <p className="rounded-md border border-slate-200 px-4 py-3 text-sm text-slate-500">{empty}</p>
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-200">
+      <div className={`grid ${FILTER_GRID} gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500`}>
+        <span>Name</span>
+        <span>Type</span>
+        <span>Values</span>
+        <span>Default</span>
+        <span>API</span>
+        <span>What it does</span>
+      </div>
+      {rows.map((row) => (
+        <div key={row.name} className={`grid ${FILTER_GRID} items-start gap-3 border-t border-slate-100 px-4 py-2.5 text-sm`}>
+          <code className="break-all font-mono font-semibold text-slate-800">{row.name}</code>
+          <span className="text-slate-500">{row.type}</span>
+          <div className="flex flex-wrap gap-1">
+            {row.values ? row.values.map((value) => <span key={value} className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">{value}</span>) : <span className="text-slate-400">—</span>}
+          </div>
+          <code className="break-all font-mono text-slate-600">{row.default || "—"}</code>
+          <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold ${row.live ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{row.live ? "Applied" : "Not applied yet"}</span>
+          <span className="text-slate-600">{row.description}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** The Section Filters dialog: pick a section, see every filter it takes and the lists it returns. */
+function SectionFiltersPanel({ sections, value, onPick, onUse }) {
+  const section = sections.find((row) => row.id === value) || sections[0]
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="text-sm font-semibold text-slate-700" htmlFor="report-filter-section">Section</label>
+        <select
+          id="report-filter-section"
+          value={section.id}
+          onChange={(e) => onPick(e.target.value)}
+          className="h-9 rounded-md border border-slate-300 bg-white px-3 font-mono text-sm"
+        >
+          {sections.map((row) => (
+            <option key={row.id} value={row.id}>{row.id} — {row.label}</option>
+          ))}
+        </select>
+        <button type="button" onClick={() => onUse(section.id)} className="h-9 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-[#4990e2] hover:bg-slate-50">
+          Use this section
+        </button>
+      </div>
+      <div>
+        <p className="text-sm text-slate-700">{section.about}</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Lists in the reply (<code className="font-mono">table=</code>):{" "}
+          {section.tables.map((name) => (
+            <code key={name} className="mr-1 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">{name}</code>
+          ))}
+          <span className={`ml-2 rounded px-2 py-0.5 text-xs font-semibold capitalize ${LEVEL_CLASS[section.level]}`}>{section.level} plan</span>
+        </p>
+        {section.today ? <p className="mt-1 text-xs text-amber-700">{section.today}</p> : null}
+      </div>
+      <div>
+        <h4 className="mb-2 text-sm font-semibold text-slate-700">Filters of {section.label}</h4>
+        <FilterTable rows={section.filters} empty="This section has no filters of its own." />
+      </div>
+      <div>
+        <h4 className="mb-2 text-sm font-semibold text-slate-700">Every section takes</h4>
+        <FilterTable rows={REPORT_COMMON} empty="" />
+      </div>
+      <p className="text-xs text-slate-500">A filter marked "Not applied yet" is agreed but the API does not apply it yet: it is ignored, not an error.</p>
+    </div>
   )
 }

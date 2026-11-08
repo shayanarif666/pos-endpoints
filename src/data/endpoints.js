@@ -813,6 +813,8 @@ function ep({
   responses = [],
   // true = `responses` replace the captured ones (e.g. one reply per bodyBuilder variant).
   ownResponses = false,
+  // Detailed Reporting: the sections of /reporting/:section, each with its filters (data/reportSections.js).
+  sections = null,
 }) {
   // The demo store (demo.js) gives the request / replies of the entries it drives.
   const demo = DEMO_EPS[id]
@@ -850,6 +852,7 @@ function ep({
     responses: ownResponses ? responses : [...(SAMPLE_RESPONSES[id] || []), ...responses],
     files,
     capture,
+    sections,
     enums: endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
     fields: effectiveBody == null ? null : bodyFieldsFor({ id, tag }),
   }
@@ -1074,7 +1077,7 @@ export const getSections = [
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-customers", name: "Customers", tag: "customers", ids: ["customer-list"] },
   { id: "get-discounts", name: "Discounts", tag: "offers", ids: ["offer-list"] },
-  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-overview", "reporting-section", "rep-all-locations", "rep-location", "rep-profit"] },
+  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-section"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
   { id: "get-order-history", name: "Complete Order History", tag: "orders", ids: ["order-history"] },
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },

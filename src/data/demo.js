@@ -15,6 +15,8 @@
  * category's (category); payment surcharge on each method's share of the bill.
  */
 
+import { REPORT_SECTION, REPORT_SECTIONS, queryRowsFor } from "./reportSections.js"
+
 const R = "required"
 const O = "optional"
 const note = (text) => [O, text]
@@ -1374,6 +1376,218 @@ Object.assign(DEMO_EPS, {
 
 // ---------------------------------------------------------------- new entries
 
+// ---------------------------------------------------------------- Detailed Reporting: one reply per section
+// Worked out from the demo store's sales, refunds and stock movements, so the figures agree with
+// the rest of the docs. (The sales reply is written out in full below.)
+
+const RPT_API_LABEL = {
+  sales: "Sales Summary", top_products: "Top Products", top_categories: "Top Categories", payments: "Payments", batches: "Z-Reports (Batches)",
+  inventory: "Inventory", movements: "Stock Movements", refunds_cancelled: "Refunds / Cancelled", cashiers: "By Cashier", tax: "Tax Breakdown",
+}
+const rptTables = (lists) =>
+  Object.fromEntries(Object.entries(lists).map(([name, rows]) => [name, { rows, pagination: { page: 1, limit: 20, total: rows.length, total_pages: 1 } }]))
+function rptReply(id, summary, lists) {
+  const section = REPORT_SECTION[id]
+  const reply = ok({ section: id, label: RPT_API_LABEL[id], level: section.level, reporting_level: "standard", location: "all", from: "2026-11-01", to: "2026-11-07", summary, tables: rptTables(lists) })
+  return { ...reply, section: id, label: `${section.label} · 200 OK` }
+}
+function rptPercent(rows, key) {
+  const total = sum(rows, (row) => row[key])
+  return rows.map((row) => ({ ...row, percent: total > 0 ? Math.round((row[key] / total) * 100) : 0 }))
+}
+const rptTax = (line, level) => sum(line.taxes.filter((tax) => tax.level === level), (tax) => tax.amount)
+const rptFigures = (line) => ({
+  units_sold: line.custom ? line.qty : line.units,
+  gross_sales: line.gross,
+  discounts: line.discount,
+  net_sales: line.subtotal,
+  sales_tax: 0,
+  product_tax: sum(line.taxes.filter((tax) => tax.level !== "category"), (tax) => tax.amount),
+  category_tax: rptTax(line, "category"),
+  tax: line.tax_amount,
+  total_sales: line.total,
+})
+/** The sold lines added up per group (a product / variant, or a category), best seller first. */
+function rptGroupLines(keyOf, headOf) {
+  const groups = new Map()
+  for (const order of ORDERS) {
+    for (const line of order.lines) {
+      const k = keyOf(line)
+      const figures = rptFigures(line)
+      if (!groups.has(k)) groups.set(k, { ...headOf(line), ...Object.fromEntries(Object.keys(figures).map((name) => [name, 0])) })
+      const row = groups.get(k)
+      for (const [name, value] of Object.entries(figures)) row[name] = r2(row[name] + value)
+    }
+  }
+  return rptPercent([...groups.values()].sort((a, b) => b.total_sales - a.total_sales), "total_sales")
+}
+const rptProductName = (line) => (line.custom ? line.title : productRef(line.product, line.variantId, { barcode: false }).title)
+const rptCategoryName = (line) => (line.custom ? line.category : CATEGORIES[line.product.category_id].name)
+const rptReason = (reason) => String(reason || "other").split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
+
+function reportSamples() {
+  // By Products / By Categories
+  const products = rptGroupLines((line) => rptProductName(line), (line) => ({ product: rptProductName(line), category: rptCategoryName(line), unit: line.custom ? null : line.product.unit })).map((row, index) => ({ id: index + 1, ...row }))
+  const categories = rptGroupLines((line) => rptCategoryName(line), (line) => ({ category: rptCategoryName(line) }))
+
+  // Payments: what each method took, what went back by it, the surcharge kept.
+  const sold = ORDERS.flatMap((order) => order.payments)
+  const back = REFUNDS.flatMap((refund) => refund.payments).filter((part) => part.method !== "credit")
+  const methods = [...new Set(sold.map((part) => part.method))]
+  const paymentRows = rptPercent(
+    methods
+      .map((method) => {
+        const taken = sold.filter((part) => part.method === method)
+        const gross = sum(taken, (part) => part.amount)
+        const refunds = sum(back.filter((part) => part.method === method), (part) => part.amount)
+        const tax = r2(sum(taken, (part) => part.surcharge_amount) - sum(back.filter((part) => part.method === method), (part) => part.surcharge_amount))
+        return { method: method.toUpperCase(), transactions: taken.length, gross_amount: gross, tax, refunds, net_amount: r2(Math.max(0, gross - refunds)) }
+      })
+      .sort((a, b) => b.net_amount - a.net_amount),
+    "net_amount"
+  )
+  const paymentTotals = {
+    transactions: sum(paymentRows, (row) => row.transactions),
+    gross_amount: sum(paymentRows, (row) => row.gross_amount),
+    tax: sum(paymentRows, (row) => row.tax),
+    refunds: sum(paymentRows, (row) => row.refunds),
+    net_amount: sum(paymentRows, (row) => row.net_amount),
+  }
+
+  // Z-Reports: batch 1 (Ahmed's drawer, opened with Rs 5,000) and each cashier's overall sales.
+  const methodNet = (name) => paymentRows.find((row) => row.method === name)?.net_amount || 0
+  const opening = 5000
+  const batchRow = {
+    id: "6f1c2a52-9d0e-4b6a-8e57-1a2b3c4d5e61",
+    session_id: "SESS-5E61",
+    batch_number: 1,
+    cashier_id: "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30",
+    date_time: "2026-11-06T09:00:00.000Z",
+    closed_at: null,
+    status: "OPEN",
+    cashier: AHMED.name,
+    opening_amount: opening,
+    orders: ORDERS.length,
+    gross_sales: salesTotals.gross,
+    discounts: salesTotals.discounts,
+    net_sales: salesTotals.net,
+    tax: r2(salesTotals.tax + salesTotals.surcharge),
+    refunds: salesTotals.refunds,
+    total_sales: salesTotals.total,
+    cash_sales: methodNet("CASH"),
+    card_sales: methodNet("CARD"),
+    jazzcash_sales: methodNet("JAZZCASH"),
+    easypaisa_sales: methodNet("EASYPAISA"),
+    cash_in: 0,
+    cash_out: 0,
+    expected_cash: r2(opening + methodNet("CASH")),
+    counted_cash: null,
+    variance: 0,
+    sales: salesTotals.total,
+  }
+  const cashierSales = { id: "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30", cashier: AHMED.name, batches: 1, orders: ORDERS.length, total_sales: salesTotals.total, refunds: salesTotals.refunds, net_sales: r2(Math.max(0, salesTotals.total - salesTotals.refunds)) }
+
+  // Inventory: the stock at the first location, and what came in / went out in the movements.
+  const stockKeys = new Map()
+  for (const move of MOVEMENTS) {
+    if (move.location.id !== 1) continue
+    const k = `${move.product.id}|${move.variant?.id || 0}`
+    if (!stockKeys.has(k)) stockKeys.set(k, { move, in: 0, out: 0 })
+    const row = stockKeys.get(k)
+    row.move = move
+    if (move.qty >= 0) row.in = r2(row.in + move.qty)
+    else row.out = r2(row.out + -move.qty)
+  }
+  const productOf = (move) => Object.values(PRODUCTS).find((product) => product.number === move.product.id)
+  const inventoryRows = [...stockKeys.values()]
+    .slice(0, 8)
+    .map(({ move, in: inn, out }, index) => {
+      const product = productOf(move)
+      return {
+        id: `stock-${index + 1}`,
+        product: move.variant ? `${move.product.title} - ${move.variant.name}` : move.product.title,
+        sku: move.variant ? move.variant.sku : move.product.sku,
+        category: CATEGORIES[product.category_id].name,
+        location: LOCATIONS[1].name,
+        location_id: 1,
+        unit: move.product.unit,
+        stock_in: inn,
+        stock_out: out,
+        current_stock: move.qty_after,
+      }
+    })
+
+  // Stock Movements: the latest ones.
+  const movementRows = [...MOVEMENTS]
+    .reverse()
+    .slice(0, 8)
+    .map((move) => ({
+      id: move.id,
+      date: move.created_at,
+      product: move.variant ? `${move.product.title} - ${move.variant.name}` : move.product.title,
+      location: move.location.name,
+      location_id: move.location.id,
+      type: move.movement_type.toUpperCase(),
+      qty: move.qty,
+      unit: move.product.unit,
+      reason: rptReason(move.reason),
+      channel: "pos",
+      cashier: move.staff?.name || "System",
+    }))
+
+  // Refunds / Cancelled: every refund (partial and complete), newest first. No order was cancelled or voided.
+  const refundRows = [...REFUNDS]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .map((refund) => ({
+      id: refund.number,
+      type: refund.type === "complete" ? "complete_refund" : "partial_refund",
+      date: refund.at,
+      order_number: refund.order.number,
+      channel: "pos",
+      amount: refund.total,
+      reason: refund.reason,
+      cashier: AHMED.name,
+      refund_methods: refund.payments.map((part) => part.method),
+    }))
+
+  // Tax: every tax rule on the lines (the payment surcharge is listed apart).
+  const taxGroups = new Map()
+  for (const order of ORDERS) {
+    for (const line of order.lines) {
+      for (const tax of line.taxes) {
+        const k = `${tax.level}|${tax.name}`
+        if (!taxGroups.has(k)) taxGroups.set(k, { tax_rule: tax.name, level: tax.level, tax_type: tax.name === SUGAR_TAX.name ? "fixed" : "percentage", tax_collected: 0 })
+        taxGroups.get(k).tax_collected = r2(taxGroups.get(k).tax_collected + tax.amount)
+      }
+    }
+  }
+  const taxRows = [...taxGroups.values()].sort((a, b) => b.tax_collected - a.tax_collected).map((row, index) => ({ id: index + 1, ...row }))
+  const surchargeRows = Object.values(SURCHARGES).map((rule) => {
+    const taken = sold.filter((part) => part.method === rule.method)
+    return { id: rule.method, method: rule.method.toUpperCase(), surcharge_type: rule.type, surcharge_value: rule.charges, payments: taken.length, surcharge_collected: sum(taken, (part) => part.surcharge_amount) }
+  })
+
+  return [
+    rptReply("top_products", { shown: products.length, total: products.length, top_only: false }, { rows: products }),
+    rptReply("top_categories", { shown: categories.length, total: categories.length, top_only: false }, { rows: categories }),
+    rptReply("payments", { totals: paymentTotals }, { rows: paymentRows }),
+    rptReply("batches", {}, { rows: [batchRow], by_cashier: [cashierSales] }),
+    rptReply("inventory", {}, { rows: inventoryRows }),
+    rptReply("movements", {}, { rows: movementRows }),
+    rptReply(
+      "refunds_cancelled",
+      { totals: { refunds: refundRows.length, voids: 0, cancelled: 0, amount: sum(refundRows, (row) => row.amount) } },
+      { rows: refundRows }
+    ),
+    rptReply("cashiers", {}, { rows: [{ id: cashierSales.id, cashier: AHMED.name, orders: ORDERS.length, total_sales: salesTotals.total, discounts: salesTotals.discounts, tax: salesTotals.tax, refunds: salesTotals.refunds, net_sales: cashierSales.net_sales }] }),
+    rptReply(
+      "tax",
+      { totals: { orders: ORDERS.length, net_sales: salesTotals.net, tax_collected: salesTotals.tax, surcharge_collected: salesTotals.surcharge, total_sales: salesTotals.total } },
+      { rows: taxRows, surcharges: surchargeRows }
+    ),
+  ]
+}
+
 export const DEMO_NEW_EPS = [
   {
     id: "offer-list",
@@ -1421,70 +1635,19 @@ export const DEMO_NEW_EPS = [
     ],
   },
   {
-    id: "reporting-overview",
-    tag: "reports",
-    method: "GET",
-    path: "/api/v1/reporting",
-    summary: "Reporting",
-    description:
-      "The dashboard's Reporting page: the store plan's reporting level and every report card, locked or not (a locked card needs a higher plan). Query: location (location number | UUID | all), from, to (YYYY-MM-DD; default the last 7 days), channel. Store admin / manager (a manager: their own location). Each card's detail: GET /api/v1/reporting/:section.",
-    query: [
-      { name: "location", default: "all", required: false },
-      { name: "from", default: "2026-11-01", required: false },
-      { name: "to", default: "2026-11-07", required: false },
-    ],
-    ownResponses: true,
-    responses: [
-      ok({
-        plan: { name: "Basic", reporting_level: "standard" },
-        location: "all",
-        from: "2026-11-01",
-        to: "2026-11-07",
-        cards: [
-          ["sales", "Sales Summary", "Orders, gross and net sales, discounts, taxes and the sales trend.", "basic", false],
-          ["payments", "Payments", "Takings per payment method, payment tax and refunds.", "basic", false],
-          ["batches", "Z-Reports (Batches)", "Each batch: takings per method, expected vs counted cash.", "basic", false],
-          ["top_products", "Top Products", "Best-selling products by sales (Basic: top 10; Standard and up: every product).", "basic", false],
-          ["top_categories", "Top Categories", "Best-selling categories by sales (Basic: top 10; Standard and up: every category).", "basic", false],
-          ["refunds", "Refunded Orders", "Complete and partial refunds with amounts and reasons.", "basic", false],
-          ["cancelled", "Cancelled Orders", "Voided and cancelled sales and the sales lost.", "basic", false],
-          ["locations", "By Location", "How much each location sold, its taxes, refunds and share.", "standard", false],
-          ["inventory", "Inventory", "Stock on hand with what came in and went out in the range.", "standard", false],
-          ["movements", "Stock Movements", "Every stock in / out with its location, reason and who did it.", "standard", false],
-          ["transfers", "Stock Transfers", "Stock sent between locations: what left, what arrived and what is on the way.", "standard", false],
-          ["discounts", "Discounts", "Every discount entered and each discounted sale with its calculation.", "standard", false],
-          ["cashiers", "By Cashier", "Orders, sales, discounts and refunds per staff member.", "standard", false],
-          ["sessions", "Sessions History", "Staff clock in / clock out and hours worked.", "standard", false],
-          ["profit", "Profit & Margin", "Cost, gross profit and margin % by product, category and location.", "advanced", true],
-          ["tax", "Tax Breakdown", "Sales, product, category and payment-method tax collected.", "advanced", true],
-          ["comparison", "Period Comparison", "These dates against the same number of days just before, with the change.", "advanced", true],
-          ["offers", "Offer Performance", "Sales, units, free units and discount given per offer.", "advanced", true],
-          ["dead_stock", "Dead Stock", "Products in stock that did not sell in these dates, with when they last sold.", "advanced", true],
-          ["forecast", "Stock Forecast", "Days until each product runs out, from its average daily sales.", "advanced", true],
-        ].map(([id, label, about, level, locked]) => ({ id, label, about, level, locked })),
-      }),
-    ],
-  },
-  {
     id: "reporting-section",
     tag: "reports",
     method: "GET",
     path: "/api/v1/reporting/:section",
-    summary: "Reporting Card",
+    summary: "Detailed Reporting",
     description:
-      "One report card of the Reporting page: its summary and its lists (paged — table, page, limit, search). section = a card id from GET /api/v1/reporting (sales, payments, batches, top_products, top_categories, refunds, cancelled, locations, inventory, movements, transfers, discounts, cashiers, sessions, profit, tax, comparison, offers, dead_stock, forecast); a locked card is refused (403). Same query as GET /api/v1/reporting. The example: sales for the three demo orders and their refunds.",
+      "ONE endpoint for every report. :section picks the report, the query string filters it. Open View Section Names for the sections (the POS shows the ten listed there), View Section Filters for every filter of a section, and View Query Parameters: it lists the filters of the section in :section by itself, so nothing has to be typed from memory. Every reply is { section, label, level, reporting_level, location, from, to, summary, tables } — summary = the single figures, tables = { <list name>: { rows, pagination } }; each list is paged (table = the list page / limit / search are for; limit=all for an export). Store admin / manager (a manager: their own location only). A section needs its store plan (level in View Section Names): a lower plan gets 403 plan_locked. A filter the section does not know is ignored, never an error. Filters marked 'not applied yet' in View Section Filters are agreed but not built into the API yet.",
     pathParams: [{ name: "section", default: "sales", required: true }],
-    query: [
-      { name: "location", default: "all", required: false },
-      { name: "from", default: "2026-11-01", required: false },
-      { name: "to", default: "2026-11-07", required: false },
-      { name: "table", default: "", required: false },
-      { name: "page", default: "1", required: false },
-      { name: "limit", default: "20", required: false },
-    ],
+    query: queryRowsFor("sales"),
+    sections: REPORT_SECTIONS,
     ownResponses: true,
     responses: [
-      ok({
+      { ...ok({
         section: "sales",
         label: "Sales Summary",
         level: "basic",
@@ -1539,7 +1702,8 @@ export const DEMO_NEW_EPS = [
             pagination: { page: 1, limit: 20, total: 3, total_pages: 1 },
           },
         },
-      }),
+      }), section: "sales", label: "Sales · 200 OK" },
+      ...reportSamples(),
     ],
   },
   // ---- The deletes the dashboard makes (and the Super Admin store clear)
@@ -1610,7 +1774,7 @@ export const DEMO_NEW_EPS = [
 ]
 
 // These are no longer documented (POST /locations: locations come with the store; POST /customers: use Bulk Customers).
-export const DEMO_REMOVED_IDS = ["location-create", "customer-create"]
+export const DEMO_REMOVED_IDS = ["location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
 
 // ---------------------------------------------------------------- the attributes of the bodies above
 
