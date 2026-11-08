@@ -1388,7 +1388,7 @@ const rptTables = (lists) =>
   Object.fromEntries(Object.entries(lists).map(([name, rows]) => [name, { rows, pagination: { page: 1, limit: 20, total: rows.length, total_pages: 1 } }]))
 function rptReply(id, summary, lists) {
   const section = REPORT_SECTION[id]
-  const reply = ok({ section: id, label: RPT_API_LABEL[id], level: section.level, reporting_level: "standard", location: "all", from: "2026-11-01", to: "2026-11-07", summary, tables: rptTables(lists) })
+  const reply = ok({ section: id, label: RPT_API_LABEL[id], level: section.level, reporting_level: "standard", location: "all", from: "2026-11-01", to: "2026-11-07", filters: {}, summary, tables: rptTables(lists) })
   return { ...reply, section: id, label: `${section.label} · 200 OK` }
 }
 function rptPercent(rows, key) {
@@ -1485,7 +1485,10 @@ function reportSamples() {
     variance: 0,
     sales: salesTotals.total,
   }
-  const cashierSales = { id: "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30", cashier: AHMED.name, batches: 1, orders: ORDERS.length, total_sales: salesTotals.total, refunds: salesTotals.refunds, net_sales: r2(Math.max(0, salesTotals.total - salesTotals.refunds)) }
+  const cashierId = "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30"
+  // by_cashier (Z-Reports): each cashier's batches added up.
+  const batchCashiers = [{ id: cashierId, cashier: AHMED.name, batches: 1, orders: ORDERS.length, discounts: salesTotals.discounts, tax: batchRow.tax, refunds: salesTotals.refunds, total_sales: batchRow.total_sales }]
+  const cashierNet = r2(Math.max(0, salesTotals.total - salesTotals.refunds))
 
   // Inventory: the stock at the first location, and what came in / went out in the movements.
   const stockKeys = new Map()
@@ -1499,6 +1502,8 @@ function reportSamples() {
     else row.out = r2(row.out + -move.qty)
   }
   const productOf = (move) => Object.values(PRODUCTS).find((product) => product.number === move.product.id)
+  const soonest = (product, move) =>
+    (LOTS.get(key(product, move.variant?.id || 0, 1)) || []).filter((lot) => lot.qty > 0 && lot.expiry_date).map((lot) => lot.expiry_date).sort()[0] || null
   const inventoryRows = [...stockKeys.values()]
     .slice(0, 8)
     .map(({ move, in: inn, out }, index) => {
@@ -1511,9 +1516,16 @@ function reportSamples() {
         location: LOCATIONS[1].name,
         location_id: 1,
         unit: move.product.unit,
+        // weight = sold by weight; pack = a pack product; loose = the rest.
+        type: product.is_weight_based ? "weight" : (move.variant ? product.variants[move.variant.id - 1] : product).is_pack_product ? "pack" : "loose",
         stock_in: inn,
         stock_out: out,
         current_stock: move.qty_after,
+        // out = nothing left; low = at or under its alert; ok = above it.
+        stock_status: move.qty_after <= 0 ? "out" : product.low_stock_threshold != null && move.qty_after <= product.low_stock_threshold ? "low" : "ok",
+        // The soonest expiry of the stock, and its state (none = no expiry date).
+        expiry_date: soonest(product, move),
+        expiry_status: lotStatus(soonest(product, move)) || "none",
       }
     })
 
@@ -1556,7 +1568,7 @@ function reportSamples() {
     for (const line of order.lines) {
       for (const tax of line.taxes) {
         const k = `${tax.level}|${tax.name}`
-        if (!taxGroups.has(k)) taxGroups.set(k, { tax_rule: tax.name, level: tax.level, tax_type: tax.name === SUGAR_TAX.name ? "fixed" : "percentage", tax_collected: 0 })
+        if (!taxGroups.has(k)) taxGroups.set(k, { tax_rule: tax.name, level: tax.level, tax_type: tax.name === SUGAR_TAX.name ? "fixed" : "percentage", rate: tax.rate, tax_collected: 0 })
         taxGroups.get(k).tax_collected = r2(taxGroups.get(k).tax_collected + tax.amount)
       }
     }
@@ -1571,19 +1583,42 @@ function reportSamples() {
     rptReply("top_products", { shown: products.length, total: products.length, top_only: false }, { rows: products }),
     rptReply("top_categories", { shown: categories.length, total: categories.length, top_only: false }, { rows: categories }),
     rptReply("payments", { totals: paymentTotals }, { rows: paymentRows }),
-    rptReply("batches", {}, { rows: [batchRow], by_cashier: [cashierSales] }),
+    rptReply("batches", {}, { rows: [batchRow], by_cashier: batchCashiers }),
     rptReply("inventory", {}, { rows: inventoryRows }),
     rptReply("movements", {}, { rows: movementRows }),
     rptReply(
       "refunds_cancelled",
-      { totals: { refunds: refundRows.length, voids: 0, cancelled: 0, amount: sum(refundRows, (row) => row.amount) } },
+      { totals: { refund_count: refundRows.length, complete: refundRows.filter((row) => row.type === "complete_refund").length, partial: refundRows.filter((row) => row.type === "partial_refund").length, voids: 0, cancelled: 0, amount: sum(refundRows, (row) => row.amount) } },
       { rows: refundRows }
     ),
-    rptReply("cashiers", {}, { rows: [{ id: cashierSales.id, cashier: AHMED.name, orders: ORDERS.length, total_sales: salesTotals.total, discounts: salesTotals.discounts, tax: salesTotals.tax, refunds: salesTotals.refunds, net_sales: cashierSales.net_sales }] }),
+    rptReply("cashiers", {}, { rows: [{ id: cashierId, cashier: AHMED.name, orders: ORDERS.length, total_sales: salesTotals.total, discounts: salesTotals.discounts, tax: salesTotals.tax, refunds: salesTotals.refunds, net_sales: cashierNet }] }),
     rptReply(
       "tax",
-      { totals: { orders: ORDERS.length, net_sales: salesTotals.net, tax_collected: salesTotals.tax, surcharge_collected: salesTotals.surcharge, total_sales: salesTotals.total } },
-      { rows: taxRows, surcharges: surchargeRows }
+      {
+        totals: {
+          orders: ORDERS.length,
+          net_sales: salesTotals.net,
+          tax_collected: r2(salesTotals.tax + salesTotals.surcharge),
+          total_sales: salesTotals.total,
+          taxes: { sales_tax: 0, product_tax: salesTotals.tax, category_tax: 0, payment_method_tax: { total: salesTotals.surcharge }, total: r2(salesTotals.tax + salesTotals.surcharge) },
+          fbr_reported: 0,
+        },
+        // The surcharge is no tax: the tax without it, and the surcharge on its own.
+        tax_collected_excl_surcharge: salesTotals.tax,
+        surcharge_collected: salesTotals.surcharge,
+      },
+      {
+        // rows: the older summary (kept for the dashboard); rules: per tax rule, what the filters narrow.
+        rows: [
+          { id: "sales_tax", tax_rule: "Sales Tax", tax_collected: 0 },
+          { id: "product_tax", tax_rule: "Product Level Tax", tax_collected: salesTotals.tax },
+          { id: "category_tax", tax_rule: "Category Level Tax", tax_collected: 0 },
+          { id: "payment_tax", tax_rule: "Payment Method Tax (total)", tax_collected: salesTotals.surcharge },
+          { id: "total", tax_rule: "Total Tax", tax_collected: r2(salesTotals.tax + salesTotals.surcharge) },
+        ],
+        rules: taxRows,
+        surcharges: surchargeRows,
+      }
     ),
   ]
 }
@@ -1641,7 +1676,7 @@ export const DEMO_NEW_EPS = [
     path: "/api/v1/reporting/:section",
     summary: "Detailed Reporting",
     description:
-      "ONE endpoint for every report. :section picks the report, the query string filters it. Open View Section Names for the sections (the POS shows the ten listed there), View Section Filters for every filter of a section, and View Query Parameters: it lists the filters of the section in :section by itself, so nothing has to be typed from memory. Every reply is { section, label, level, reporting_level, location, from, to, summary, tables } — summary = the single figures, tables = { <list name>: { rows, pagination } }; each list is paged (table = the list page / limit / search are for; limit=all for an export). Store admin / manager (a manager: their own location only). A section needs its store plan (level in View Section Names): a lower plan gets 403 plan_locked. A filter the section does not know is ignored, never an error. Filters marked 'not applied yet' in View Section Filters are agreed but not built into the API yet.",
+      "ONE endpoint for every report. :section picks the report, the query string filters it. Open View Section Names for the sections (the POS shows the ten listed there), View Section Filters for every filter of a section, and View Query Parameters: it lists the filters of the section in :section by itself, so nothing has to be typed from memory. Every reply is { section, label, level, reporting_level, location, from, to, summary, tables } — summary = the single figures, tables = { <list name>: { rows, pagination } }; each list is paged (table = the list page / limit / search are for; limit=all for an export). Store admin / manager (a manager: their own location only). A section needs its store plan (level in View Section Names): a lower plan gets 403 plan_locked. A filter the section does not know is ignored; a value that does not fit (an unknown choice, a bad number) is a 400. The reply echoes the filters it applied in filters.",
     pathParams: [{ name: "section", default: "sales", required: true }],
     query: queryRowsFor("sales"),
     sections: REPORT_SECTIONS,
@@ -1655,6 +1690,7 @@ export const DEMO_NEW_EPS = [
         location: "all",
         from: "2026-11-01",
         to: "2026-11-07",
+        filters: {},
         summary: {
           orders: 3,
           units_sold: r2(ORDERS.flatMap((o) => o.lines).reduce((s, l) => s + (l.units ?? l.qty), 0)),

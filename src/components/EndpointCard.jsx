@@ -566,7 +566,7 @@ export function EndpointCard({
       {modal === "sectionNames" ? (
         <Modal title="Section Names" wide onClose={() => setModal(null)}>
           <p className="mb-3 text-sm text-slate-500">
-            Put one of these in <code className="font-mono font-semibold">:section</code>. These ten are what the POS shows; the dashboard has more sections. Plan = the store plan that unlocks it.
+            Put one of these in <code className="font-mono font-semibold">:section</code>. The POS shows the ten marked POS; the dashboard shows all of them, from this same endpoint. Plan = the store plan that unlocks it.
           </p>
           <SectionNamesTable
             sections={endpoint.sections}
@@ -945,13 +945,14 @@ function SectionInput({ sections, value, onChange }) {
 
 /** Every section: its name, plan and what it shows. "Use" puts it in :section. */
 function SectionNamesTable({ sections, active, onUse }) {
-  const grid = "grid-cols-[minmax(120px,0.8fr)_minmax(110px,0.8fr)_84px_84px_minmax(0,2fr)_56px]"
+  const grid = "grid-cols-[minmax(120px,0.8fr)_minmax(110px,0.8fr)_84px_92px_84px_minmax(0,2fr)_56px]"
   return (
     <div className="overflow-hidden rounded-md border border-slate-200">
       <div className={`grid ${grid} gap-3 bg-slate-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500`}>
         <span>Section</span>
         <span>Name</span>
         <span>Plan</span>
+        <span>Shown in</span>
         <span>In the API</span>
         <span>Shows</span>
         <span />
@@ -961,6 +962,7 @@ function SectionNamesTable({ sections, active, onUse }) {
           <code className="break-all font-mono font-semibold text-slate-800">{section.id}</code>
           <span className="font-medium text-slate-800">{section.label}</span>
           <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold capitalize ${LEVEL_CLASS[section.level] || "bg-slate-100 text-slate-600"}`}>{section.level}</span>
+          <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold ${section.pos ? "bg-sky-50 text-sky-700" : "bg-slate-100 text-slate-600"}`}>{section.pos ? "POS + dashboard" : "Dashboard"}</span>
           <span className={`w-fit rounded px-2 py-0.5 text-xs font-semibold ${section.ready ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{section.ready ? "Ready" : "To build"}</span>
           <span className="text-slate-600">
             {section.about}
@@ -1046,7 +1048,11 @@ function SectionFiltersPanel({ sections, value, onPick, onUse }) {
         <h4 className="mb-2 text-sm font-semibold text-slate-700">Every section takes</h4>
         <FilterTable rows={REPORT_COMMON} empty="" />
       </div>
-      <p className="text-xs text-slate-500">A filter marked "Not applied yet" is agreed but the API does not apply it yet: it is ignored, not an error.</p>
+      {[...section.filters, ...REPORT_COMMON].some((row) => !row.live) ? (
+        <p className="text-xs text-slate-500">A filter marked "Not applied yet" is agreed but the API does not apply it yet: it is ignored, not an error.</p>
+      ) : (
+        <p className="text-xs text-slate-500">Every filter above is applied by the API. A filter the section does not know is ignored; a value that does not fit is a 400.</p>
+      )}
     </div>
   )
 }
