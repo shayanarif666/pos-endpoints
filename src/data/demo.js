@@ -83,7 +83,14 @@ const SURCHARGES = {
 // Product numbers count products only: Pepsi 1, Garnier 2, Almonds 3, Sugar 4. A variant has no
 // product number of its own: it is named by its product number + its variant number inside the
 // product (1, 2, 3…). Lot numbers also start at 1 for each product (or variant).
-const pv = (name, sku, barcode, extra) => ({ name, sku, barcode, ...extra })
+// A pack variant that is also sold loose has its own unit cost / price: here pack ÷ size (it may be more).
+const pv = (name, sku, barcode, extra) => ({
+  name,
+  sku,
+  barcode,
+  ...(extra.is_pack_product && extra.sell_loose && extra.price == null ? { cost: r2(extra.pack_cost / extra.pack_size), price: r2(extra.pack_price / extra.pack_size) } : {}),
+  ...extra,
+})
 const PEPSI_VARIANTS = [
   pv("350ML", "PEPSI-350ML", "8961014100011", { is_pack_product: true, pack_size: 5, pack_cost: 250, pack_price: 500, sell_loose: true }),
   pv("500ML", "PEPSI-500ML", "8961014100028", { is_pack_product: true, pack_size: 5, pack_cost: 350, pack_price: 700, sell_loose: true }),
@@ -388,6 +395,9 @@ const OFFERS = [
   },
 ].map((offer) => ({ ...offer, location_scope: "all", locations: [], is_active: true, status: "active", staff: ZAYAN, created_at: "2026-11-01T06:00:00.000Z" }))
 const OFFER = Object.fromEntries(OFFERS.map((row) => [row.id, row]))
+// The one bulk discount (buy X get Y) of the old samples: the others are product / category discounts now.
+export const OFFER_SAMPLES = [OFFER[4]]
+const isBulkOffer = (offerId) => OFFER[offerId]?.type === "bogo"
 const offerOnLine = (offerId, amount) => {
   const o = OFFER[offerId]
   return { discount_id: o.id, name: o.name, type: o.type, discount_type: o.discount_type, discount_value: o.discount_value, amount }
@@ -434,7 +444,7 @@ function lineRequest(line) {
     unit_price: line.unitPrice,
     cost_price: line.unitCost,
     discount_amount: line.discount,
-    discount: line.offerId ? [{ discount_id: line.offerId }] : [],
+    discount: line.offerId && isBulkOffer(line.offerId) ? [{ discount_id: line.offerId }] : [],
     ...(line.freeQty ? { free_qty: line.freeQty } : {}),
     subtotal: line.subtotal,
     taxes: line.taxes,
@@ -714,7 +724,7 @@ function orderItemView(line, index) {
   const common = {
     gross_amount: line.gross,
     discount_amount: line.discount,
-    discount: line.offerId ? [offerOnLine(line.offerId, line.discount)] : [],
+    discount: line.offerId && isBulkOffer(line.offerId) ? [offerOnLine(line.offerId, line.discount)] : [],
     free_qty: line.freeQty || 0,
     subtotal: line.subtotal,
     taxes: line.taxes,
@@ -1625,26 +1635,6 @@ function reportSamples() {
 
 export const DEMO_NEW_EPS = [
   {
-    id: "offer-list",
-    tag: "offers",
-    method: "GET",
-    path: "/api/v1/offers",
-    summary: "Discounts",
-    description:
-      "Every discount of the store (the dashboard's Discounts page; the POS uses them to price a sale): { id (discount number — the discount_id a sale line sends), type (promotional | bulk_discount | flash_sale | bogo), name, apply_to (product | category | mixed), " +
-      productTargetsNote +
-      ", categories [{ id, name }], discount_type / discount_value (promotional, bulk_discount; flash_sale optional), sale_unit (unit | pack | both — on pack products), min_qty + min_qty_unit (bulk_discount), buy_qty / get_qty + their units (bogo), start_at / end_at, location_scope / locations, is_active, status, staff, created_at }. A deleted discount is left out. A manager / cashier sees the discounts that run at their location; active=1 (or pos=1) = only those running now. Paged: page, limit (default 20); pagination next to data. The four: Azaadi Sale (10% off every Garnier Cream), Stock Up & Save (5% off 2+ packs of Almonds), Midnight Madness (Sugar at Rs 140 a kg, midnight to 6 am), Double Delight (buy 2 Pepsi Cane, get 1 free).",
-    query: [
-      { name: "page", default: "1", required: false },
-      { name: "limit", default: "20", required: false },
-      { name: "type", default: "", required: false },
-      { name: "active", default: "", required: false },
-      { name: "location_id", default: "", required: false },
-    ],
-    ownResponses: true,
-    responses: [page(OFFERS)],
-  },
-  {
     id: "customer-list",
     tag: "customers",
     method: "GET",
@@ -1746,7 +1736,6 @@ export const DEMO_NEW_EPS = [
   ...[
     ["category-delete", "categories", "/api/v1/categories/:id", "Delete Category", "4", "Removes a category (:id = its number or UUID). Refused (409) while products still use it — move them first. Store admin / manager.", { id: 4, deleted: true }],
     ["product-delete", "products", "/api/v1/products/:id", "Delete Product", "2", "Soft delete (:id = the product number or UUID): the product (and its variants) is switched off — it leaves the catalog and the POS, its stock rows and sales history stay. Switching it back on is Multiple Products Status Update. Store admin / manager.", { ...productView(PRODUCTS.garnier, { withStock: false }), is_active: false, is_pos_visible: false, is_web_visible: false }],
-    ["offer-delete", "offers", "/api/v1/offers/:id", "Delete Discount", "4", "Soft delete (:id = the discount number or UUID): it stops at checkout and leaves the list and the POS; sales made with it keep it. Switching it off instead is PATCH is_active. Store admin / manager.", { ...OFFER[4], deleted_at: "2026-11-07T10:00:00.000Z" }],
     ["location-delete", "locations", "/api/v1/locations/:id", "Delete Location", "3", "Soft delete of a branch (:id = the location number or UUID): it leaves the location list, the POS and the plan count; its orders, stock and staff history keep its name. Its manager and cashiers are switched off and signed out. Refused (409) for the default location, while it holds stock, or while a transfer to / from it is on the way. Store admin only.", { ...LOCATIONS[3], is_default: false, is_active: false, deleted_at: "2026-11-07T10:00:00.000Z" }],
     ["supplier-delete", "suppliers", "/api/v1/suppliers/:id", "Delete Supplier", "3", "Soft delete (:id = the supplier UUID, as in GET /suppliers): the supplier leaves the supplier list and can no longer be picked on a stock movement or its ledger; stock movements and ledger entries that named it keep its name (its row stays). Switching it off instead is PATCH is_active. Store admin / manager (a manager only a supplier of their own location).", { id: 3, name: "Rice Mills Co", phone: "03008888888", email: "info@ricemills.local", address: "Gujranwala", payment_terms: "Cash on delivery", location_scope: "selected", location_ids: [1], is_active: false, deleted_at: "2026-11-07T10:00:00.000Z" }],
     ["tax-delete", "taxes", "/api/v1/taxes/:id", "Delete Tax", "2", "Removes a tax of the Taxes page (:id = the tax number or UUID); new sales stop charging it, sales already made keep it. Store admin.", { id: 2, deleted: true }],
@@ -1837,9 +1826,13 @@ const PRODUCT_FIELDS = {
   image: note("An image URL; empty = none (upload with Product Image Upload)"),
   location_scope: note("all (default) | selected + location_ids — where it is sold"),
   stock_scope: note("all (default) | selected + stock_location_ids — where its stock is held"),
-  cost: note("No variants: cost of one unit"),
-  price: note("No variants: selling price of one unit"),
-  sell_loose: note("Sold by the single unit too"),
+  cost: note("No variants: cost of one unit. A pack that is also sold loose (sell_loose) sends its own unit cost: it is not pack_cost ÷ pack_size"),
+  price: note("No variants: selling price of one unit. A pack that is also sold loose sends its own unit price (80 a unit in a pack of 10 at 500 is fine)"),
+  sell_loose: note("Sold by the single unit too: a pack product then needs cost and price as well"),
+  discount_type: note("The product level discount: percentage | fixed. Leave out = none"),
+  discount_value: note("The % or the Rs off one unit"),
+  discount_name: note("Its name, e.g. Eid special"),
+  discount_applies_to: note("What the discount is taken off: all (default) | pack | loose | weight. pack needs a pack product, weight a weight based product"),
   stock: note("No variants: opening stock [{ location_id, qty, stock_unit? }]"),
   "stock[].location_id": must("The location number"),
   "stock[].qty": must("Opening qty (packs with stock_unit pack)"),
@@ -1854,7 +1847,7 @@ const PRODUCT_FIELDS = {
   "variants[].pack_size": note("Units in one pack (2 or more; 250 for a 250 g pack in grams)"),
   "variants[].pack_cost": note("Cost of one pack (unit cost = pack_cost ÷ pack_size)"),
   "variants[].pack_price": note("Price of one pack (unit price = pack_price ÷ pack_size)"),
-  "variants[].sell_loose": note("A pack variant: single units are sold too"),
+  "variants[].sell_loose": note("A pack variant: single units are sold too; it then sends its own cost and price"),
   "variants[].is_weight_based": note("Sold by weight"),
   "variants[].stock": note("Opening stock of this variant [{ location_id, qty, stock_unit? }]"),
   "variants[].stock[].location_id": must("The location number"),
@@ -1872,8 +1865,8 @@ const ORDER_LINE = {
   unit_price: must("Price of one unit (one pack on a pack line) before discount"),
   cost_price: note("Cost of one unit / pack, for profit reports"),
   discount_amount: note("The discount on the whole line (all its discounts together), worked out by the till"),
-  discount: note("The discounts applied: [{ discount_id }] — [] = none, one object per discount"),
-  "discount[].discount_id": must("The discount number (GET /offers)"),
+  discount: note("The bulk discounts applied: [{ discount_id }] — [] = none, one object per discount (product, category and bundle discounts are only in discount_amount)"),
+  "discount[].discount_id": must("The bulk discount number (GET /bulk-discounts). Product, category and bundle discounts are in the line's discount_amount; the order level discount is order_discount"),
   free_qty: note("BOGO: the free units on this line"),
   subtotal: must("qty × unit_price − discount_amount"),
   taxes: note("Every tax on the line [{ level, name, rate, amount }]"),

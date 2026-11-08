@@ -2,6 +2,7 @@ import { bodyFieldsFor, enumsFromFields } from "./bodyFields.js"
 import { buildBody, defaultToggles } from "./bodyBuilder.js"
 import { SAMPLE_RESPONSES } from "./sampleResponses.js"
 import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
+import { DISCOUNT_EPS } from "./discountDocs.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -478,10 +479,13 @@ export const RESOURCE_ENUMS = {
   staff: {
     role: ["manager", "cashier"],
   },
-  offers: {
-    type: ["flash_sale", "bulk_discount", "bogo", "promotional"],
-    apply_to: ["product", "category"],
+  discounts: {
     discount_type: ["percentage", "fixed"],
+    sale_unit: ["unit", "pack", "both"],
+    buy_unit: ["unit", "pack"],
+    get_unit: ["unit", "pack"],
+    status: ["active", "inactive"],
+    location_scope: ["all", "selected"],
   },
   orders: {
     channel: ["web", "pos"],
@@ -860,9 +864,9 @@ function ep({
 
 export const tags = [
   {
-    id: "offers",
+    id: "discounts",
     name: "Discounts",
-    description: "Discounts (offers): promotional, bulk discount, flash sale and buy X get Y. A sale line names the ones it used with discount_id.",
+    description: "The five discount levels: category and product (set on the category and the product), order level (/discounts), bulk: buy X get Y (/bulk-discounts) and bundle: a whole pack / carton (/bundle-discounts). GET /order-discounts gives the POS every discount of a cart at once.",
   },
   {
     id: "plans",
@@ -1039,6 +1043,7 @@ export const postSections = [
   { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload", "prod-variant-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk"] },
+  { id: "discounts", name: "Discounts", tag: "discounts", ids: ["discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk"] },
   { id: "surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
   { id: "customers", name: "Customers", tag: "customers", ids: ["customer-bulk"] },
@@ -1053,6 +1058,7 @@ export const patchSections = [
   { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
   { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
+  { id: "patch-discounts", name: "Discounts", tag: "discounts", ids: ["discount-bulk-patch", "bulk-discount-bulk-patch", "bundle-discount-bulk-patch"] },
   { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch"] },
@@ -1076,7 +1082,7 @@ export const getSections = [
   { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list", "surcharge-get"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-customers", name: "Customers", tag: "customers", ids: ["customer-list"] },
-  { id: "get-discounts", name: "Discounts", tag: "offers", ids: ["offer-list"] },
+  { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list", "order-discounts"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-section"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
   { id: "get-order-history", name: "Complete Order History", tag: "orders", ids: ["order-history"] },
@@ -1775,7 +1781,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the discounts of GET /offers it used; [] = none) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, synced_at. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the bulk discounts of GET /bulk-discounts it used; [] = none. Product, category and bundle discounts are in discount_amount, the order level one in order_discount) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, synced_at. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -2647,6 +2653,7 @@ const BASE_ENDPOINTS = [
 export const endpoints = [
   ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id)),
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
+  ...DISCOUNT_EPS.map((spec) => ep(spec)),
 ]
 
 

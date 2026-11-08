@@ -236,25 +236,53 @@ const STAFF_CREATE = {
   phone: O,
 }
 
-const OFFER_CREATE = {
+const DISCOUNT_STATUS = note("active (default) | inactive. An inactive discount is never applied")
+const DISCOUNT_IS_ACTIVE = note("true / false: the same as status")
+
+// Order level discount: a discount on the whole bill.
+const ORDER_DISCOUNT_CREATE = {
   staff_id: STAFF_ID,
   name: R,
-  type: must("promotional | flash_sale | bulk_discount | bogo"),
-  products: note("The products it applies to: numbers (e.g. [1, 2]) or { product_id, promo_price?, free_product_id? }. Send products and / or categories — at least one"),
+  discount_type: must("percentage | fixed"),
+  discount_value: must("The % (0–100) or the Rs off the bill"),
+  apply_to_all_orders: note("true (default) = the POS puts it on every order by itself; false = the cashier picks it"),
+  status: DISCOUNT_STATUS,
+  is_active: DISCOUNT_IS_ACTIVE,
+}
+
+// Bulk discount: buy X, get Y free (there is no type: it is always buy X get Y).
+const BULK_DISCOUNT_CREATE = {
+  staff_id: STAFF_ID,
+  name: R,
+  products: note("The products it applies to: numbers (e.g. [1, 2]) or { product_id, sale_unit?, free_product_id? }. Send products and / or categories: at least one"),
   "products[].product_id": note("The product's number (e.g. 1) or UUID"),
-  "products[].promo_price": note("flash_sale: this product's sale price"),
-  "products[].free_product_id": note("bogo: the free item for this product, if not the same product (number or UUID)"),
-  categories: note("The categories it applies to: numbers, e.g. [1, 3]. A product in a listed category gets the offer; a product listed itself wins over its category"),
-  discount_type: note("Required for promotional / bulk_discount, and for a flash_sale on categories; not used by bogo"),
-  discount_value: note("Required for promotional / bulk_discount, and for a flash_sale on categories; not used by bogo"),
-  min_qty: note("Required for bulk_discount: the discount starts at this quantity"),
-  buy_qty: note("Required for bogo: items paid for in each group"),
-  get_qty: note("Required for bogo: items free in each group"),
+  "products[].sale_unit": note("A pack product: unit | pack | both"),
+  "products[].free_product_id": note("The free item for this product, if not the same product (number or UUID)"),
+  categories: note("The categories it applies to: numbers, e.g. [1, 3]. A product in a listed category gets the discount; a product listed itself wins over its category"),
+  buy_qty: must("Items paid for in each group"),
+  get_qty: must("Items free in each group"),
+  buy_unit: note("unit (default) | pack: what buy_qty counts"),
+  get_unit: note("unit (default) | pack: what get_qty counts"),
+  sale_unit: note("A pack product: unit | pack | both (default both)"),
   start_at: O,
   end_at: O,
-  is_active: note("Default true (active). false = inactive: never applied to any product or category. status: active | inactive also works"),
-  location_scope: note("all (every location, default) | selected (only location_ids). Manager / cashier: send selected + their own location; left out = their token's location"),
-  location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2, 3, 4] (UUIDs also work)"),
+  status: DISCOUNT_STATUS,
+  is_active: DISCOUNT_IS_ACTIVE,
+  location_scope: note("all (every location, default) | selected (only location_ids). Manager / cashier: their own location"),
+  location_ids: note("Required when selected: location numbers, e.g. [1] or [1, 2] (UUIDs also work)"),
+}
+
+// Bundle discount: a discount on selling a whole pack / carton.
+const BUNDLE_DISCOUNT_CREATE = {
+  staff_id: STAFF_ID,
+  name: R,
+  products: must("The pack products (numbers or UUIDs) the bundle covers. A product that is not a pack product is refused"),
+  discount_type: must("percentage | fixed (Rs off each unit in the pack)"),
+  discount_value: must("The % (0–100) or the Rs"),
+  start_at: O,
+  end_at: O,
+  status: DISCOUNT_STATUS,
+  is_active: DISCOUNT_IS_ACTIVE,
 }
 
 const ORDER_ITEM = {
@@ -598,22 +626,10 @@ export const BODY_FIELDS = {
 
   "transfer-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(TRANSFER_CREATE) },
 
-  // Offers
-  "offer-create": OFFER_CREATE,
-  "offer-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(without(OFFER_CREATE, ["staff_id"])) },
-  "offer-targets-put": {
-    targets: R,
-    "targets[].product_id": note("Send product_id or category_id (not both). Number or UUID"),
-    "targets[].category_id": note("Send product_id or category_id (not both). Number or UUID"),
-    "targets[].free_product_id": note("BOGO free item. Number or UUID"),
-    "targets[].promo_price": note("Flash sale fixed price"),
-  },
-  // products / categories on a PATCH replace what the offer applies to.
-  "offer-patch": allOptional(
-    Object.fromEntries(
-      Object.entries(OFFER_CREATE).filter(([key]) => !["staff_id"].includes(key))
-    )
-  ),
+  // Discounts
+  "discount-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(without(ORDER_DISCOUNT_CREATE, ["staff_id"])) },
+  "bulk-discount-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(without(BULK_DISCOUNT_CREATE, ["staff_id"])) },
+  "bundle-discount-bulk": { ...TOP_STORE, ...TOP_STAFF, ...bulkOf(without(BUNDLE_DISCOUNT_CREATE, ["staff_id"])) },
 
   // Orders
   "order-create": { ...ADMIN_LOCATION, ...ORDER_CREATE },
@@ -840,26 +856,9 @@ export const BODY_FIELDS = {
     debt_notes: O,
     is_active: O,
   }),
-  "offer-bulk-patch": bulkUpdateOf("offer", {
-    name: O,
-    type: note("promotional | flash_sale | bulk_discount | bogo"),
-    products: note("Replaces what the offer applies to: product numbers or { product_id, promo_price?, free_product_id? }"),
-    categories: note("Replaces what the offer applies to: category numbers"),
-    discount_type: note("percentage | fixed"),
-    discount_value: O,
-    min_qty: note("bulk_discount: the discount starts at this quantity"),
-    buy_qty: note("bogo: items paid for in each group"),
-    get_qty: note("bogo: items free in each group"),
-    start_at: O,
-    end_at: note("e.g. extend a sale"),
-    status: note("active | inactive — inactive = never applied to any product or category"),
-    is_active: note("true / false — same as status"),
-    location_scope: note("all | selected (any role)"),
-    location_ids: note("With selected: location numbers"),
-  }),
-  "offer-bulk-status-patch": bulkUpdateOf("offer", {
-    status: must("active | inactive — an inactive offer is never applied. is_active (true / false) also works"),
-  }),
+  "discount-bulk-patch": bulkUpdateOf("discount", allOptional(without(ORDER_DISCOUNT_CREATE, ["staff_id"]))),
+  "bulk-discount-bulk-patch": bulkUpdateOf("discount", allOptional(without(BULK_DISCOUNT_CREATE, ["staff_id"]))),
+  "bundle-discount-bulk-patch": bulkUpdateOf("bundle", allOptional(without(BUNDLE_DISCOUNT_CREATE, ["staff_id"]))),
   "location-bulk-patch": bulkUpdateOf(
     "location",
     allOptional(LOCATION_CREATE, { manager_password: note("Leave blank to keep the current password"), manager_is_active: O })
