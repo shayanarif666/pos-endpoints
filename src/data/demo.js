@@ -1799,7 +1799,7 @@ export const DEMO_NEW_EPS = [
 ]
 
 // These are no longer documented (POST /locations: locations come with the store; POST /customers: use Bulk Customers).
-export const DEMO_REMOVED_IDS = ["location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
+export const DEMO_REMOVED_IDS = ["prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
 
 // ---------------------------------------------------------------- the attributes of the bodies above
 
