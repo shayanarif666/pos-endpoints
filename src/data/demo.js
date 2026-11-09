@@ -1894,7 +1894,7 @@ const PRODUCT_FIELDS = {
   "taxes[].name": R,
   "taxes[].type": must("percentage | fixed"),
   "taxes[].value": R,
-  low_stock_threshold: note("Low-stock alert level (in the unit)"),
+  low_stock_threshold: note("Low-stock alert level: in packs for a pack-only product, else in units (see threshold_unit)"),
   is_weight_based: note("true = sold by weight (kg / gram)"),
   image: note("An image URL; empty = none (upload with Product Image Upload)"),
   location_scope: note("all (default) | selected + location_ids — where it is sold"),
