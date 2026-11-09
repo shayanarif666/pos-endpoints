@@ -1141,12 +1141,12 @@ export const DEMO_EPS = {
 
   // ---- Customers
   "customer-bulk": {
-    body: { storeId: 1, locationId: 1, items: [{ name: "Ali Khan", phone: "03001231234" }, { name: "Sana Tariq", phone: "03214567890", email: "sana@example.com" }] },
+    body: { storeId: 1, locationId: 1, items: [{ name: "Ali Khan", phone: "03001231234", total_debt: 5000, remaining_debt: 3500, debt_notes: "Old udhaar from the paper register" }, { name: "Sana Tariq", phone: "03214567890", email: "sana@example.com" }] },
     responses: [
       created(
         [
-          { id: 1, name: "Ali Khan", phone: "03001231234", email: null, location: L1, credit_balance: 0, debt_notes: null, is_active: true },
-          { id: 2, name: "Sana Tariq", phone: "03214567890", email: "sana@example.com", location: L1, credit_balance: 0, debt_notes: null, is_active: true },
+          { id: 1, name: "Ali Khan", phone: "03001231234", email: null, location_id: 1, total_debt: 5000, remaining_debt: 3500, debt_notes: "Old udhaar from the paper register", is_active: true },
+          { id: 2, name: "Sana Tariq", phone: "03214567890", email: "sana@example.com", location_id: 1, total_debt: 0, remaining_debt: 0, debt_notes: null, is_active: true },
         ],
         "Customers Created"
       ),
@@ -1729,7 +1729,7 @@ export const DEMO_NEW_EPS = [
     ownResponses: true,
     responses: [
       page([
-        { id: 1, name: "Ali Khan", phone: "03001231234", email: null, location_id: 1, total_debt: 0, remaining_debt: 0, debt_notes: null, is_active: true },
+        { id: 1, name: "Ali Khan", phone: "03001231234", email: null, location_id: 1, total_debt: 5000, remaining_debt: 3500, debt_notes: "Old udhaar from the paper register", is_active: true },
         { id: 2, name: "Sana Tariq", phone: "03214567890", email: "sana@example.com", location_id: 1, total_debt: 0, remaining_debt: 0, debt_notes: null, is_active: true },
       ]),
     ],
