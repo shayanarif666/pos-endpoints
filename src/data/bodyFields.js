@@ -219,9 +219,9 @@ const CUSTOMER_CREATE = {
   phone: O,
   email: O,
   location_id: O,
-  remaining_debt: O,
-  total_debt: O,
-  debt_notes: O,
+  total_debt: note("Opening udhaar: everything the customer has ever owed (>= 0, default 0). Only remaining_debt sent = the same amount"),
+  remaining_debt: note("What is still unpaid (>= 0, never more than total_debt). Only total_debt sent = the same amount. Default 0"),
+  debt_notes: note("Note of the opening udhaar entry (max 4000 characters)"),
   ...VISIBILITY,
 }
 

@@ -2197,8 +2197,8 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/customers",
     summary: "Create Customer",
     description:
-      "Adds a customer. Its number (1, 2, 3… — in GET /customers) is the customer_id on an order. An order that is paid less than its total (udhaar) needs a customer: the rest is added to the customer's debt and the order's payment_status is partial with remaining_amount.",
-    body: { name: "Ali Khan", phone: "03001231234", email: "ali@example.com" },
+      "Adds a customer. Its number (1, 2, 3… — in GET /customers) is the customer_id on an order. An order that is paid less than its total (udhaar) needs a customer: the rest is added to the customer's debt and the order's payment_status is partial with remaining_amount. Opening udhaar (optional): total_debt is all the customer has ever owed, remaining_debt is what is still unpaid (0 or less than total_debt, never more); send only one of them and the other follows (only remaining_debt: total_debt = remaining_debt; only total_debt: remaining_debt = total_debt). A total_debt above 0 is written to the customer's credit history: a debit entry of total_debt (note = debt_notes, else \"Opening total debt\") and, when part of it is already paid, a credit entry of total_debt − remaining_debt (\"Opening amount already paid\"). Both start at 0 when left out.",
+    body: { name: "Ali Khan", phone: "03001231234", email: "ali@example.com", total_debt: 5000, remaining_debt: 3500, debt_notes: "Old udhaar from the paper register" },
   }),
   ep({
     id: "customer-bulk",
@@ -2211,7 +2211,7 @@ const BASE_ENDPOINTS = [
       storeId: 1,
       locationId: 1,
       items: [
-        { name: "Ali Khan", phone: "03001231234" },
+        { name: "Ali Khan", phone: "03001231234", total_debt: 5000, remaining_debt: 3500, debt_notes: "Old udhaar from the paper register" },
         { name: "Sana Tariq", phone: "03214567890", email: "sana@example.com" },
       ],
     },
