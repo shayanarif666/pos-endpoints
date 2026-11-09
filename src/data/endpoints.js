@@ -1074,7 +1074,7 @@ export const getSections = [
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-get", "prod-stock", "prod-weight-list"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
-  { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
+  { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
   { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list", "surcharge-get"] },
@@ -1541,7 +1541,7 @@ const BASE_ENDPOINTS = [
       { name: "location_id", default: "", required: false },
       { name: "view", default: "list", required: false },
     ],
-    enums: { view: ["list", "sale"] },
+    enums: { view: ["list", "sale", "full"] },
   }),
   ep({
     id: "prod-get",
@@ -1550,7 +1550,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/products/:id",
     summary: "Product Detail",
     description:
-      "One product (:id = product number or UUID). With variants: the product (title, sku, barcode, category, unit, taxes, discount, low_stock_threshold, where it is sold and where its stock is held) and its variants, each with its own prices / pack, taxes, qty and stocks per location — the product itself has no price, pack or stock fields. Without variants: every product field with its own price, pack, qty and stocks. Location numbers: location_scope / location_ids (sold at), stock_scope / stock_location_ids (stock held at); a variant's id is its number inside the product (1, 2, 3…). A store admin sees every location (or one with location_id); a manager / cashier only their own, and a product not sold at their location is 404. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "One product (:id = product number or UUID). With variants: the product (title, sku, barcode, category, unit, taxes, discount, low_stock_threshold, where it is sold and where its stock is held) and its variants, each with its own prices / pack, taxes and low stock level — the product itself has no price or pack fields. Without variants: every product field with its own price and pack. No stock is sent here: the stock of every product and variant, per location with its lots, is GET /products/stock. Location numbers: location_scope / location_ids (sold at), stock_scope / stock_location_ids (stock held at); a variant's id is its number inside the product (1, 2, 3…). A store admin sees every location (or one with location_id); a manager / cashier only their own, and a product not sold at their location is 404. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     pathParams: [{ name: "id", default: "1", required: true }],
     query: [{ name: "location_id", default: "", required: false }],
   }),
@@ -1781,7 +1781,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the bulk discounts of GET /bulk-discounts it used; [] = none. Product, category and bundle discounts are in discount_amount, the order level one in order_discount) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, synced_at. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
+      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the bulk discounts of GET /bulk-discounts it used; [] = none. Product, category and bundle discounts are in discount_amount, the order level one in order_discount) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total, is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, is_refunded, refund_status, refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total, synced_at. What was given back is on the order itself: per order_items line is_refunded (true / false), refund_qty (in the line's unit), refund_amount (after discount, before tax), refund_tax, refund_discount_amount, refund_total; per order is_refunded, refund_status (none | partial | full), refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total (money that went back, surcharges included). All zero / false until something is refunded; every refund with its lines is in GET /orders/refunds. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
     bodyBuilder: orderBuilder(),
     responses: [
       {
@@ -1959,17 +1959,17 @@ const BASE_ENDPOINTS = [
     ],
   }),
   ep({
-    id: "refund-list-complete",
+    id: "refund-list",
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders/refunds",
-    summary: "Refunds Complete Orders",
-    description: "Complete refunds (type=complete) made with Bulk Order Refund, newest first. " + REFUND_ROW_SHAPE + " Filters: type, orderId (order number), batchId, staffId, from / to, range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refunded_at): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
+    summary: "Order Refunds",
+    description: "Every refund of the store in one list — partial and complete together, newest first — each with its full detail: lines, discount, taxes, surcharge, how it was paid back. type narrows it: partial (Bulk Order Items Refund) or complete (Bulk Order Refund); left out = both. " + REFUND_ROW_SHAPE + " A complete refund is one entry per order, its lines added up. Filters: type, orderId (order number), batchId, staffId, from / to, range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refunded_at): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. The same refunds also sit on each order (GET /orders: is_refunded, refund_amount, refund_tax, refund_discount_amount per order and per line).",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
       { name: "range", default: "", required: false },
-      { name: "type", default: "complete", required: false },
+      { name: "type", default: "", required: false },
       { name: "orderId", default: "", required: false },
       { name: "batchId", default: "", required: false },
       { name: "staffId", default: "", required: false },
@@ -1977,30 +1977,12 @@ const BASE_ENDPOINTS = [
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
     ],
+    enums: { type: ["partial", "complete"] },
     ownResponses: true,
-    responses: [refundPage([REFUND_COMPLETE_ROWS[1], REFUND_COMPLETE_ROWS[0]])],
-  }),
-  ep({
-    id: "refund-list-partial",
-    tag: "orders",
-    method: "GET",
-    path: "/api/v1/orders/refunds",
-    summary: "Refunds Partial Order",
-    description: "Partial refunds (type=partial) made with Bulk Order Items Refund, newest first. " + REFUND_ROW_SHAPE + " Filters: type, orderId (order number), batchId, staffId, from / to, range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (refunded_at): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
-    query: [
-      { name: "page", default: "1", required: false },
-      { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
-      { name: "type", default: "partial", required: false },
-      { name: "orderId", default: "", required: false },
-      { name: "batchId", default: "", required: false },
-      { name: "staffId", default: "", required: false },
-      { name: "from", default: "", required: false },
-      { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+    responses: [
+      refundPage([REFUND_COMPLETE_ROWS[1], REFUND_PARTIAL_ROW, REFUND_COMPLETE_ROWS[0]]),
+      { label: "400 — type", status: 400, body: { success: false, message: "type must be complete, partial or all" } },
     ],
-    ownResponses: true,
-    responses: [refundPage([REFUND_PARTIAL_ROW])],
   }),
 
   ep({
@@ -2084,7 +2066,7 @@ const BASE_ENDPOINTS = [
     method: "GET",
     path: "/api/v1/taxes",
     summary: "Taxes",
-    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }. Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
+    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers, [] for all), is_active }. The products are not listed here: each product lists its own taxes (taxes and store_taxes in Products / Product Detail). Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
     query: [
       { name: "is_active", default: "", required: false },
       { name: "product_scope", default: "", required: false },
@@ -2097,7 +2079,7 @@ const BASE_ENDPOINTS = [
     method: "GET",
     path: "/api/v1/taxes/:id",
     summary: "Tax Detail",
-    description: "One tax — :id is its number (tax_number, e.g. 1) or its UUID: both work. { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
+    description: "One tax — :id is its number (tax_number, e.g. 1) or its UUID: both work. { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), is_active }.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -2106,7 +2088,7 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/taxes/bulk",
     summary: "Bulk Tax Creation",
-    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 Sugar tax (per unit: a bottle, a kg) on Pepsi — all its variants — and Sugar (product numbers 1 and 22). Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), products [{ id (product number), uuid, title, variant { id, name } | null }], is_active }.",
+    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 Sugar tax (per unit: a bottle, a kg) on Pepsi — all its variants — and Sugar (product numbers 1 and 22). Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), is_active }.",
     body: {
       storeId: 1,
       items: [

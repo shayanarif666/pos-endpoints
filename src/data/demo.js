@@ -721,7 +721,21 @@ function refundView(ref) {
 const refundedQty = (order, itemNumber) =>
   sum(REFUNDS.filter((r) => r.order === order).flatMap((r) => r.lines).filter((l) => l.itemNumber === itemNumber), (l) => l.qty)
 
-function orderItemView(line, index) {
+/** What was given back of one order line (all its refunds added up). */
+function lineRefund(order, itemNumber) {
+  const rows = REFUNDS.filter((r) => r.order === order).flatMap((r) => r.lines).filter((l) => l.itemNumber === itemNumber)
+  return {
+    is_refunded: rows.length > 0,
+    refund_qty: sum(rows, (l) => l.qty),
+    refund_amount: sum(rows, (l) => l.amount),
+    refund_tax: sum(rows, (l) => l.tax),
+    refund_discount_amount: sum(rows, (l) => l.discount),
+    refund_total: sum(rows, (l) => l.total),
+  }
+}
+
+/** refundOf (order lines only): the order whose refunds to show; null = nothing refunded yet. */
+function orderItemView(line, index, refundOf) {
   const common = {
     gross_amount: line.gross,
     discount_amount: line.discount,
@@ -731,6 +745,7 @@ function orderItemView(line, index) {
     taxes: line.taxes,
     tax_amount: line.tax_amount,
     total: line.total,
+    ...(refundOf === undefined ? {} : refundOf ? lineRefund(refundOf, index + 1) : { is_refunded: false, refund_qty: 0, refund_amount: 0, refund_tax: 0, refund_discount_amount: 0, refund_total: 0 }),
   }
   if (line.custom) {
     return { id: index + 1, title: line.title, category: { id: null, name: line.category }, qty: line.qty, unit_price: line.unitPrice, ...common }
@@ -750,6 +765,19 @@ function orderItemView(line, index) {
   }
 }
 
+function orderRefund(order, afterRefunds) {
+  const rows = afterRefunds ? REFUNDS.filter((r) => r.order === order) : []
+  return {
+    is_refunded: rows.length > 0,
+    refund_status: !rows.length ? "none" : order === O3 ? "full" : "partial",
+    refund_count: rows.length,
+    refund_amount: sum(rows, (r) => r.amount),
+    refund_tax: sum(rows, (r) => r.tax),
+    refund_discount_amount: sum(rows, (r) => r.discount),
+    refund_total: sum(rows, (r) => r.total),
+  }
+}
+
 export function orderView(order, { afterRefunds = false } = {}) {
   return {
     id: order.number,
@@ -762,7 +790,7 @@ export function orderView(order, { afterRefunds = false } = {}) {
     batch: BATCH,
     currency: "PKR",
     is_custom: order.isCustom,
-    order_items: order.lines.map(orderItemView),
+    order_items: order.lines.map((line, index) => orderItemView(line, index, afterRefunds ? order : null)),
     gross_amount: order.gross,
     discount_amount: order.discount,
     order_discount: null,
@@ -778,6 +806,8 @@ export function orderView(order, { afterRefunds = false } = {}) {
     remaining_amount: 0,
     payment_status: afterRefunds && order === O3 ? "refunded" : "paid",
     order_status: afterRefunds ? statusOf(order) : "completed",
+    // What was given back, every partial and complete refund added up (each one is in GET /orders/refunds).
+    ...orderRefund(order, afterRefunds),
     fbr_invoice_enabled: false,
     fbr_tax_amount: 0,
     cancel_reason: null,
@@ -849,7 +879,6 @@ const ownTaxes = (product) => product.taxes.map((tax) => ({ name: tax.name, type
 function productView(def, { withStock = true } = {}) {
   const variants = def.variants.map((v, i) => {
     const price = priceOf(def, i + 1)
-    const stocks = withStock ? stockRows(def, i + 1) : []
     return {
       id: i + 1,
       name: v.name, sku: v.sku, barcode: v.barcode,
@@ -864,14 +893,11 @@ function productView(def, { withStock = true } = {}) {
       image: null,
       // The colours it comes in (hex codes).
       colors: v.colors || [],
-      qty: sum(stocks, (s) => s.qty),
-      stocks,
       is_active: true,
     }
   })
   const first = variants[0]
   const own = def.variants.length ? null : priceOf(def, null)
-  const ownStocks = !def.variants.length && withStock ? stockRows(def, 0) : []
   const taxPct = def.taxes.reduce((s, t) => s + (t.type === "percentage" ? t.value : 0), 0)
   const sell = own ? own.unit_price : first.selling_price
   return {
@@ -918,8 +944,6 @@ function productView(def, { withStock = true } = {}) {
     is_active: true,
     is_pos_visible: true,
     is_web_visible: true,
-    qty: sum(ownStocks, (s) => s.qty),
-    stocks: ownStocks,
   }
 }
 
@@ -1030,7 +1054,7 @@ export const DEMO_EPS = {
   "prod-bulk": { body: PROD_BULK_BODY, responses: [created(PRODUCT_DEFS.map((def) => productView(def, { withStock: false })).map((view, i) => withOpening(view, PRODUCT_DEFS[i])), "Products Created")] },
   "prod-list": {
     description:
-      "view=list (default): the products as a short list, for the Products screen. view=sale: the register's catalog, with the prices, discounts and taxes a sale needs (see the second response). The short list: { id (product number), title, sku, barcode, category { id, name }, image, total_variants, price, stock, status (active | inactive) }. A product with variants: total_variants is how many it has (the length of its variants), and price and stock are null, because each variant has its own: they come with the product detail (GET /products/:id). A product without variants: total_variants is null, price is its selling price and stock its quantity at the location read (every location for a store admin without location_id). A variant is never a row of its own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. q finds a title, SKU or barcode (a variant's barcode / SKU finds its product); categoryId = a category number; location_id (store admin); range / from / to filter by the created date.",
+      "view=list (default): the products as a short list, for the Products screen. view=sale: the register's catalog, with the prices, discounts and taxes a sale needs (see the second response). view=full: every detail of each product, its variants inside, without any stock (the third response; the stock of every product is in GET /products/stock). The short list: { id (product number), title, sku, barcode, category { id, name }, image, total_variants, price, stock, status (active | inactive) }. A product with variants: total_variants is how many it has (the length of its variants), and price and stock are null, because each variant has its own: they come with the product detail (GET /products/:id). A product without variants: total_variants is null, price is its selling price and stock its quantity at the location read (every location for a store admin without location_id). A variant is never a row of its own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. q finds a title, SKU or barcode (a variant's barcode / SKU finds its product); categoryId = a category number; location_id (store admin); range / from / to filter by the created date.",
     responses: [
       page(
         PRODUCT_DEFS.map((def) => {
@@ -1050,7 +1074,8 @@ export const DEMO_EPS = {
         })
       ),
       { ...page(SALE_SAMPLE), label: "200 OK · view=sale" },
-      { label: "400 — view", status: 400, body: { success: false, message: "view must be list or sale" } },
+      { ...page(PRODUCT_VIEWS), label: "200 OK · view=full" },
+      { label: "400 — view", status: 400, body: { success: false, message: "view must be list, sale or full" } },
     ],
   },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
@@ -1106,10 +1131,9 @@ export const DEMO_EPS = {
   "tax-list": {
     responses: [
       page([
-        { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], products: [], is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z" },
+        { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z" },
         {
           id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4],
-          products: [{ id: 1, title: "Pepsi", variant: null }, { id: 4, title: "Sugar", variant: null }],
           is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z",
         },
       ]),
@@ -1200,8 +1224,8 @@ export const DEMO_EPS = {
       fail(400, "lines left out", "Order 3: a complete refund must give back every remaining line (line 3 has 250 left)", { data: [], failed: [{ index: 0, message: "Order 3: a complete refund must give back every remaining line (line 3 has 250 left)", status: 400 }] }),
     ],
   },
-  "refund-list-partial": { responses: [page([R3, R2, R1].map(refundView))] },
-  "refund-list-complete": { responses: [page([refundView(R4)])] },
+  // Every refund, partial and complete together, newest first.
+  "refund-list": { responses: [page([R4, R3, R2, R1].map(refundView))] },
   "refund-receipt": {
     responses: [
       ok({
@@ -1384,8 +1408,8 @@ Object.assign(DEMO_EPS, {
     responses: [
       created(
         [
-          { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], products: [], is_active: true },
-          { id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4], products: [{ id: 1, title: "Pepsi", variant: null }, { id: 4, title: "Sugar", variant: null }], is_active: true },
+          { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], is_active: true },
+          { id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4], is_active: true },
         ],
         "Taxes Created"
       ),
@@ -1397,7 +1421,6 @@ Object.assign(DEMO_EPS, {
         [
           {
             id: 2, name: "Sugar tax", type: "fixed", value: 6, product_scope: "selected", product_ids: [1, 4, 3],
-            products: [{ id: 1, title: "Pepsi", variant: null }, { id: 4, title: "Sugar", variant: null }, { id: 3, title: "Almonds", variant: { id: 4, name: "Mamra Almonds" } }],
             is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-07T09:55:00.000Z",
           },
         ],
@@ -1428,7 +1451,6 @@ for (const [id, extra] of Object.entries({
 
 const SUGAR_TAX_ROW = {
   id: 2, uuid: "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44", name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4],
-  products: [{ id: 1, uuid: "c4e1b2a3-5d6f-4a7b-8c9d-0e1f2a3b4c5d", title: "Pepsi", variant: null }, { id: 4, uuid: "d5f2c3b4-6e7a-4b8c-9d0e-1f2a3b4c5d6e", title: "Sugar", variant: null }],
   is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z",
 }
 Object.assign(DEMO_EPS, {
