@@ -981,7 +981,29 @@ export const DEMO_EPS = {
 
   // ---- Products
   "prod-bulk": { body: PROD_BULK_BODY, responses: [created(PRODUCT_DEFS.map((def) => productView(def, { withStock: false })).map((view, i) => withOpening(view, PRODUCT_DEFS[i])), "Products Created")] },
-  "prod-list": { responses: [page(PRODUCT_VIEWS)] },
+  "prod-list": {
+    description:
+      "The products, as a short list: { id (product number), title, sku, barcode, category { id, name }, image, total_variants, price, stock, status (active | inactive) }. A product with variants: total_variants is how many it has (the length of its variants), and price and stock are null, because each variant has its own: they come with the product detail (GET /products/:id). A product without variants: total_variants is null, price is its selling price and stock its quantity at the location read (every location for a store admin without location_id). A variant is never a row of its own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. q finds a title, SKU or barcode (a variant's barcode / SKU finds its product); categoryId = a category number; location_id (store admin); range / from / to filter by the created date.",
+    responses: [
+      page(
+        PRODUCT_DEFS.map((def) => {
+          const has = def.variants.length > 0
+          return {
+            id: def.number,
+            title: def.title,
+            sku: def.sku,
+            barcode: def.barcode,
+            category: { id: def.category_id, name: CATEGORIES[def.category_id]?.name ?? null },
+            image: null,
+            total_variants: has ? def.variants.length : null,
+            price: has ? null : priceOf(def, null).unit_price,
+            stock: has ? null : sum(stockRows(def, 0), (s) => s.qty),
+            status: "active",
+          }
+        })
+      ),
+    ],
+  },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
   "prod-weight-list": { responses: [page([PRODUCT_VIEWS[2], PRODUCT_VIEWS[3]].map(({ stocks, qty, ...row }) => row))] },
   "prod-expiry": {
