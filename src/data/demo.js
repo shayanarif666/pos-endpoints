@@ -1047,7 +1047,16 @@ export const DEMO_EPS = {
     ],
   },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
-  "prod-weight-list": { responses: [page([PRODUCT_VIEWS[2], PRODUCT_VIEWS[3]].map(({ stocks, qty, ...row }) => row))] },
+  "prod-weight-list": {
+    description:
+      "The Weight Based Products tab as a short list: one row per product, or per variant, sold by weight: { id (product number), title, variant { id, name } | null, sku, category { id, name }, image, unit (kg, gram…), price, cost_price, price_with_tax, pack { size, price } | null, stock, qty_packs, status (active | inactive) }. A product with variants is not a row itself: each of its weight variants is, with the product's id and title and its own variant. price and cost_price are per ONE unit (per kg, per gram); price_with_tax is what one unit is charged: the price after the product and category discounts, plus every tax (the product's own, the Taxes page and the category tax). pack only for a pack product (the pack's size in units and its price), else null; stock is in the unit, at the location read (every location for a store admin without location_id); qty_packs = the whole packs in it (pack products only, else null). cost_price is for the store admin / manager. image is the variant's own, else the product's. Ordered by title, then variant. Paged: page (from 1) and limit (1–200, default 20), with pagination { page, limit, total, total_pages }; range / from / to filter by the created date.",
+    responses: [
+      page([
+        { id: 3, title: "Almonds", variant: { id: 2, name: "Mamra" }, sku: "ALMONDS-MAMRA", category: { id: 5, name: "Dry Fruits" }, image: null, unit: "gram", price: 4.8, cost_price: 3.9, price_with_tax: 5.66, pack: { size: 250, price: 1200 }, stock: 3250, qty_packs: 13, status: "active" },
+        { id: 4, title: "Sugar", variant: null, sku: "SUGAR", category: { id: 3, name: "Rice & Daal" }, image: null, unit: "kg", price: 160, cost_price: 140, price_with_tax: 174.92, pack: null, stock: 150, qty_packs: null, status: "active" },
+      ]),
+    ],
+  },
   "prod-expiry": {
     responses: [
       page(
