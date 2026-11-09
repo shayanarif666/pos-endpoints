@@ -102,10 +102,6 @@ const CATEGORY_CREATE = {
   discount_name: note("Label for the discount, e.g. Eid Shopping"),
   discount_type: note("percentage | fixed. Category discount applies when type + value are sent"),
   discount_value: O,
-  description: O,
-  parent_category_id: O,
-  is_active: note("Default true"),
-  ...VISIBILITY,
   ...CATALOG_LOCATIONS,
 }
 
@@ -741,10 +737,7 @@ export const BODY_FIELDS = {
   "prod-bulk-weight-patch": bulkUpdateOf("product", { is_weight_based: must("true = sold by weight (kg / g), false = by unit") }),
   "prod-bulk-status-patch": bulkUpdateOf("product", { is_active: must("false = off sale (record and history stay), true = back on sale") }),
   "prod-bulk-visibility-patch": bulkUpdateOf("product", { is_pos_visible: note("Shown on the POS"), is_web_visible: note("Shown on the website") }),
-  "cat-bulk-patch": bulkUpdateOf("category", allOptional(CATEGORY_CREATE, {
-    parent_category_id: note("The parent category's number, or null for a top-level category"),
-    sort_order: O,
-  })),
+  "cat-bulk-patch": bulkUpdateOf("category", allOptional(CATEGORY_CREATE)),
   "cat-bulk-status-patch": bulkUpdateOf("category", { is_active: R }),
   "cat-locations-patch": {
     category_ids: must("The categories to change: their numbers (1, 2, 3…). Every one gets the same locations"),

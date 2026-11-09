@@ -46,9 +46,6 @@ function categoryRow(name, taxValue, discountValue, locations = CATALOG_LOCATION
     ["name", name],
     ...TAX("GST", "percentage", taxValue),
     ...DISCOUNT("Eid Shopping", "percentage", discountValue),
-    ["description", "", "optional"],
-    ["parent_category_id", null, "optional"],
-    ...VISIBILITY_OPTIONAL,
     ...locations,
   ]
 }
@@ -1480,7 +1477,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/categories",
     summary: "Categories",
     description:
-      "Every category of the store, in the same shape as Bulk Categories: { id, name, slug, parent, image_url, description, tax_type, tax_value, tax_name, discount_type, discount_value, discount_name, location_scope, location_ids (location numbers), is_active }. A store admin sees every category (or the ones sold at one location with location_id = location number or UUID); a manager / cashier only the categories sold at their own location. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Every category of the store, in the same shape as Bulk Categories: { id, name, tax_name, tax_type, tax_value, discount_name, discount_type, discount_value, location_scope, location_ids (location numbers) }. A store admin sees every category (or the ones sold at one location with location_id = location number or UUID); a manager / cashier only the categories sold at their own location. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1496,7 +1493,7 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Categories",
-    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. Show Optional Fields adds the rarely-needed fields. A repeated name gets a -2, -3... slug instead of an error. Where each category is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1, 2] and [1]. A manager / cashier sends their own location; if they leave it out, the category is sold at their token's location. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "POS sync: { items: [ ...categories ] } (or a raw array). Only name is required. Category tax (tax_name, tax_type, tax_value) and discount apply whenever their type + value are sent — the Has Category Tax / Has Category Discount checkboxes only add or remove them in this example. A repeated name is accepted. Where each category is sold is set on each row, and any role may send it: location_scope all (every location) or selected + location_ids (one or several location numbers) — the example mixes all, [1, 2] and [1]. A manager / cashier sends their own location; if they leave it out, the category is sold at their token's location. On channel=pos the response is { success, message (\"Categories Successfully Created\"), data: [ { id, name }, ... ] } — one per created category, in order; id is the short category_number. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     bodyBuilder: {
       bulk: true,
       variants: [
@@ -2295,7 +2292,7 @@ const BASE_ENDPOINTS = [
     method: "PATCH",
     path: "/api/v1/categories/bulk",
     summary: "Bulk Update Categories",
-    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, description, parent_category_id (category number), tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, sort_order, is_active, is_pos_visible, is_web_visible, location_scope / location_ids (location numbers).`,
+    description: `${BULK_UPDATE_NOTE} Any category field, as in create — only the fields sent change: name, tax_name / tax_type / tax_value, discount_name / discount_type / discount_value, location_scope / location_ids (location numbers).`,
     body: {
       items: [
         { id: 1, name: "Beverages", tax_name: "GST", tax_type: "percentage", tax_value: 5, location_scope: "all" },

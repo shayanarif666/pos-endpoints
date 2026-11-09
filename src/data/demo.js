@@ -52,10 +52,10 @@ const CATEGORY_ROWS = [
 ]
 export const CATEGORIES = Object.fromEntries(CATEGORY_ROWS.map((row) => [row.id, row]))
 const categoryView = (row) => ({
-  id: row.id, name: row.name, slug: row.slug, parent: null, image_url: null, description: null,
-  tax_type: row.tax_type, tax_value: row.tax_value, tax_name: row.tax_name,
-  discount_type: row.discount_type, discount_value: row.discount_value, discount_name: row.discount_name,
-  location_scope: row.location_scope, location_ids: row.location_ids, is_active: true,
+  id: row.id, name: row.name,
+  tax_name: row.tax_name, tax_type: row.tax_type, tax_value: row.tax_value,
+  discount_name: row.discount_name, discount_type: row.discount_type, discount_value: row.discount_value,
+  location_scope: row.location_scope, location_ids: row.location_ids,
 })
 const CAT_BULK_BODY = {
   storeId: 1,
