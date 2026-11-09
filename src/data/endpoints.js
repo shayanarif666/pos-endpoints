@@ -1072,7 +1072,7 @@ export const getSections = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
-  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-get", "prod-stock", "prod-weight-list"] },
+  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-stock"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
