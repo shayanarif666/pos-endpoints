@@ -959,6 +959,7 @@ const fail = (status, label, message, extra = {}) => ({ label: `${status} — ${
 const productTargetsNote = "products [{ product_id, variant_id? (the variant number), sale_unit?, promo_price?, promo_pack_price?, free_product_id? }]"
 const PRODUCT_VIEWS = PRODUCT_DEFS.map((def) => productView(def))
 
+const STAFF_ROW = { id: 2, location: L1, name: "Ahmed Malik", email: "ahmed@acadex.co", pin: "2222", role: "cashier", phone: null, is_active: true }
 
 const salesTotals = (() => {
   const orders = ORDERS
