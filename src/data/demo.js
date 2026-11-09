@@ -292,7 +292,8 @@ function movement({ product, variantId, location = 1, type, reason, qty, note: r
     variant: variantId ? { id: variantId, name: product.variants[variantId - 1].name, sku: product.variants[variantId - 1].sku } : null,
     supplier: supplier ? SUPPLIERS[supplier] : null,
     staff,
-    order,
+    // Only the order's number: its status changes, a movement does not.
+    order: order ? { id: order.id } : null,
     movement_type: type,
     reason,
     reason_note: reasonNote,
@@ -300,7 +301,6 @@ function movement({ product, variantId, location = 1, type, reason, qty, note: r
     qty_after: after,
     // The lot(s) it moved: [{ id (lot number), qty, expiry_date }].
     lots,
-    unit_sold: 0,
     created_at: at,
   }
   MOVEMENTS.push(row)
