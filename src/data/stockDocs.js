@@ -10,7 +10,7 @@ const ROWS = [
     qty: 28,
     qty_packs: 5,
     low_stock_threshold: 10,
-    threshold_unit: "unit",
+    low_stock_unit: "unit",
     stock_status: "ok",
     nearest_expiry_date: "2026-11-14",
     lots: [
@@ -24,7 +24,7 @@ const ROWS = [
     qty: 4,
     qty_packs: 0,
     low_stock_threshold: 10,
-    threshold_unit: "unit",
+    low_stock_unit: "unit",
     stock_status: "critical",
     nearest_expiry_date: "2027-01-08",
     lots: [{ id: 2, received_at: "2026-11-08T13:58:13.000Z", supplier: SUPPLIER, qty: 4, expiry_date: "2027-01-08", days_to_expiry: 60, expiry_status: "ok" }],
@@ -35,7 +35,7 @@ const ROWS = [
     qty: 150,
     qty_packs: null,
     low_stock_threshold: 20,
-    threshold_unit: "unit",
+    low_stock_unit: "unit",
     stock_status: "ok",
     nearest_expiry_date: null,
     lots: [{ id: 1, received_at: "2026-11-01T09:00:00.000Z", supplier: null, qty: 150, expiry_date: null, days_to_expiry: null, expiry_status: "none" }],
@@ -46,7 +46,7 @@ const ROWS = [
     qty: 0,
     qty_packs: 0,
     low_stock_threshold: 10,
-    threshold_unit: "unit",
+    low_stock_unit: "unit",
     stock_status: "out",
     nearest_expiry_date: null,
     lots: [],
@@ -61,8 +61,8 @@ export const STOCK_EPS = [
     path: "/api/v1/products/stock",
     summary: "Product Stock",
     description:
-      "The stock of every product at every location, lots (and their expiry) inside. One row = a product, or a variant, at one location: { product { id (product number), title, unit, sku, barcode (the product's own), variant { id, name, sku, barcode } | null }, location { id, name }, qty, qty_packs (pack products only, else null), low_stock_threshold, threshold_unit, stock_status, nearest_expiry_date, lots [{ id, received_at, supplier { id, name } | null, qty, expiry_date, days_to_expiry, expiry_status }] }. qty is the total of its lots. A lot is stock that came in together, with one expiry date and one supplier: stock from another supplier (or from none) is another lot, even with the same expiry date. supplier is { id (supplier number), name } of the stock-in that filled it, or null (opening stock, an adjustment, a transfer of stock that had none). A transfer keeps the supplier of the lots it moves. Lot id counts per product / variant (1, 2, 3…), so it names a lot only together with the product and variant. lots are listed soonest expiry first (no expiry date last), and a lot with nothing left is not listed. " +
-      "low_stock_threshold is in threshold_unit: pack for a pack-only product (a pack product not sold loose; compared with qty_packs), unit for everything else (loose, pack + loose, weight based; compared with qty, in piece / gram / kg). stock_status: out (qty 0) | critical (half of low_stock_threshold or less) | warning (up to low_stock_threshold) | ok. expiry_status of a lot (fixed days): expired (past) | critical (0–7 days left) | warning (8–30 days) | ok (over 30) | none (no expiry date). days_to_expiry is negative once a lot is past its date. " +
+      "The stock of every product at every location, lots (and their expiry) inside. One row = a product, or a variant, at one location: { product { id (product number), title, unit, sku, barcode (the product's own), variant { id, name, sku, barcode } | null }, location { id, name }, qty, qty_packs (pack products only, else null), low_stock_threshold, low_stock_unit, stock_status, nearest_expiry_date, lots [{ id, received_at, supplier { id, name } | null, qty, expiry_date, days_to_expiry, expiry_status }] }. qty is the total of its lots. A lot is stock that came in together, with one expiry date and one supplier: stock from another supplier (or from none) is another lot, even with the same expiry date. supplier is { id (supplier number), name } of the stock-in that filled it, or null (opening stock, an adjustment, a transfer of stock that had none). A transfer keeps the supplier of the lots it moves. Lot id counts per product / variant (1, 2, 3…), so it names a lot only together with the product and variant. lots are listed soonest expiry first (no expiry date last), and a lot with nothing left is not listed. " +
+      "low_stock_threshold is counted in low_stock_unit: pack for a pack-only product (a pack product not sold loose), unit for a loose or weight based product (piece / gram / kg), and for a pack + loose product the choice saved on it (low_stock_unit on the product / variant, default unit). With pack, qty_packs is compared with the threshold, with unit qty is. stock_status: out (qty 0) | critical (half of low_stock_threshold or less) | warning (up to low_stock_threshold) | ok. expiry_status of a lot (fixed days): expired (past) | critical (0–7 days left) | warning (8–30 days) | ok (over 30) | none (no expiry date). days_to_expiry is negative once a lot is past its date. " +
       "Rows are ordered by their soonest expiry (rows without one after), then product, variant, location. Paged by rows: page (from 1) and limit (1–200, default 20), with pagination { page, limit, total, total_pages } — a product's lots are never split over two pages. A store admin sees every location (or one with location_id = the location number or UUID); a manager / cashier only their own. " +
       "Filters: q (title, SKU or barcode of the product or variant), category_id (number), stock_status, expiry_status (rows with any lot of that status — all its lots are still listed). A product that has never been stocked at a location has no row there; one stocked at 0 has a row with qty 0 and lots [].",
     query: [
