@@ -885,9 +885,6 @@ function productView(def, { withStock = true } = {}) {
       cost_price: price.unit_cost, selling_price: price.unit_price,
       is_pack_product: price.is_pack, pack_size: price.pack_size, pack_cost_price: price.pack_cost, pack_selling_price: price.pack_price,
       sell_loose: price.is_pack ? price.sell_loose : true, is_weight_based: v.is_weight_based,
-      // Its own low stock level, in low_stock_unit (pack | unit).
-      low_stock_threshold: v.low_stock_threshold ?? def.low_stock_threshold,
-      low_stock_unit: v.low_stock_unit || "unit",
       taxes: ownTaxes(def),
       // Its own image (null = show the product's).
       image: null,
@@ -904,8 +901,7 @@ function productView(def, { withStock = true } = {}) {
     id: def.number,
     title: def.title,
     has_variants: Boolean(def.variants.length),
-    parent: null,
-    variant_name: null,
+    total_variants: def.variants.length || null,
     variants,
     slug: def.slug,
     category: { id: def.category_id, name: CATEGORIES[def.category_id].name },
@@ -916,14 +912,18 @@ function productView(def, { withStock = true } = {}) {
     colors: def.colors || [],
     description: null,
     unit: def.unit,
-    cost_price: own ? own.unit_cost : first.cost_price,
-    selling_price: sell,
+    // A product with variants has no price of its own (0): each variant carries it.
+    cost_price: own ? own.unit_cost : 0,
+    selling_price: own ? sell : 0,
     has_product_discount: false,
     discount_type: null,
     discount_value: null,
     discount_name: null,
+    discount_applies_to: null,
     has_product_tax: Boolean(def.taxes.length),
     taxes: ownTaxes(def),
+    // The Taxes page taxes that apply to it: [{ id (tax number), name, type, value }].
+    store_taxes: [GST, ...(SUGAR_TAXED.has(def.key) ? [SUGAR_TAX] : [])],
     is_pack_product: false,
     pack_size: null,
     pack_cost_price: null,
@@ -933,9 +933,9 @@ function productView(def, { withStock = true } = {}) {
     has_bulk_discount: false,
     // 0 on a product with variants: each variant has its own.
     low_stock_threshold: def.variants.length ? 0 : def.low_stock_threshold,
-    // What the low stock level counts: pack (pack-only, or pack + loose set to pack) or unit.
-    low_stock_unit: "unit",
-    total_price_each_unit: r2(sell * (1 + taxPct / 100)),
+    // What the low stock level counts: pack or unit; null with variants (each variant's level is in GET /products/stock).
+    low_stock_unit: def.variants.length ? null : "unit",
+    total_price_each_unit: own ? r2(sell * (1 + taxPct / 100)) : 0,
     total_pack_price: null,
     location_scope: "all",
     location_ids: [],
@@ -1015,7 +1015,7 @@ export const DEMO_EPS = {
   "prod-bulk": { body: PROD_BULK_BODY, responses: [created(PRODUCT_DEFS.map((def) => productView(def, { withStock: false })).map((view, i) => withOpening(view, PRODUCT_DEFS[i])), "Products Created")] },
   "prod-list": {
     description:
-      "Every product with all its detail, variants inside, and no stock: { id (product number), title, has_variants, parent, variant_name, variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, pack fields, sell_loose, is_weight_based, low_stock_threshold, low_stock_unit, taxes, store_taxes, image, colors, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, prices, discount, taxes, store_taxes, pack fields, low stock level, location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own and low_stock_threshold 0: each variant carries them. The stock (qty, lots, expiry, supplier) of every product and variant is not here: it is GET /products/stock. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
+      "Every product with all its detail, variants inside, and no stock: { id (product number), title, has_variants, total_variants (how many; null without), variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, pack fields, sell_loose, is_weight_based, taxes, image, colors, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, prices, discount, taxes, store_taxes, pack fields, low stock level, location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own (0 / null), low_stock_threshold 0 and low_stock_unit null: each variant carries its prices and pack, and its low stock level is in GET /products/stock. The stock (qty, lots, expiry, supplier) of every product and variant is not here: it is GET /products/stock. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
     responses: [page(PRODUCT_VIEWS)],
   },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
