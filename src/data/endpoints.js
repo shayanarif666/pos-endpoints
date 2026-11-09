@@ -3,6 +3,7 @@ import { buildBody, defaultToggles } from "./bodyBuilder.js"
 import { SAMPLE_RESPONSES } from "./sampleResponses.js"
 import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
 import { DISCOUNT_EPS } from "./discountDocs.js"
+import { STOCK_EPS } from "./stockDocs.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -1071,7 +1072,7 @@ export const getSections = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
-  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-get", "prod-expiry", "prod-weight-list"] },
+  { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-get", "prod-stock", "prod-weight-list"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list-complete", "refund-list-partial"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
@@ -2653,6 +2654,7 @@ export const endpoints = [
   ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id)),
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
   ...DISCOUNT_EPS.map((spec) => ep(spec)),
+  ...STOCK_EPS.map((spec) => ep(spec)),
 ]
 
 
