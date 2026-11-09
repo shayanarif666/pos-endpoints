@@ -125,7 +125,7 @@ const PRODUCT_CREATE = {
   discount_type: note("percentage | fixed. Product discount applies when type + value are sent"),
   discount_value: O,
   sell_loose: note("True if units can also be sold individually"),
-  low_stock_threshold: note("Product without variants: the low stock level (default 10), counted in low_stock_unit: packs for a pack-only product, units (piece / gram / kg) for a loose or weight based one, and for a pack + loose product the one you choose with low_stock_unit. With variants send it inside each variant (variants[].low_stock_threshold); here it is only the default for a variant that sends none"),
+  low_stock_threshold: note("Product without variants: the low stock level (default 10), counted in low_stock_unit: packs for a pack-only product, units (piece / gram / kg) for a loose or weight based one, and for a pack + loose product the one you choose with low_stock_unit. With variants send it inside each variant (variants[].low_stock_threshold): the product's own level is then saved and returned as 0, and the value sent here is only the default for a variant that sends none"),
   low_stock_unit: note("Product without variants: pack | unit (default unit). Only a pack + loose product (is_pack_product + sell_loose) has this choice: pack = low_stock_threshold counts packs, unit = single units. A pack-only product is always pack, a loose or weight based one always unit; the value sent is ignored there. With variants send it inside each variant. The response always shows the one in effect"),
   image: note("Image URL, saved as featured_image and images[0]. Empty string = no image"),
   is_weight_based: note("Sold by weight (kg). Can be combined with is_pack_product"),

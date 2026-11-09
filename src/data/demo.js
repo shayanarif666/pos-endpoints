@@ -166,11 +166,12 @@ const PROD_BULK_BODY = {
   items: PRODUCT_DEFS.map((def) => {
     const base = {
       title: def.title, sku: def.sku, barcode: def.barcode, category_id: def.category_id, unit: def.unit,
-      taxes: def.taxes, low_stock_threshold: def.low_stock_threshold, is_weight_based: def.is_weight_based, image: "",
+      taxes: def.taxes, low_stock_threshold: def.variants.length ? 0 : def.low_stock_threshold, is_weight_based: def.is_weight_based, image: "",
       location_scope: "all", stock_scope: "all",
     }
     if (!def.variants.length) return { ...base, cost: def.cost, price: def.price, sell_loose: def.sell_loose, stock: def.stock }
-    return { ...base, variants: def.variants }
+    // Each variant carries its own low stock level; the product's own is 0.
+    return { ...base, variants: def.variants.map((v) => ({ low_stock_threshold: def.low_stock_threshold, ...v })) }
   }),
 }
 
@@ -855,6 +856,9 @@ function productView(def, { withStock = true } = {}) {
       cost_price: price.unit_cost, selling_price: price.unit_price,
       is_pack_product: price.is_pack, pack_size: price.pack_size, pack_cost_price: price.pack_cost, pack_selling_price: price.pack_price,
       sell_loose: price.is_pack ? price.sell_loose : true, is_weight_based: v.is_weight_based,
+      // Its own low stock level, in low_stock_unit (pack | unit).
+      low_stock_threshold: v.low_stock_threshold ?? def.low_stock_threshold,
+      low_stock_unit: v.low_stock_unit || "unit",
       taxes: ownTaxes(def),
       // Its own image (null = show the product's).
       image: null,
@@ -901,7 +905,8 @@ function productView(def, { withStock = true } = {}) {
     sell_loose: own ? true : false,
     is_weight_based: def.is_weight_based,
     has_bulk_discount: false,
-    low_stock_threshold: def.low_stock_threshold,
+    // 0 on a product with variants: each variant has its own.
+    low_stock_threshold: def.variants.length ? 0 : def.low_stock_threshold,
     // What the low stock level counts: pack (pack-only, or pack + loose set to pack) or unit.
     low_stock_unit: "unit",
     total_price_each_unit: r2(sell * (1 + taxPct / 100)),
