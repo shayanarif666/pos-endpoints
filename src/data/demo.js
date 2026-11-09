@@ -959,46 +959,6 @@ const fail = (status, label, message, extra = {}) => ({ label: `${status} — ${
 const productTargetsNote = "products [{ product_id, variant_id? (the variant number), sale_unit?, promo_price?, promo_pack_price?, free_product_id? }]"
 const PRODUCT_VIEWS = PRODUCT_DEFS.map((def) => productView(def))
 
-// GET /products?view=sale: the register's catalog. A product with variants has null price, cost,
-// pack, discount, taxes and the four *_value figures: each variant carries its own. The *_value
-// figures are rupees for ONE unit and ONE pack: the product discount (on the pack / loose / weight
-// it is set for), then the category discount on the rest, then the taxes on what is left (a fixed
-// tax is per unit, so x pack size on a pack), the category tax included.
-const SALE_STORE_TAXES = [
-  { level: "store", name: "GST", type: "percentage", value: 18 },
-  { level: "store", name: "Sugar tax", type: "fixed", value: 5 },
-]
-const SALE_BEVERAGES = { id: 1, name: "Beverages", tax: { name: "GST", type: "percentage", value: 5 }, discount: { name: "Eid Shopping", type: "percentage", value: 5 } }
-const SALE_SAMPLE = [
-  {
-    id: 1, title: "Pepsi", sku: "PEPSI", barcode: "8961014100004", category: SALE_BEVERAGES, image: null, unit: "bottle", status: "active", currency: "PKR",
-    total_variants: 7, is_weight_based: null,
-    price: null, cost_price: null, pack: null, sell_loose: null, discount: null, taxes: null,
-    pack_discount_value: null, unit_discount_value: null, pack_tax_value: null, unit_tax_value: null,
-    variants: [
-      {
-        id: 1, name: "350ML", sku: "PEPSI-350ML", barcode: "8961014100011", image: null, is_weight_based: false,
-        price: 100, cost_price: 50, pack: { size: 5, price: 500, cost: 250 }, sell_loose: true, discount: null,
-        pack_discount_value: 25, unit_discount_value: 5, taxes: SALE_STORE_TAXES, pack_tax_value: 134.25, unit_tax_value: 26.85,
-      },
-      {
-        id: 2, name: "500ML", sku: "PEPSI-500ML", barcode: "8961014100028", image: null, is_weight_based: false,
-        price: 140, cost_price: 70, pack: { size: 5, price: 700, cost: 350 }, sell_loose: true, discount: null,
-        pack_discount_value: 35, unit_discount_value: 7, taxes: SALE_STORE_TAXES, pack_tax_value: 177.95, unit_tax_value: 35.59,
-      },
-    ],
-  },
-  {
-    id: 4, title: "Sugar", sku: "SUGAR", barcode: "8961030000001",
-    category: { id: 3, name: "Rice & Daal", tax: { name: "GST", type: "percentage", value: 0 }, discount: { name: "Eid Shopping", type: "percentage", value: 10 } },
-    image: null, unit: "kg", status: "active", currency: "PKR",
-    total_variants: null, is_weight_based: true,
-    price: 160, cost_price: 140, pack: null, sell_loose: true, discount: null, taxes: SALE_STORE_TAXES,
-    pack_discount_value: null, unit_discount_value: 16, pack_tax_value: null, unit_tax_value: 30.92,
-    variants: [],
-  },
-]
-const STAFF_ROW = { id: 2, location: L1, name: "Ahmed Malik", email: "ahmed@acadex.co", pin: "2222", role: "cashier", phone: null, is_active: true }
 
 const salesTotals = (() => {
   const orders = ORDERS
@@ -1054,29 +1014,8 @@ export const DEMO_EPS = {
   "prod-bulk": { body: PROD_BULK_BODY, responses: [created(PRODUCT_DEFS.map((def) => productView(def, { withStock: false })).map((view, i) => withOpening(view, PRODUCT_DEFS[i])), "Products Created")] },
   "prod-list": {
     description:
-      "view=list (default): the products as a short list, for the Products screen. view=sale: the register's catalog, with the prices, discounts and taxes a sale needs (see the second response). view=full: every detail of each product, its variants inside, without any stock (the third response; the stock of every product is in GET /products/stock). The short list: { id (product number), title, sku, barcode, category { id, name }, image, total_variants, price, stock, status (active | inactive) }. A product with variants: total_variants is how many it has (the length of its variants), and price and stock are null, because each variant has its own: they come with the product detail (GET /products/:id). A product without variants: total_variants is null, price is its selling price and stock its quantity at the location read (every location for a store admin without location_id). A variant is never a row of its own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. q finds a title, SKU or barcode (a variant's barcode / SKU finds its product); categoryId = a category number; location_id (store admin); range / from / to filter by the created date.",
-    responses: [
-      page(
-        PRODUCT_DEFS.map((def) => {
-          const has = def.variants.length > 0
-          return {
-            id: def.number,
-            title: def.title,
-            sku: def.sku,
-            barcode: def.barcode,
-            category: { id: def.category_id, name: CATEGORIES[def.category_id]?.name ?? null },
-            image: null,
-            total_variants: has ? def.variants.length : null,
-            price: has ? null : priceOf(def, null).unit_price,
-            stock: has ? null : sum(stockRows(def, 0), (s) => s.qty),
-            status: "active",
-          }
-        })
-      ),
-      { ...page(SALE_SAMPLE), label: "200 OK · view=sale" },
-      { ...page(PRODUCT_VIEWS), label: "200 OK · view=full" },
-      { label: "400 — view", status: 400, body: { success: false, message: "view must be list, sale or full" } },
-    ],
+      "Every product with all its detail, variants inside, and no stock: { id (product number), title, has_variants, parent, variant_name, variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, pack fields, sell_loose, is_weight_based, low_stock_threshold, low_stock_unit, taxes, store_taxes, image, colors, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, prices, discount, taxes, store_taxes, pack fields, low stock level, location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own and low_stock_threshold 0: each variant carries them. The stock (qty, lots, expiry, supplier) of every product and variant is not here: it is GET /products/stock. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
+    responses: [page(PRODUCT_VIEWS)],
   },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
   "prod-weight-list": {
