@@ -98,7 +98,7 @@ const PEPSI_VARIANTS = [
   pv("1.5L", "PEPSI-1-5L", "8961014100042", { is_pack_product: true, pack_size: 5, pack_cost: 550, pack_price: 1100, sell_loose: true }),
   pv("2L", "PEPSI-2L", "8961014100059", { is_pack_product: true, pack_size: 5, pack_cost: 700, pack_price: 1500, sell_loose: true }),
   pv("Jumbo", "PEPSI-JUMBO", "8961014100066", { is_pack_product: true, pack_size: 5, pack_cost: 950, pack_price: 1200, sell_loose: true }),
-  pv("Cane", "PEPSI-CANE", "8961014100073", { is_pack_product: true, pack_size: 5, pack_cost: 300, pack_price: 600, sell_loose: true }),
+  pv("Cane", "PEPSI-CANE", "8961014100073", { is_pack_product: true, pack_size: 5, pack_cost: 300, pack_price: 600, sell_loose: true, low_stock_unit: "pack" }),
 ].map((row) => ({ ...row, is_weight_based: false, stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }] }))
 
 const GARNIER_TAXES = [
