@@ -1538,7 +1538,9 @@ const BASE_ENDPOINTS = [
       { name: "q", default: "", required: false },
       { name: "categoryId", default: "", required: false },
       { name: "location_id", default: "", required: false },
+      { name: "view", default: "list", required: false },
     ],
+    enums: { view: ["list", "sale"] },
   }),
   ep({
     id: "prod-get",
