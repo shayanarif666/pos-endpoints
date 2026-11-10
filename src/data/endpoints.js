@@ -866,7 +866,7 @@ export const tags = [
   {
     id: "discounts",
     name: "Discounts",
-    description: "The five discount levels: category and product (set on the category and the product), order level (/discounts), bulk: buy X get Y (/bulk-discounts) and bundle: a whole pack / carton (/bundle-discounts). GET /order-discounts gives the POS every discount of a cart at once.",
+    description: "The five discount levels: category and product (set on the category and the product), order level (/discounts), bulk: buy X get Y (/bulk-discounts) and bundle: a whole pack / carton (/bundle-discounts).",
   },
   {
     id: "plans",
@@ -1074,7 +1074,7 @@ export const getSections = [
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-stock"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history", "refund-list", "transaction-list"] },
-  { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list", "order-discounts"] },
+  { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list"] },
   { id: "get-stock", name: "Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-customers", name: "Customers", tag: "customers", ids: ["customer-list"] },

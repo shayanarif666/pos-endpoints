@@ -83,7 +83,7 @@ export const DISCOUNT_EPS = [
     path: "/api/v1/discounts",
     summary: "Discounts (order level)",
     description:
-      "The order level discounts: a discount on the whole bill, picked by the cashier on an order. { id (discount number), name, discount_type (percentage | fixed), discount_value, is_active, status (active | inactive) }. Any role. The category and the product discounts are set on the category and on the product; the bulk and the bundle discounts have their own lists. The cart's discounts of every level come in one reply from GET /order-discounts.",
+      "The order level discounts: a discount on the whole bill, picked by the cashier on an order. { id (discount number), name, discount_type (percentage | fixed), discount_value, is_active, status (active | inactive) }. Any role. The category and the product discounts are set on the category and on the product; the bulk and the bundle discounts have their own lists.",
     query: [...PAGING, { name: "active", default: "", required: false }],
     ownResponses: true,
     responses: [page(ORDER_DISCOUNTS)],
@@ -120,32 +120,5 @@ export const DISCOUNT_EPS = [
     query: [...PAGING, { name: "active", default: "", required: false }],
     ownResponses: true,
     responses: [page(BUNDLE_DISCOUNTS)],
-  },
-
-  // ---- The cart
-  {
-    id: "order-discounts",
-    tag: "discounts",
-    method: "GET",
-    path: "/api/v1/order-discounts",
-    summary: "Cart Discounts",
-    description:
-      "Every discount that can touch the cart, in one call: the POS asks again when the cashier changes the cart. product_ids / category_ids = the products and categories in the cart (numbers, comma separated; UUIDs also work); the categories of the cart's products are added by themselves. A level with no discount comes back empty ([]). { categories [{ id, name, discount_name, discount_type, discount_value }] (category level), products [{ id, title, discount_name, discount_type, discount_value, applies_to (all | pack | loose | weight: what the product discount is taken off) }] (product level), bulkDiscount [the live bulk discounts on a product of the cart: the same rows as GET /bulk-discounts], bundle [the live bundle discounts with a product of the cart among their components: the same rows as GET /bundle-discounts], order [every active order level discount: the same rows as GET /discounts] }. Any role. The POS works the figures out.",
-    query: [
-      { name: "product_ids", default: "1,4", required: false },
-      { name: "category_ids", default: "1", required: false },
-    ],
-    ownResponses: true,
-    responses: [
-      ok("200 OK", 200, "OK", {
-        categories: [{ id: 1, name: "Beverages", discount_name: "Eid Shopping", discount_type: "percentage", discount_value: 5 }],
-        products: [{ id: 4, title: "Sugar", discount_name: "Sugar Rs 5 off", discount_type: "fixed", discount_value: 5, applies_to: "weight" }],
-        bulkDiscount: [BULK_DISCOUNTS[0], BULK_DISCOUNTS[1]],
-        bundle: [BUNDLE_DISCOUNTS[0]],
-        order: ORDER_DISCOUNTS,
-      }),
-      ok("200 OK — nothing applies", 200, "OK", { categories: [], products: [], bulkDiscount: [], bundle: [], order: [] }),
-      fail(400, "a bad id", "product_ids must be a number or a UUID"),
-    ],
   },
 ]
