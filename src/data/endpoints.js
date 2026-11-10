@@ -437,7 +437,6 @@ export const RESOURCE_ENUMS = {
       "can",
     ],
     tax_type: ["percentage", "fixed"],
-    discount_type: ["percentage", "fixed"],
     channel: ["web", "pos", "both"],
   },
   inventory: {
