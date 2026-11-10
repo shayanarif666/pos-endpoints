@@ -394,15 +394,21 @@ const MOVEMENT_BULK_BODY = {
       product_id: 2, movement_type: "stock_out", reason: "damage", reason_note: "1 jar cracked in delivery",
       variants: [{ id: 2, stock: [{ location_id: 1, qty: 1, lot_id: 1 }] }],
     },
-    { product_id: 22, movement_type: "stock_in", reason: "purchase", supplier_id: 3, reason_note: "Bill #RM-208", stock: [{ location_id: 1, qty: 50, expiry_date: "2027-06-30" }] },
+    // A stock count: an adjustment, qty is the difference (-3 = 3 kg less than the system says).
+    { product_id: 4, movement_type: "adjustment", reason: "count", reason_note: "Shelf count: 3 kg less than the system", stock: [{ location_id: 1, qty: -3 }] },
+    // A sale posted as a movement (the till was offline): stock_out, the lot that expires first is used.
+    {
+      product_id: 1, movement_type: "stock_out", reason: "sale", reason_note: "Sold at the counter, till was offline",
+      variants: [{ id: 4, stock: [{ location_id: 1, qty: 2 }] }],
+    },
   ],
 }
 const MOVEMENT_BULK_ROWS = [
   movement({ product: PRODUCTS.pepsi, variantId: 1, type: "stock_in", reason: "purchase", qty: 50, note: "Bill #4521", supplier: 1, at: "2026-11-06T08:00:00.000Z", expiry: "2027-03-31" }),
   movement({ product: PRODUCTS.garnier, variantId: 2, type: "stock_out", reason: "damage", qty: -1, note: "1 jar cracked in delivery", at: "2026-11-06T08:00:00.000Z", lotId: 1 }),
-  movement({ product: PRODUCTS.sugar, type: "stock_in", reason: "purchase", qty: 50, note: "Bill #RM-208", supplier: 3, at: "2026-11-06T08:00:00.000Z", expiry: "2027-06-30" }),
+  movement({ product: PRODUCTS.sugar, type: "adjustment", reason: "count", qty: -3, note: "Shelf count: 3 kg less than the system", at: "2026-11-06T08:00:00.000Z" }),
+  movement({ product: PRODUCTS.pepsi, variantId: 4, type: "stock_out", reason: "sale", qty: -2, note: "Sold at the counter, till was offline", at: "2026-11-06T08:00:00.000Z" }),
 ]
-const EXPIRY = { [key(PRODUCTS.pepsi, 1, 1)]: "2027-03-31", [key(PRODUCTS.sugar, 0, 1)]: "2027-06-30" }
 
 // ---------------------------------------------------------------- stock transfers
 
