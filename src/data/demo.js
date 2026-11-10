@@ -161,18 +161,92 @@ export function productRef(product, variantId, { barcode = true } = {}) {
   }
 }
 
+// POST /products/bulk: one product with 7 variants (the request as the dashboard / POS sends it).
 const PROD_BULK_BODY = {
   storeId: 1,
-  items: PRODUCT_DEFS.map((def) => {
-    const base = {
-      title: def.title, sku: def.sku, barcode: def.barcode, category_id: def.category_id, unit: def.unit,
-      taxes: def.taxes, low_stock_threshold: def.variants.length ? 0 : def.low_stock_threshold, is_weight_based: def.is_weight_based, image: "",
-      location_scope: "all", stock_scope: "all",
-    }
-    if (!def.variants.length) return { ...base, cost: def.cost, price: def.price, sell_loose: def.sell_loose, stock: def.stock }
-    // Each variant carries its own low stock level; the product's own is 0.
-    return { ...base, variants: def.variants.map((v) => ({ low_stock_threshold: def.low_stock_threshold, ...v })) }
-  }),
+  items: [
+    {
+      title: "Pepsi",
+      sku: "PEPSI",
+      barcode: "8961014100004",
+      category_id: 1,
+      unit: "bottle",
+      // 0 with variants (each variant has its own level); 1 without.
+      low_stock_threshold: 0,
+      low_stock_unit: "unit",
+      is_weight_based: false,
+      image: "",
+      location_scope: "all",
+      stock_scope: "all",
+      taxes: [{ name: "Import Duty", type: "percentage", value: 10 }],
+      discount: { name: "Eid Shopping", type: "percentage", value: 10 },
+      variants: [
+      {
+        name: "350ML", sku: "PEPSI-350ML", barcode: "8961014100011",
+        cost: 50, price: 100,
+        is_pack_product: true, pack_size: 5, pack_cost: 250, pack_price: 500, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "500ML", sku: "PEPSI-500ML", barcode: "8961014100028",
+        cost: 70, price: 140,
+        is_pack_product: true, pack_size: 5, pack_cost: 350, pack_price: 700, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "1L x 5", sku: "PEPSI-1L", barcode: "8961014100035",
+        cost: 80, price: 160,
+        is_pack_product: true, pack_size: 5, pack_cost: 400, pack_price: 800, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "1.5L", sku: "PEPSI-1-5L", barcode: "8961014100042",
+        cost: 110, price: 220,
+        is_pack_product: true, pack_size: 5, pack_cost: 550, pack_price: 1100, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "2L", sku: "PEPSI-2L", barcode: "8961014100059",
+        cost: 140, price: 300,
+        is_pack_product: true, pack_size: 5, pack_cost: 700, pack_price: 1500, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "Jumbo", sku: "PEPSI-JUMBO", barcode: "8961014100066",
+        cost: 190, price: 240,
+        is_pack_product: true, pack_size: 5, pack_cost: 950, pack_price: 1200, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      {
+        name: "Cane", sku: "PEPSI-CANE", barcode: "8961014100073",
+        cost: 60, price: 120,
+        is_pack_product: true, pack_size: 5, pack_cost: 300, pack_price: 600, sell_loose: true,
+        low_stock_threshold: 2, low_stock_unit: "pack",
+        is_weight_based: false, colors: [], taxes: [],
+        stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }],
+      },
+      ],
+    },
+  ],
+}
+
+// The same product as the API answers it (GET /products shape: no stock).
+const PEPSI_CREATED = {
+  ...PRODUCT_DEFS[0],
+  taxes: [{ name: "Import Duty", type: "percentage", value: 10 }],
+  discount: { name: "Eid Shopping", type: "percentage", value: 10, applies_to: "all" },
 }
 
 // ---------------------------------------------------------------- stock (what each list shows at the end)
@@ -885,8 +959,11 @@ function levelFigures(def, price) {
   const category = CATEGORIES[def.category_id]
   const cut = category.discount_value > 0 ? category.discount_value : 0
   const fixed = (SUGAR_TAXED.has(def.key) ? SUGAR_TAX.value : 0) + def.taxes.reduce((s, x) => s + (x.type === "fixed" ? x.value : 0), 0)
+  const own = def.discount
   const of = (listPrice, units) => {
-    const discount = r2((listPrice * cut) / 100)
+    // The product discount first, then the category discount on what is left.
+    const fromProduct = own ? (own.type === "fixed" ? Math.min(listPrice, own.value * units) : r2((listPrice * own.value) / 100)) : 0
+    const discount = r2(fromProduct + ((listPrice - fromProduct) * cut) / 100)
     const base = listPrice - discount
     const taxes = [GST.value, category.tax_value > 0 ? category.tax_value : 0, ...def.taxes.filter((x) => x.type === "percentage").map((x) => x.value)]
     return { discount, tax: r2(taxes.reduce((s, v) => s + r2((base * v) / 100), 0) + fixed * units) }
@@ -958,9 +1035,10 @@ function productView(def) {
     total_pack_price: null,
     // Without variants the product carries the per pack / per unit figures itself.
     ...(own ? levelFigures(def, own) : {}),
-    has_product_discount: false,
+    has_product_discount: Boolean(def.discount),
     // Every discount that applies: product, category, bulk, bundle (see level).
     discounts: [
+      ...(def.discount ? [{ level: "product", name: def.discount.name, type: def.discount.type, value: def.discount.value, applies_to: def.discount.applies_to || "all" }] : []),
       ...(category.discount_value > 0 ? [{ level: "category", name: category.discount_name, type: category.discount_type, value: category.discount_value }] : []),
       ...bulk.map((o) => ({ level: "bulk", id: o.id, name: o.name, type: o.type, buy_qty: o.buy_qty, buy_unit: o.buy_unit, get_qty: o.get_qty, get_unit: o.get_unit, sale_unit: o.sale_unit })),
     ],
@@ -1047,7 +1125,7 @@ export const DEMO_EPS = {
   },
 
   // ---- Products
-  "prod-bulk": { body: PROD_BULK_BODY, responses: [created(PRODUCT_DEFS.map((def) => productView(def, { withStock: false })).map((view, i) => withOpening(view, PRODUCT_DEFS[i])), "Products Created")] },
+  "prod-bulk": { body: PROD_BULK_BODY, responses: [created([productView(PEPSI_CREATED)], "Products Created")] },
   "prod-list": {
     description:
       "Every product with all its detail, variants inside, and no stock (the stock of every product and variant, with its lots, is GET /products/stock). One product: { id (product number), title, has_variants, total_variants (how many; null without), variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, is_pack_product, pack_size, pack_cost_price, pack_selling_price, sell_loose, is_weight_based, taxes (its own), image, colors, pack_discount_value, unit_discount_value, pack_tax_value, unit_tax_value, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, cost_price, selling_price, pack fields, sell_loose, is_weight_based, has_bulk_discount, low_stock_threshold, low_stock_unit, total_price_each_unit, total_pack_price, has_product_discount, discounts [], has_product_tax, taxes [], location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own (0 / null), low_stock_threshold 0 and low_stock_unit null: each variant carries its prices and pack (its low stock level is in GET /products/stock). discounts [] lists every discount that applies to the product, each with its level: product (name, type, value, applies_to: all | pack | loose | weight), category (name, type, value), bulk (id = bulk discount number, name, type, buy_qty / buy_unit, get_qty / get_unit, sale_unit) and bundle (id = bundle number, name, type, value — on the whole pack / carton). taxes [] lists every tax that applies, each with its level: store (id = tax number, the Taxes page taxes that cover this product), category (name, type, value) and product (name, type, value). pack_discount_value / unit_discount_value: what ONE pack / ONE unit is cut by in rupees, worked out from the discounts [] — the product discount, then the category discount, then a bundle (pack only), each on what is left. A bulk discount depends on how many are bought, so it is not in these: the POS applies it to the qty. pack_tax_value / unit_tax_value: the tax in rupees on ONE pack / ONE unit after those discounts, every tax of taxes [] together (a percentage on the discounted price, a fixed tax per unit — so × pack size on a pack). null = it is not sold that way (no pack, or a pack sold only by the pack for unit). A product without variants carries these four at its own level (after total_pack_price) instead of on variants. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
@@ -1227,17 +1305,6 @@ export const DEMO_EPS = {
       }),
     ],
   },
-}
-
-/** The create reply: each variant with its opening stock (stock_unit pack = packs × pack_size units). */
-function withOpening(view, def) {
-  const stockOf = (row) =>
-    (row.stock || []).map((entry) => ({ location: LOCATIONS[entry.location_id], qty: entry.stock_unit === "pack" ? entry.qty * row.pack_size : entry.qty, expiry_date: null }))
-  if (!def.variants.length) {
-    const stocks = stockOf(def)
-    return { ...view, qty: sum(stocks, (s) => s.qty), stocks }
-  }
-  return { ...view, variants: view.variants.map((v, i) => { const stocks = stockOf(def.variants[i]); return { ...v, qty: sum(stocks, (s) => s.qty), stocks } }) }
 }
 
 // ---------------------------------------------------------------- stock edits (after the sales and refunds above)
