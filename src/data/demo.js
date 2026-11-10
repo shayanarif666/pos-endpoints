@@ -1185,14 +1185,14 @@ export const DEMO_EPS = {
 
   // ---- Taxes (GST on every product; Sugar tax on Pepsi and Sugar)
   "tax-bulk": {
-    body: { storeId: 1, items: [{ name: "GST", type: "percentage", value: 18, product_scope: "all" }, { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4] }] },
+    body: { storeId: 1, items: [{ name: "GST", type: "percentage", value: 18, product_scope: "all" }, { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4] }] },
   },
   "tax-list": {
     responses: [
       page([
         { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z" },
         {
-          id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4],
+          id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4],
           is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z",
         },
       ]),
@@ -1462,7 +1462,7 @@ Object.assign(DEMO_EPS, {
       created(
         [
           { id: 1, name: "GST", type: "percentage", value: 18, product_scope: "all", product_ids: [], is_active: true },
-          { id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4], is_active: true },
+          { id: 2, name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4], is_active: true },
         ],
         "Taxes Created"
       ),
@@ -1473,7 +1473,7 @@ Object.assign(DEMO_EPS, {
       ok(
         [
           {
-            id: 2, name: "Sugar tax", type: "fixed", value: 6, product_scope: "selected", product_ids: [1, 4, 3],
+            id: 2, name: "Sugar tax", type: "fixed", value: 6, product_scope: "selected", product_ids: [1, { product_id: 3, variant_id: 4 }, 4],
             is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-07T09:55:00.000Z",
           },
         ],
@@ -1503,7 +1503,7 @@ for (const [id, extra] of Object.entries({
 // ---------------------------------------------------------------- the other updates, on the same data
 
 const SUGAR_TAX_ROW = {
-  id: 2, uuid: "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44", name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [1, 4],
+  id: 2, uuid: "8a2d4c71-2f5b-4e3a-b6c9-7d1e0f3a2b44", name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4],
   is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z",
 }
 Object.assign(DEMO_EPS, {

@@ -2057,7 +2057,7 @@ const BASE_ENDPOINTS = [
     method: "GET",
     path: "/api/v1/taxes",
     summary: "Taxes",
-    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers, [] for all), is_active }. The products are not listed here: each product lists its own taxes (taxes and store_taxes in Products / Product Detail). Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
+    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (a product number = the whole product, or { product_id, variant_id } = one variant of it; [] for all), is_active }. The products are not listed here: each product lists its own taxes (taxes and store_taxes in Products / Product Detail). Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
     query: [
       { name: "is_active", default: "", required: false },
       { name: "product_scope", default: "", required: false },
@@ -2070,7 +2070,7 @@ const BASE_ENDPOINTS = [
     method: "GET",
     path: "/api/v1/taxes/:id",
     summary: "Tax Detail",
-    description: "One tax — :id is its number (tax_number, e.g. 1) or its UUID: both work. { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), is_active }.",
+    description: "One tax — :id is its number (tax_number, e.g. 1) or its UUID: both work. { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (a product number = the whole product, or { product_id, variant_id } = one variant of it; [] for all), is_active }.",
     pathParams: [{ name: "id", default: "1", required: true }],
   }),
   ep({
@@ -2079,12 +2079,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/taxes/bulk",
     summary: "Bulk Tax Creation",
-    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 Sugar tax (per unit: a bottle, a kg) on Pepsi — all its variants — and Sugar (product numbers 1 and 22). Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (product numbers), is_active }.",
+    description: "Store admin. { storeId, items: [ ...taxes ] } — each { name, type, value, product_scope, product_ids }. product_scope all = every product (also ones added later): no product_ids needed. selected = only product_ids: product numbers (a product covers all its variants) or { product_id, variant_id } for one variant. The example: GST 18% on every product, and a Rs 5 Sugar tax (per unit: a bottle, a kg) on one Pepsi variant (product 1, variant 3) and on the whole Sugar product (4). Each tax gets a number (tax_number, 1, 2, 3…) — the id used by updates; its UUID works too. A store tax is charged on the discounted price (fixed = per unit) together with the product's own taxes; on a POS-priced order send it as taxes [{ level: \"store\", name, rate, amount }]. A tax that fails is listed in failed[]; the others still save. Reply: the created taxes { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (a product number = the whole product, or { product_id, variant_id } = one variant of it; [] for all), is_active }.",
     body: {
       storeId: 1,
       items: [
         { name: "GST", type: "percentage", value: 18, product_scope: "all" },
-        { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 6] },
+        { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4] },
       ],
     },
   }),
