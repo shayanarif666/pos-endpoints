@@ -144,6 +144,8 @@ export function EndpointCard({
   const [result, setResult] = useState(null)
   const [fileMap, setFileMap] = useState({})
   const fileFields = endpoint.files || []
+  // An upload form shows its file picker as an input above the body, not as a button.
+  const uploadForm = Boolean(endpoint.uploadForm) && fileFields.length > 0
 
   useEffect(() => {
     if (!session.licenseKey || !bodyText) return
@@ -343,10 +345,10 @@ export function EndpointCard({
               count={Object.keys(shownHeaders).length}
               onClick={() => setModal("headers")}
             />
-            {fieldCount ? (
+            {fieldCount && !uploadForm ? (
               <ViewButton label="View Attributes" count={fieldCount} onClick={() => setModal("fields")} />
             ) : null}
-            {enumCount ? (
+            {enumCount && !uploadForm ? (
               <ViewButton label="View Enums" count={enumCount} onClick={() => setModal("enums")} />
             ) : null}
             {endpoint.pathParams.length && !inlinePathParams ? (
@@ -376,14 +378,14 @@ export function EndpointCard({
                 />
               </>
             ) : null}
-            {endpoint.responses?.length ? (
+            {endpoint.responses?.length && !uploadForm ? (
               <ViewButton
                 label="View Response"
                 count={endpoint.responses.length}
                 onClick={() => setModal("responses")}
               />
             ) : null}
-            {fileFields.length ? (
+            {fileFields.length && !uploadForm ? (
               <ViewButton
                 label="Attach Files"
                 count={fileFields.filter((field) => fileMap[field.name]).length || null}
@@ -432,6 +434,31 @@ export function EndpointCard({
           ) : null}
 
           {CALC_NOTES[endpoint.id] ? <CalcNote note={CALC_NOTES[endpoint.id]} /> : null}
+
+          {uploadForm ? (
+            <section className="space-y-2">
+              <h4 className="text-sm font-semibold text-slate-700">
+                Attach file <span className="font-normal text-slate-400">optional · multipart/form-data</span>
+              </h4>
+              {fileFields.map((field) => (
+                <label
+                  key={field.name}
+                  className="flex items-center gap-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                >
+                  <span className="w-24 shrink-0 text-sm font-semibold text-slate-700">{field.label || field.name}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="min-w-0 flex-1 text-sm"
+                    onChange={(e) => setFileMap((prev) => ({ ...prev, [field.name]: e.target.files?.[0] || null }))}
+                  />
+                </label>
+              ))}
+              <p className="text-xs text-slate-500">
+                When a file is selected, the JSON body below is sent as form fields with the file.
+              </p>
+            </section>
+          ) : null}
 
           {endpoint.body != null ? (
             <section>
@@ -499,7 +526,7 @@ export function EndpointCard({
           {result ? (
             <ResponsePanel result={result} />
           ) : endpoint.responses?.length && sampleShown ? (
-            <SampleResponsePanel sample={sampleShown} more={endpoint.responses.length - 1} onMore={() => setModal("responses")} />
+            <SampleResponsePanel sample={sampleShown} more={uploadForm ? 0 : endpoint.responses.length - 1} onMore={() => setModal("responses")} />
           ) : null}
         </div>
       ) : null}

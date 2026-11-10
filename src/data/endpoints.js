@@ -804,6 +804,8 @@ function ep({
   // bodyBuilder.js. `body` becomes the template's default output.
   bodyBuilder = null,
   files = [],
+  // An upload form: the file picker sits above the request body and the Attributes / Enums / Response buttons are left out.
+  uploadForm = false,
   capture = null,
   enums = null,
   // (item) => [[label, value], ...]: values the server computes from a body row, shown under it.
@@ -852,6 +854,7 @@ function ep({
     // Captured replies first (shown under the request), then the hand-written edge cases.
     responses: ownResponses ? responses : [...(SAMPLE_RESPONSES[id] || []), ...responses],
     files,
+    uploadForm,
     capture,
     sections,
     enums: endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
@@ -1555,6 +1558,7 @@ const BASE_ENDPOINTS = [
       "multipart/form-data: productId (the product number, e.g. 1, or UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per product: a new upload replaces the old one. The file is stored on the image server and the product's image becomes its URL — the same image Bulk Products / Products return as image. POST /api/v1/products/:id/image does the same with the product in the path. A variant's image: Variant Image Upload. Response { id (product number), title, image (URL) }. Store admin or manager.",
     body: { productId: 1 },
     files: [{ name: "image", label: "Image" }],
+    uploadForm: true,
   }),
   ep({
     id: "prod-variant-image-upload",
@@ -1566,6 +1570,7 @@ const BASE_ENDPOINTS = [
       "multipart/form-data: productId (the product number, e.g. 1, or UUID), variantId (the variant's number inside that product — variants[].id: 1, 2, 3… — or its UUID) and the image file in the image field (jpg, png, webp or gif, up to 5 MB). One image per variant: a new upload replaces the old one. Products return it as variants[].image (null = the variant has no image of its own: show the product's image). POST /api/v1/products/:id/variants/:variantId/image does the same with both in the path; DELETE /api/v1/products/:id/variants/:variantId/image removes it. A variant image URL can also be sent as variants[].image when creating / updating the product. Response { id (product number), title, variant { id (variant number), product_id (the variant's own product number), name, image (URL) } }. Store admin or manager.",
     body: { productId: 1, variantId: 1 },
     files: [{ name: "image", label: "Image" }],
+    uploadForm: true,
   }),
   ep({
     id: "prod-expiry",
