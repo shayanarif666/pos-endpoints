@@ -1162,7 +1162,12 @@ export const DEMO_EPS = {
   "order-list-completed": { responses: [page([orderView(O2, { afterRefunds: true }), orderView(O1, { afterRefunds: true })])] },
   "order-list-pending": { responses: [page([])] },
   "order-list-cancelled": { responses: [page([])] },
-  "order-history": { responses: [page([O3, O2, O1].map((o) => orderView(o, { afterRefunds: true })))] },
+  "order-history": {
+    responses: [
+      page([O3, O2, O1].map((o) => orderView(o, { afterRefunds: true }))),
+      fail(400, "status", "status must be completed, partial_refunded, pending, cancelled, refunded or all"),
+    ],
+  },
   "order-get": { responses: [ok(receiptView(O1, { withHistory: true }))] },
   "order-receipt": { responses: [ok(receiptView(O1))] },
   "transaction-list": {
@@ -1876,7 +1881,7 @@ export const DEMO_NEW_EPS = [
 ]
 
 // These are no longer documented (POST /locations: locations come with the store; POST /customers: use Bulk Customers).
-export const DEMO_REMOVED_IDS = ["prod-get", "prod-weight-list", "prod-expiry", "prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
+export const DEMO_REMOVED_IDS = ["discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk", "plans-create", "admin-create-store", "admin-register-superadmin", "plans-list", "order-list-completed", "order-list-pending", "order-list-cancelled", "order-get", "order-receipt", "refund-receipt", "prod-get", "prod-weight-list", "prod-expiry", "prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
 
 // ---------------------------------------------------------------- the attributes of the bodies above
 

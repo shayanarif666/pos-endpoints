@@ -1031,7 +1031,6 @@ const SAMPLE_CATALOG_ORDER = {
 }
 // The POST group is laid out by these sections (in this order) instead of by tag.
 export const postSections = [
-  { id: "super-admin", name: "Super Admin Actions", tag: "plans", ids: ["plans-create", "admin-create-store", "admin-register-superadmin"] },
   { id: "authentication", name: "Authentication", tag: "auth", ids: ["auth-login", "auth-pin-verify"] },
   { id: "license", name: "License", tag: "license", ids: ["license-validate", "license-renew"] },
   { id: "user-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-clock-in", "staff-clock-out"] },
@@ -1041,7 +1040,6 @@ export const postSections = [
   { id: "products", name: "Products", tag: "products", ids: ["prod-bulk", "prod-image-upload", "prod-variant-image-upload"] },
   { id: "stock-inventory", name: "Stock Inventory", tag: "inventory", ids: ["movement-bulk", "transfer-bulk"] },
   { id: "taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk"] },
-  { id: "discounts", name: "Discounts", tag: "discounts", ids: ["discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk"] },
   { id: "surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk"] },
   { id: "suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk"] },
   { id: "customers", name: "Customers", tag: "customers", ids: ["customer-bulk"] },
@@ -1068,12 +1066,11 @@ export const patchSections = [
 
 // The GET group: these sections in this order, then every other GET under "Other".
 export const getSections = [
-  { id: "get-super-admin", name: "Super Admin Actions", tag: "plans", ids: ["plans-list"] },
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-stock"] },
-  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-list-completed", "order-list-pending", "order-list-cancelled", "order-get"] },
+  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history"] },
   { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list"] },
   { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list", "tax-get"] },
@@ -1083,11 +1080,8 @@ export const getSections = [
   { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list", "order-discounts"] },
   { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-section"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
-  { id: "get-order-history", name: "Complete Order History", tag: "orders", ids: ["order-history"] },
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
-  { id: "get-tax", name: "Tax-rate", tag: "store", ids: ["tax-get"] },
   { id: "get-transactions", name: "Transactions", tag: "orders", ids: ["transaction-list"] },
-  { id: "get-receipts", name: "Receipts", tag: "orders", ids: ["order-receipt", "refund-receipt"] },
 ]
 
 const LOCATION_ROW = [
@@ -1336,15 +1330,6 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/stores/me",
     summary: "Store Profile",
     description: "Settings, Tax manager, POS cart (sales_tax_rate, payment_tax_enabled), history.",
-  }),
-  ep({
-    id: "tax-get",
-    tag: "store",
-    method: "GET",
-    path: "/api/v1/tax-rates",
-    summary: "Tax-rate",
-    description:
-      "Tax manager load: charge_tax_on_sales, sales_tax_enabled + sales_tax_rate, payment_tax_enabled + rates (payment-method GST), ntn, strn, fbr_invoice_enabled.",
   }),
   ep({
     id: "currency-get",
@@ -1860,9 +1845,9 @@ const BASE_ENDPOINTS = [
     tag: "orders",
     method: "GET",
     path: "/api/v1/orders",
-    summary: "Complete Order History",
+    summary: "Orders",
     description:
-      "Every order whatever its status (status=all; also completed | pending | cancelled | refunded). Each row is short: { id (order number), is_custom, location_name, items (number of lines), currency, total_amount, status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status (paid | partial | pending | refunded), remaining_amount (udhaar still owed; 0 when paid), placed_at, channel }. GET /orders/:id has the full detail. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "The one list of orders, every order in full, newest first. status picks which: all (default) | completed (also the partly refunded ones) | partial_refunded | pending (not paid yet) | cancelled (cancelled and voided) | refunded. Each order: { id (order number), client_local_id, local_receipt_number, receiptId, location, staff, customer, batch, currency, is_custom, order_items [{ id, product (or title for a custom line), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [], free_qty, subtotal, taxes [], tax_amount, total, is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total, lots }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount, surcharge_amount, total_amount, payment_method, payments [], amount_paid, change_due, remaining_amount (udhaar still owed; 0 when paid), payment_status (paid | partial | pending | refunded), order_status (completed | partial_refunded | refunded | pending | cancelled | voided), is_refunded, refund_status (none | partial | full), refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total, cancel_reason, cancelled_by, placed_at, synced_at, channel }. The refunds themselves, with their lines, are GET /orders/refunds. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1875,6 +1860,7 @@ const BASE_ENDPOINTS = [
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
     ],
+    enums: { status: ["all", "completed", "partial_refunded", "pending", "cancelled", "refunded"] },
   }),
   ep({
     id: "order-get",
@@ -2633,7 +2619,7 @@ const BASE_ENDPOINTS = [
 export const endpoints = [
   ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id)),
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
-  ...DISCOUNT_EPS.map((spec) => ep(spec)),
+  ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
 ]
 
