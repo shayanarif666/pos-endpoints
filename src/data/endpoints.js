@@ -1067,21 +1067,19 @@ export const patchSections = [
 // The GET group: these sections in this order, then every other GET under "Other".
 export const getSections = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "location-list", "currency-get"] },
+  { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
+  { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-stock"] },
-  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history"] },
-  { id: "get-refunds", name: "Refunds", tag: "orders", ids: ["refund-list"] },
-  { id: "get-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
-  { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list"] },
-  { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list"] },
+  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history", "refund-list", "transaction-list"] },
+  { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list", "order-discounts"] },
+  { id: "get-stock", name: "Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
   { id: "get-customers", name: "Customers", tag: "customers", ids: ["customer-list"] },
-  { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list", "order-discounts"] },
-  { id: "get-reporting", name: "Detailed Reporting", tag: "reports", ids: ["reporting-section"] },
-  { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list", "batch-current"] },
-  { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
-  { id: "get-transactions", name: "Transactions", tag: "orders", ids: ["transaction-list"] },
+  { id: "get-reporting", name: "Reporting", tag: "reports", ids: ["reporting-section"] },
+  { id: "get-taxes", name: "Taxes", tag: "taxes", ids: ["tax-list"] },
+  { id: "get-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-list"] },
 ]
 
 const LOCATION_ROW = [
