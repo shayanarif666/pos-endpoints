@@ -2042,12 +2042,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/payment-surcharges/bulk",
     summary: "Bulk Surcharge Creation",
-    description: "Store admin. { storeId, items: [{ method, charges, type, isActive }] } — one surcharge per method (a second one for the same method fails: update it instead). The example: card 2% of its share, JazzCash Rs 25 per payment. On an order the till adds each payment's surcharge and sends it as payments [{ method, surcharge_type, surcharge_value, surcharge_amount, amount }]; a split payment adds each method's own surcharge on its part. A row that fails is listed in failed[]; the others still save. Reply: the created surcharges { id (surcharge_number), method, type (percentage | fixed), charges, is_active }.",
+    description: "Store admin. { storeId, items: [{ method, charges, type, isActive }] } — one surcharge per method (a second one for the same method fails: update it instead). The example: cash 16% and card 8% of the method's share of the bill. On an order the till adds each payment's surcharge and sends it as payments [{ method, surcharge_type, surcharge_value, surcharge_amount, amount }]; a split payment adds each method's own surcharge on its part. A row that fails is listed in failed[]; the others still save. Reply: the created surcharges { id (surcharge_number), method, type (percentage | fixed), charges, is_active }.",
     body: {
       storeId: 1,
       items: [
-        { method: "card", charges: 2, type: "percentage", isActive: true },
-        { method: "jazzcash", charges: 25, type: "fixed", isActive: true },
+        { method: "cash", charges: 16, type: "percentage", isActive: true },
+        { method: "card", charges: 8, type: "percentage", isActive: true },
       ],
     },
   }),

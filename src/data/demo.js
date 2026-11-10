@@ -1507,6 +1507,25 @@ const SUGAR_TAX_ROW = {
   is_active: true, created_at: "2026-11-01T06:00:00.000Z", updated_at: "2026-11-01T06:00:00.000Z",
 }
 Object.assign(DEMO_EPS, {
+  // Payment method surcharges: cash 16%, card 8% (a percentage of the method's share of the bill).
+  "surcharge-bulk": {
+    body: {
+      storeId: 1,
+      items: [
+        { method: "cash", charges: 16, type: "percentage", isActive: true },
+        { method: "card", charges: 8, type: "percentage", isActive: true },
+      ],
+    },
+    responses: [
+      created(
+        [
+          { id: 1, method: "cash", type: "percentage", charges: 16, is_active: true },
+          { id: 2, method: "card", type: "percentage", charges: 8, is_active: true },
+        ],
+        "Surcharges Created"
+      ),
+    ],
+  },
   "tax-get": { responses: [ok(SUGAR_TAX_ROW)] },
   "tax-bulk-status-patch": {
     body: { items: [{ id: 2, is_active: false }] },
