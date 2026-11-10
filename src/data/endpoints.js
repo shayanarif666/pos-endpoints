@@ -1056,7 +1056,6 @@ export const patchSections = [
   { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
   { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
-  { id: "patch-discounts", name: "Discounts", tag: "discounts", ids: ["discount-bulk-patch", "bulk-discount-bulk-patch", "bundle-discount-bulk-patch"] },
   { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch"] },
