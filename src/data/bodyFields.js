@@ -205,7 +205,7 @@ const TAX_CREATE = {
   product_ids: note("product_scope selected: product numbers (e.g. [1, 6]) or UUIDs — a product covers all its variants; { product_id, variant_id } for one variant only"),
   "product_ids[].product_id": must("The product's number or UUID"),
   "product_ids[].variant_id": note("The variant's number inside the product (1, 2, 3…) or UUID"),
-  is_active: note("Default true"),
+  isActive: note("Default true (is_active also works)"),
 }
 const TAX_ID = must("The tax's number (1, 2, 3… — tax_number) or its UUID: both work")
 
@@ -490,6 +490,7 @@ export const BODY_FIELDS = {
 
   // Devices
   "license-renew": {
+    storeId: note("The store number the license belongs to (e.g. 1). Optional: it is only checked, a license of another store is refused (400). The license itself is the :id in the path"),
     plan_id: note("Plan number (e.g. 1) or UUID. Leave out to renew on the current plan; another plan switches it"),
     amount: note("Billing amount. Default: the plan's price_pkr"),
     billing_status: note("pending | paid | failed | refunded. Default paid"),

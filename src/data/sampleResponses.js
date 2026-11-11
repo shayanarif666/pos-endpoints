@@ -21,7 +21,14 @@ export const SAMPLE_RESPONSES = {
         "suspended_at": null,
         "suspended_reason": null,
         "valid": true,
-        "planId": 1
+        "plan": {
+          "id": 1,
+          "code": "solo-pos",
+          "name": "Solo",
+          "max_devices": 3,
+          "max_locations": 3,
+          "features": []
+        }
       }
     }
   }],
