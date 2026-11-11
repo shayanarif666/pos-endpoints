@@ -2035,11 +2035,12 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "surcharge-list",
+    noEnums: true,
     tag: "surcharges",
     method: "GET",
     path: "/api/v1/payment-surcharges",
     summary: "Payment Method Surcharges",
-    description: "Every payment method surcharge, by number: { id (surcharge_number), method, type (percentage | fixed), charges, is_active }. Any role (the POS adds them to the bill). A percentage is of that payment's share of the bill; fixed is once per payment. They replace the old payment-method GST rates (no longer used).",
+    description: "Every payment method surcharge, by number: { id (surcharge_number), method, type (percentage | fixed), charges, is_active }. Every surcharge comes back in one list (no filters, no paging). Any role (the POS adds them to the bill). A percentage is of that payment's share of the bill; fixed is once per payment. They replace the old payment-method GST rates (no longer used).",
   }),
   ep({
     id: "surcharge-get",
@@ -2067,16 +2068,12 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "tax-list",
+    noEnums: true,
     tag: "taxes",
     method: "GET",
     path: "/api/v1/taxes",
     summary: "Taxes",
-    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (a product number = the whole product, or { product_id, variant_id } = one variant of it; [] for all), is_active }. The products are not listed here: each product lists its own taxes (taxes and store_taxes in Products / Product Detail). Filters: is_active (true / false), product_scope, q (name). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
-    query: [
-      { name: "is_active", default: "", required: false },
-      { name: "product_scope", default: "", required: false },
-      { name: "q", default: "", required: false },
-    ],
+    description: "Every store tax, by number: { id (tax_number), uuid, name, type (percentage | fixed), value, product_scope (all | selected), product_ids (a product number = the whole product, or { product_id, variant_id } = one variant of it; [] for all), is_active }. The products are not listed here: each product lists its own taxes (taxes and store_taxes in Products / Product Detail). Every tax comes back in one list (no filters, no paging). Any role (the POS charges them). Each product in Products / Product Detail also lists the active taxes that apply to it as store_taxes [{ id, name, type, value }] (its variants too), so the POS does not have to match them itself.",
   }),
   ep({
     id: "tax-get",
@@ -2104,19 +2101,21 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "sup-list",
+    noEnums: true,
     tag: "suppliers",
     method: "GET",
     path: "/api/v1/suppliers",
     summary: "Suppliers",
     description:
-      "Suppliers in the Bulk Suppliers shape { id, locations, name, email, phone, payment_terms, address, is_active } — location_ids [] means every location. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Suppliers in the Bulk Suppliers shape { id, location_scope (all | selected), locations, name, email, phone, payment_terms, address, is_active } — location_scope all (locations []) means every location. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — the suppliers that serve any of those branches; store admin only, a manager / cashier only sees the suppliers that serve their own location), isActive (true = active suppliers only, false = inactive only, left out = every one), q (a text found in the name, email, phone, address or payment terms), from / to (created date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "isActive", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
   }),
   ep({
