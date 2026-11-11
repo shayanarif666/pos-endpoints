@@ -1320,7 +1320,11 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/locations",
     summary: "Locations",
     description:
-      "Store admin: every branch of the store. Manager: only their own location. Each row includes location_number, is_default, is_active and its manager.",
+      "The branches, paged, each with its staff: { id (location number), name, address, city, country, postal_code, phone, is_default, is_active, users [{ name, email, phone, role (manager | cashier), pin, is_active }], created_at, updated_at }. A store admin sees every branch and each staff member's PIN; a manager only their own branch, its users without PINs; a cashier only their own branch, without users. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+    ],
   }),
 
   ep({
@@ -1329,7 +1333,7 @@ const BASE_ENDPOINTS = [
     method: "GET",
     path: "/api/v1/stores/me",
     summary: "Store Profile",
-    description: "Settings, Tax manager, POS cart (sales_tax_rate, payment_tax_enabled), history.",
+    description: "The store as the POS reads it: { id (the store number), name, business_type, currency (code, e.g. PKR), timezone, ntn, strn, fbr_invoice_enabled, pos_enabled, web_enabled, is_active, status, created_at }. Any signed-in role.",
   }),
   ep({
     id: "currency-get",
@@ -1347,17 +1351,18 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/staff-sessions",
     summary: "User Session History",
     description:
-      "Staff attendance (clock in / clock out), newest first. Filters: staffId (user number), status clock_in | clock_out, from / to (clock-in time). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Each row { id, staff, location, status, opening_at, closing_at }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (clock-in time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Staff attendance (clock in / clock out), newest first: { id, staff { id, name, role }, location { id, name }, status, opening_at, closing_at (null while still clocked in) }. Filters: from / to (clock-in date, YYYY-MM-DD — to covers the whole day), locations (a list of location numbers or UUIDs: locations=1,2; store admin only, a manager / cashier always sees their own), roles (a list: store_admin, manager, cashier), status (clock_in | clock_out; left out = every session), q (a text found in the staff member's name, email or phone, or the session id). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
-      { name: "staffId", default: "", required: false },
-      { name: "status", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "roles", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
+    enums: { roles: ["store_admin", "manager", "cashier"], status: ["clock_in", "clock_out"] },
   }),
   ep({
     id: "batch-current",
@@ -1366,7 +1371,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/batches/current",
     summary: "Current Open Batch",
     description:
-      "The open batch of a staff member at the location — staffId (user number) or, left out, the signed-in user; a store admin may name location_id. Same shape as a Batch History row { id, staff, location, status, opening_amount, opening_at, cash_sales, …, closing_at }; data is null when no batch is open. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "The open batch of a staff member at the location — staffId (user number) or, left out, the signed-in user; a store admin may name location_id. { id, staff, location, status, opening_amount, opening_at, cash_sales, card_sales, jazzcash_sales, easypaisa_sales, total_sales, expected_cash, total_cash, cash_variance, closing_at }; data is null when no batch is open. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "staffId", default: "2", required: false },
       { name: "location_id", default: "", required: false },
@@ -1379,17 +1384,18 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/batches",
     summary: "Batch History",
     description:
-      "Cash drawer batches, newest first. Filters: staffId, status open | closed, from / to (opening time). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Each row { id, staff, location, status, opening_amount, opening_at, cash_sales, card_sales, jazzcash_sales, easypaisa_sales, total_sales, expected_cash, total_cash (counted at closing), cash_variance, closing_at }. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (opening time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Cash drawer batches, newest first: { id, staff { id, name, role }, location { id, name }, status (open | closed), opening_amount (what the drawer opened with), cash_sales, total_cash (the cash counted at closing), cash_variance (counted − expected; null while open), opening_at, closing_at }. Filters: from / to (opening date, YYYY-MM-DD — to covers the whole day), locations (a list of location numbers or UUIDs: locations=1,2; store admin only, a manager / cashier always sees their own), roles (a list: store_admin, manager, cashier — the role of the staff member who opened it), status (open | closed; left out = every batch), q (a text found in the staff member's name, email or phone, or the batch id). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
-      { name: "staffId", default: "", required: false },
-      { name: "status", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "roles", default: "", required: false },
+      { name: "status", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
+    enums: { roles: ["store_admin", "manager", "cashier"], status: ["open", "closed"] },
   }),
   ep({
     id: "staff-clock-in",
@@ -1736,16 +1742,18 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/staff",
     summary: "Staff",
     description:
-      "Managers and cashiers: { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active }. Filter: role manager | cashier. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Managers and cashiers: { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active }. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — only the staff of those branches; store admin only, a manager / cashier always sees their own), roles (a list: manager, cashier), isActive (true = active staff only, false = inactive only, left out = every one), q (a text found in the name, email or phone, or the staff number), from / to (created date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "role", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "roles", default: "", required: false },
+      { name: "isActive", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
+    enums: { roles: ["manager", "cashier"], isActive: ["true", "false"] },
   }),
   ep({
     id: "staff-bulk",

@@ -1170,7 +1170,80 @@ export const DEMO_EPS = {
     body: { storeId: 1, items: [{ locationId: 1, name: "Ahmed Malik", email: "ahmed@acadex.co", password: "ahmedmalik", pin: "2222", role: "cashier" }] },
     responses: [created([STAFF_ROW], "Staff Created")],
   },
-  "staff-list": { responses: [page([STAFF_ROW])] },
+  "staff-list": { responses: [page([{ ...STAFF_ROW, status: "clock_in" }])] },
+
+  // ---- Store, locations, sessions, batches (GET)
+  "store-me": {
+    responses: [
+      ok({
+        id: 1,
+        name: "Acadex",
+        business_type: "grocery",
+        currency: "PKR",
+        timezone: "Asia/Karachi",
+        ntn: "1234567-8",
+        strn: "3277876123456",
+        fbr_invoice_enabled: false,
+        pos_enabled: true,
+        web_enabled: true,
+        is_active: true,
+        status: "active",
+        created_at: "2026-10-31T09:27:34.000Z",
+      }),
+    ],
+  },
+  "location-list": {
+    responses: [
+      page([
+        {
+          id: 1,
+          name: "Gulshan e Iqbal Block 13 D",
+          address: "Shop # 432 Allama rasheed main rashid Minhas road Gulshan e Iqbal Block 13 D Karachi",
+          city: "Karachi",
+          country: "Pakistan",
+          postal_code: null,
+          phone: "03162196345",
+          is_default: true,
+          is_active: true,
+          users: [
+            { name: "Ahmed Malik", email: "ahmed@acadex.co", phone: null, role: "manager", pin: "2222", is_active: true },
+            { name: "Sana Tariq", email: "sana@acadex.co", phone: null, role: "cashier", pin: "3333", is_active: true },
+          ],
+          created_at: "2026-10-31T09:27:34.000Z",
+          updated_at: "2026-10-31T09:27:34.000Z",
+        },
+      ]),
+    ],
+  },
+  "staff-session-list": {
+    responses: [
+      page([
+        { id: 3, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, status: "clock_in", opening_at: "2026-11-06T09:00:00.000Z", closing_at: null },
+        { id: 2, staff: { id: 1, name: "Zayan Ahmed", role: "store_admin" }, location: L1, status: "clock_out", opening_at: "2026-11-05T09:00:00.000Z", closing_at: "2026-11-05T17:30:00.000Z" },
+        { id: 1, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, status: "clock_out", opening_at: "2026-11-05T08:55:00.000Z", closing_at: "2026-11-05T17:00:00.000Z" },
+      ]),
+      fail(400, "status", "status must be clock_in or clock_out"),
+    ],
+  },
+  "batch-list": {
+    responses: [
+      page([
+        {
+          id: 1,
+          staff: { id: 2, name: "Ahmed Malik", role: "manager" },
+          location: { id: 1, name: "Gulshan e Iqbal Block 13 D" },
+          status: "closed",
+          opening_amount: 5000,
+          cash_sales: 1058.53,
+          total_cash: 10000,
+          cash_variance: 3941.47,
+          opening_at: "2026-10-24T09:00:00.000Z",
+          closing_at: "2026-10-24T17:00:00.000Z",
+        },
+      ]),
+      fail(400, "status", "status must be open or closed"),
+    ],
+  },
   "staff-bulk-patch": {
     body: { items: [{ id: 2, phone: "03001112222", pin: "2323" }] },
     responses: [ok([{ ...STAFF_ROW, phone: "03001112222", pin: "2323" }], "Staff Updated")],
