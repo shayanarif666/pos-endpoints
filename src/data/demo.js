@@ -1261,9 +1261,6 @@ export const DEMO_EPS = {
       ]),
     ],
   },
-  "tax-bulk-patch": {
-    body: { items: [{ id: 2, value: 6, product_scope: "selected", product_ids: [1, 4, { product_id: 3, variant_id: 4 }] }] },
-  },
 
   // ---- Stock inventory
   "movement-bulk": { body: MOVEMENT_BULK_BODY, responses: [created(MOVEMENT_BULK_ROWS.map(movementView), "Stock Movement Created")] },
@@ -1533,6 +1530,7 @@ Object.assign(DEMO_EPS, {
     ],
   },
   "tax-bulk-patch": {
+    body: { items: [{ id: 2, value: 6, product_scope: "selected", product_ids: [1, 4, { product_id: 3, variant_id: 4 }] }] },
     responses: [
       ok(
         [
