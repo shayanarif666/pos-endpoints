@@ -2119,7 +2119,7 @@ export const DEMO_NEW_EPS = [
 ]
 
 // These are no longer documented (POST /locations: locations come with the store; POST /customers: use Bulk Customers).
-export const DEMO_REMOVED_IDS = ["tax-get", "surcharge-get", "discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk", "plans-create", "admin-create-store", "admin-register-superadmin", "plans-list", "order-list-completed", "order-list-pending", "order-list-cancelled", "order-get", "order-receipt", "refund-receipt", "prod-get", "prod-weight-list", "prod-expiry", "prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
+export const DEMO_REMOVED_IDS = ["batch-current", "tax-get", "surcharge-get", "discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk", "plans-create", "admin-create-store", "admin-register-superadmin", "plans-list", "order-list-completed", "order-list-pending", "order-list-cancelled", "order-get", "order-receipt", "refund-receipt", "prod-get", "prod-weight-list", "prod-expiry", "prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
 
 // ---------------------------------------------------------------- the attributes of the bodies above
 
