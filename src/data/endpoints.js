@@ -806,6 +806,8 @@ function ep({
   files = [],
   // An upload form: the file picker sits above the request body and the Attributes / Enums / Response buttons are left out.
   uploadForm = false,
+  // true = no View Enums button (the values a filter takes are in its description).
+  noEnums = false,
   capture = null,
   enums = null,
   // (item) => [[label, value], ...]: values the server computes from a body row, shown under it.
@@ -857,7 +859,7 @@ function ep({
     uploadForm,
     capture,
     sections,
-    enums: endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
+    enums: noEnums ? null : endpointEnums(enums || RESOURCE_ENUMS[tag], effectiveBody == null ? null : bodyFieldsFor({ id, tag })),
     fields: effectiveBody == null ? null : bodyFieldsFor({ id, tag }),
   }
 }
@@ -1315,6 +1317,7 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "location-list",
+    noEnums: true,
     tag: "locations",
     method: "GET",
     path: "/api/v1/locations",
@@ -1329,6 +1332,7 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "store-me",
+    noEnums: true,
     tag: "store",
     method: "GET",
     path: "/api/v1/stores/me",
@@ -1346,6 +1350,7 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "staff-session-list",
+    noEnums: true,
     tag: "shifts",
     method: "GET",
     path: "/api/v1/staff-sessions",
@@ -1362,7 +1367,6 @@ const BASE_ENDPOINTS = [
       { name: "status", default: "", required: false },
       { name: "q", default: "", required: false },
     ],
-    enums: { roles: ["store_admin", "manager", "cashier"], status: ["clock_in", "clock_out"] },
   }),
   ep({
     id: "batch-current",
@@ -1379,6 +1383,7 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "batch-list",
+    noEnums: true,
     tag: "shifts",
     method: "GET",
     path: "/api/v1/batches",
@@ -1395,7 +1400,6 @@ const BASE_ENDPOINTS = [
       { name: "status", default: "", required: false },
       { name: "q", default: "", required: false },
     ],
-    enums: { roles: ["store_admin", "manager", "cashier"], status: ["open", "closed"] },
   }),
   ep({
     id: "staff-clock-in",
@@ -1464,19 +1468,21 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "cat-list",
+    noEnums: true,
     tag: "categories",
     method: "GET",
     path: "/api/v1/categories",
     summary: "Categories",
     description:
-      "Every category of the store, in the same shape as Bulk Categories: { id, name, tax_name, tax_type, tax_value, discount_name, discount_type, discount_value, location_scope, location_ids (location numbers) }. A store admin sees every category (or the ones sold at one location with location_id = location number or UUID); a manager / cashier only the categories sold at their own location. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Every category of the store, in the same shape as Bulk Categories: { id, name, slug, parent, image_url, description, tax_type, tax_value, tax_name, discount_type, discount_value, discount_name, location_scope, location_ids (location numbers), is_active }. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — the categories sold at any of those branches; store admin only, a manager / cashier only sees the categories sold at their own location), isActive (true = active categories only, false = inactive only, left out = every one), q (a text found in the name, slug or description), from / to (created date, YYYY-MM-DD — to covers the whole day). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "isActive", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
   }),
   ep({
@@ -1737,6 +1743,7 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "staff-list",
+    noEnums: true,
     tag: "staff",
     method: "GET",
     path: "/api/v1/staff",
@@ -1753,7 +1760,6 @@ const BASE_ENDPOINTS = [
       { name: "isActive", default: "", required: false },
       { name: "q", default: "", required: false },
     ],
-    enums: { roles: ["manager", "cashier"], isActive: ["true", "false"] },
   }),
   ep({
     id: "staff-bulk",

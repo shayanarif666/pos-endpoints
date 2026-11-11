@@ -1251,7 +1251,18 @@ export const DEMO_EPS = {
 
   // ---- Categories (the store's three, plus Personal Care and Dry Fruits for the new products)
   "cat-bulk": { body: CAT_BULK_BODY, responses: [created(CATEGORY_ROWS.map(categoryView), "Categories Created")] },
-  "cat-list": { responses: [page(CATEGORY_ROWS.map(categoryView))] },
+  "cat-list": {
+    responses: [
+      page(
+        CATEGORY_ROWS.map((row) => ({
+          id: row.id, name: row.name, slug: row.slug, parent: null, image_url: null, description: null,
+          tax_type: row.tax_type, tax_value: row.tax_value, tax_name: row.tax_name,
+          discount_type: row.discount_type, discount_value: row.discount_value, discount_name: row.discount_name,
+          location_scope: row.location_scope, location_ids: row.location_ids, is_active: true,
+        }))
+      ),
+    ],
+  },
   "cat-bulk-patch": {
     body: { items: [{ id: 4, name: "Personal Care & Beauty", tax_name: "GST", tax_type: "percentage", tax_value: 5 }, { id: 3, discount_name: "Ramzan Sale", discount_type: "percentage", discount_value: 15 }] },
     responses: [
