@@ -1250,9 +1250,6 @@ export const DEMO_EPS = {
   },
 
   // ---- Taxes (GST on every product; Sugar tax on Pepsi and Sugar)
-  "tax-bulk": {
-    body: { storeId: 1, items: [{ name: "GST", type: "percentage", value: 18, product_scope: "all", isActive: true }, { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4], isActive: true }] },
-  },
   "tax-list": {
     responses: [
       page([
@@ -1524,6 +1521,7 @@ Object.assign(DEMO_EPS, {
     ],
   },
   "tax-bulk": {
+    body: { storeId: 1, items: [{ name: "GST", type: "percentage", value: 18, product_scope: "all", isActive: true }, { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4], isActive: true }] },
     responses: [
       created(
         [

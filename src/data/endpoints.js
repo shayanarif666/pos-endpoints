@@ -2083,8 +2083,8 @@ const BASE_ENDPOINTS = [
     body: {
       storeId: 1,
       items: [
-        { name: "GST", type: "percentage", value: 18, product_scope: "all" },
-        { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4] },
+        { name: "GST", type: "percentage", value: 18, product_scope: "all", isActive: true },
+        { name: "Sugar tax", type: "fixed", value: 5, product_scope: "selected", product_ids: [{ product_id: 1, variant_id: 3 }, 4], isActive: true },
       ],
     },
   }),
