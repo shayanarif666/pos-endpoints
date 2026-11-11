@@ -425,7 +425,7 @@ const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager
 
 export const BODY_FIELDS = {
   "customer-create": { name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O },
-  "customer-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...bulkOf({ name: R, phone: O, email: O, debt_notes: O }) },
+  "customer-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...bulkOf({ name: R, phone: O, email: O, total_debt: note("Opening udhaar: everything the customer has ever owed (>= 0, default 0). Only remaining_debt sent = the same amount"), remaining_debt: note("What is still unpaid (>= 0, never more than total_debt). Only total_debt sent = the same amount. Default 0"), debt_notes: O }) },
   // Plans
   "plans-create": PLAN_CREATE,
   "plans-patch": allOptional(PLAN_CREATE),
