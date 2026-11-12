@@ -104,7 +104,9 @@ export function EndpointCard({
   // Detailed Reporting: the :section in the path decides which filters the query parameters show.
   const hasSections = Boolean(endpoint.sections?.length)
   const sectionId = hasSections ? String(pathParams.section || "").trim() : null
-  const queryRows = hasSections ? queryRowsFor(sectionId) : endpoint.query
+  const queryRows = hasSections
+    ? queryRowsFor(sectionId)
+    : (endpoint.query || []).map((row) => (row.values || !endpoint.enums?.[row.name] ? row : { ...row, values: endpoint.enums[row.name] }))
   const sectionEnums = hasSections ? enumsFor(sectionId) : null
   // The section the "View Section Filters" dialog shows (null = the one in :section).
   const [filterSection, setFilterSection] = useState(null)
@@ -378,7 +380,7 @@ export function EndpointCard({
                 />
               </>
             ) : null}
-            {endpoint.responses?.length && !uploadForm ? (
+            {endpoint.responses?.length && !uploadForm && endpoint.method !== "GET" ? (
               <ViewButton
                 label="View Response"
                 count={endpoint.responses.length}
@@ -526,7 +528,7 @@ export function EndpointCard({
           {result ? (
             <ResponsePanel result={result} />
           ) : endpoint.responses?.length && sampleShown ? (
-            <SampleResponsePanel sample={sampleShown} more={uploadForm ? 0 : endpoint.responses.length - 1} onMore={() => setModal("responses")} />
+            <SampleResponsePanel sample={sampleShown} more={uploadForm || endpoint.method === "GET" ? 0 : endpoint.responses.length - 1} onMore={() => setModal("responses")} />
           ) : null}
         </div>
       ) : null}
@@ -734,7 +736,27 @@ function KeyValueInputs({ rows, values, onChange }) {
               <div className="text-[10px] uppercase text-slate-400">{row.type}</div>
             ) : null}
           </div>
-          {row.values ? (
+          {row.values && row.multi ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 bg-white px-3 py-2.5 text-sm">
+              {row.values.map((value) => {
+                const picked = String(values[row.name] ?? "").split(",").map((item) => item.trim()).filter(Boolean)
+                return (
+                  <label key={value} className="flex cursor-pointer items-center gap-1.5 font-mono">
+                    <input
+                      type="checkbox"
+                      checked={picked.includes(value)}
+                      onChange={() => {
+                        const next = picked.includes(value) ? picked.filter((item) => item !== value) : [...picked, value]
+                        onChange({ ...values, [row.name]: row.values.filter((item) => next.includes(item)).join(",") })
+                      }}
+                    />
+                    {value}
+                  </label>
+                )
+              })}
+              <span className="text-xs text-slate-400">none ticked = not sent</span>
+            </div>
+          ) : row.values ? (
             <select
               className="min-w-0 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:bg-[#f5f9ff]"
               value={values[row.name] ?? ""}

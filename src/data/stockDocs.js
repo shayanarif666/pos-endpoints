@@ -138,7 +138,7 @@ export const STOCK_EPS = [
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
       { name: "locations", default: "", required: false },
-      { name: "status", default: "", required: false },
+      { name: "status", default: "", required: false, values: ["ok","warning","critical","out"] },
       { name: "q", default: "", required: false },
     ],
     enums: {
