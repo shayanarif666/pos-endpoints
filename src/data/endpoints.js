@@ -1641,20 +1641,21 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "transfer-list",
+    noEnums: true,
     tag: "inventory",
     method: "GET",
     path: "/api/v1/stock-transfers",
     summary: "Stock Transfer",
     description:
-      "Stock transfers sent from or arriving at the location, newest first: { id, from_location, status (on_the_way until every line is received or cancelled), destinations [{ to_location, status, products [{ product, qty, received_qty, loss_reason_note, status }] }], note, staff }. A transfer with one product also has the flat to_location / product / qty / received_qty. received_qty is null until the destination receives it; when less arrived than was sent (received_qty below qty) the destination says why in loss_reason_note (e.g. 1 bottle broke on the way; empty when nothing is missing), and the missing qty is qty − received_qty. The source gives up the full qty that left, the destination gets only what arrived. Filters: status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only transfers from or to their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (transfer time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Stock transfers sent from or arriving at the location, newest first: { id, from_location, status (on_the_way until every line is received or cancelled), destinations [{ to_location, status, products [{ product, qty, received_qty, loss_reason_note, status }] }], note, staff }. A transfer with one product also has the flat to_location / product / qty / received_qty. received_qty is null until the destination receives it; when less arrived than was sent (received_qty below qty) the destination says why in loss_reason_note (e.g. 1 bottle broke on the way; empty when nothing is missing), and the missing qty is qty − received_qty. The source gives up the full qty that left, the destination gets only what arrived. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — the transfers sent from, or with a line going to, any of those branches; store admin only, a manager / cashier only sees the transfers from or to their own), status (pending | on_the_way | completed | cancelled; a list is allowed: status=completed,cancelled), q (a text found in a product's title, SKU or barcode — or its variant's — in a branch name, in the note, or the transfer number), from / to (transfer date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false, values: ["week","month","6months","year"] },
-      { name: "status", default: "", required: false, values: ["pending","on_the_way","completed","cancelled"] },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "status", default: "", required: false, values: ["pending", "on_the_way", "completed", "cancelled"], multi: true },
+      { name: "q", default: "", required: false },
     ],
   }),
   ep({
