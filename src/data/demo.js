@@ -1986,7 +1986,7 @@ export const DEMO_NEW_EPS = [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
       { name: "q", default: "", required: false },
-      { name: "range", default: "", required: false },
+      { name: "range", default: "", required: false, values: ["week","month","6months","year"] },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
