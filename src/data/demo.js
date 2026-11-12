@@ -395,6 +395,9 @@ function movement({ product, variantId, location = 1, type, reason, qty, note: r
  * A movement as the API answers it: product and variant with their barcode, qty (what moved, out is negative)
  * and the one lot it moved; no qty_after and no order. (The rows above keep both for the reports.)
  */
+/** The latest movement of a type (and reason) the docs store made. */
+const pickMovement = (type, reason = null) => [...MOVEMENTS].reverse().find((row) => row.movement_type === type && (!reason || row.reason === reason))
+
 function movementView(row) {
   return {
     id: row.id,
@@ -1368,7 +1371,16 @@ export const DEMO_EPS = {
 
   // ---- Stock inventory
   "movement-bulk": { body: MOVEMENT_BULK_BODY, responses: [created(MOVEMENT_BULK_ROWS.map(movementView), "Stock Movement Created")] },
-  "movement-list": { responses: [page([...MOVEMENTS].reverse().slice(0, 8).map(movementView))] },
+  // One of each kind, newest first: a sale, a stock count (adjustment), a damage (stock out) and a purchase (stock in).
+  "movement-list": {
+    responses: [
+      page(
+        [pickMovement("sale"), pickMovement("adjustment"), pickMovement("stock_out", "damage"), pickMovement("stock_in", "purchase")]
+          .sort((a, b) => b.id - a.id)
+          .map(movementView)
+      ),
+    ],
+  },
   "transfer-bulk": { body: TRANSFER_BULK_BODY, responses: [created([transferView()], "Stock Transfer Created")] },
   // The second one was received short: 9 of the 10 sent arrived, and the destination said why.
   "transfer-list": { responses: [page([transferView(), transferReceivedShort()])] },
