@@ -1006,23 +1006,27 @@ function stockRows(product, variantId) {
 }
 const ownTaxes = (product) => product.taxes.map((tax) => ({ name: tax.name, type: tax.type, value: tax.value }))
 
+/** The Taxes page taxes a product is charged: GST, and the Sugar tax on Pepsi and Sugar (a def can say its own). */
+const storeTaxesOf = (def) => def.storeTaxes || [GST, ...(SUGAR_TAXED.has(def.key) ? [SUGAR_TAX] : [])]
+
 /**
- * What ONE pack / ONE unit is cut and charged, every discount and tax that applies worked out: the
- * category discount off the price, then the store taxes (GST, the Sugar tax per unit) and the
- * category tax, each on what is left. A bulk offer depends on the qty, so it is not in these.
+ * What ONE pack / ONE unit is cut and charged, every discount and tax of the thing sold worked out: the
+ * product / variant discount, then the category discount on what is left, then the store, category,
+ * product and variant taxes, each on what is left. A bulk discount depends on the qty, so it is not in these.
  */
-function levelFigures(def, price, discount = def.discount) {
+function levelFigures(def, price, discount = def.discount, variantTaxes = []) {
   const category = CATEGORIES[def.category_id]
   const cut = category.discount_value > 0 ? category.discount_value : 0
-  const fixed = (SUGAR_TAXED.has(def.key) ? SUGAR_TAX.value : 0) + def.taxes.reduce((s, x) => s + (x.type === "fixed" ? x.value : 0), 0)
+  const taxList = [...storeTaxesOf(def), ...(category.tax_value > 0 ? [{ type: category.tax_type, value: category.tax_value }] : []), ...def.taxes, ...variantTaxes]
+  const fixed = taxList.reduce((s, x) => s + (x.type === "fixed" ? x.value : 0), 0)
+  const percents = taxList.filter((x) => x.type === "percentage").map((x) => x.value)
   const own = discount
   const of = (listPrice, units) => {
-    // The product discount first, then the category discount on what is left.
+    // The product / variant discount first, then the category discount on what is left.
     const fromProduct = own ? (own.type === "fixed" ? Math.min(listPrice, own.value * units) : r2((listPrice * own.value) / 100)) : 0
     const discount = r2(fromProduct + ((listPrice - fromProduct) * cut) / 100)
     const base = listPrice - discount
-    const taxes = [GST.value, category.tax_value > 0 ? category.tax_value : 0, ...def.taxes.filter((x) => x.type === "percentage").map((x) => x.value)]
-    return { discount, tax: r2(taxes.reduce((s, v) => s + r2((base * v) / 100), 0) + fixed * units) }
+    return { discount, tax: r2(percents.reduce((s, v) => s + r2((base * v) / 100), 0) + fixed * units) }
   }
   const unit = price.sell_loose || !price.is_pack ? of(price.unit_price, 1) : null
   const pack = price.is_pack ? of(price.pack_price, price.pack_size) : null
@@ -1040,29 +1044,44 @@ const BULK_ON_PRODUCT = {
   4: { id: 2, name: "Sugar 10 kg bulk", variant_id: null, sale_unit: "unit", tiers: [{ min_qty: 10, discount_type: "fixed", discount_value: 10 }] },
 }
 
+/** One discount / tax of a list as GET /products gives it. */
+const discountEntry = (level, x) => ({ level, name: x.name, type: x.type, value: x.value, ...(x.applies_to && x.applies_to !== "all" ? { applies_to: x.applies_to } : {}) })
+const taxEntry = (level, x) => ({ level, ...(level === "store" ? { id: x.id } : {}), name: x.name, type: x.type, value: x.value })
+
 function productView(def) {
+  const category = CATEGORIES[def.category_id]
+  // A product just created has no bulk discount yet.
+  const bulk = BULK_ON_PRODUCT[def.number] && !def.justCreated ? [BULK_ON_PRODUCT[def.number]] : []
+  const categoryDiscount = category.discount_value > 0 ? [discountEntry("category", { name: category.discount_name, type: category.discount_type, value: category.discount_value })] : []
+  const categoryTax = category.tax_value > 0 ? [taxEntry("category", { name: category.tax_name, type: category.tax_type, value: category.tax_value })] : []
+  const bulkEntries = (variantId) =>
+    bulk.filter((x) => x.variant_id == null || x.variant_id === variantId).map((x) => ({ level: "bulk", id: x.id, name: x.name, sale_unit: x.sale_unit, tiers: x.tiers }))
+  const ownTaxList = def.taxes.map((x) => ({ name: x.name, type: x.type, value: x.value }))
+
   const variants = def.variants.map((v, i) => {
     const price = priceOf(def, i + 1)
+    // Its own discount replaces its product's (they do not add up); uses_product_discount false = none.
     const effective = v.discount
-      ? { name: v.discount.name, type: v.discount.type, value: v.discount.value, applies_to: v.discount.applies_to || "all", source: "variant" }
+      ? { ...v.discount, source: "variant" }
       : v.usesProductDiscount === false || !def.discount
         ? null
-        : { name: def.discount.name, type: def.discount.type, value: def.discount.value, applies_to: def.discount.applies_to || "all", source: "product" }
+        : { ...def.discount, source: "product" }
+    const variantTaxes = v.variantTaxes || []
     return {
       id: i + 1,
       name: v.name, sku: v.sku, barcode: v.barcode,
       cost_price: price.unit_cost, selling_price: price.unit_price,
       is_pack_product: price.is_pack, pack_size: price.pack_size, pack_cost_price: price.pack_cost, pack_selling_price: price.pack_price,
       sell_loose: price.is_pack ? price.sell_loose : true, is_weight_based: v.is_weight_based,
-      taxes: ownTaxes(def),
       // Its own image (null = show the product's).
       image: null,
       // The colours it comes in (hex codes).
       colors: v.colors || [],
-      // Per ONE pack / ONE unit: every discount and tax that applies, worked out (a bulk offer is by qty, so not in them).
-      // The discount it is sold with: its own, else its product's (unless uses_product_discount is false).
-      discount: effective,
-      ...levelFigures(def, price, effective),
+      // Every discount and tax this variant is sold with, by level.
+      discounts: [...(effective ? [discountEntry(effective.source, effective)] : []), ...categoryDiscount, ...bulkEntries(i + 1)],
+      taxes: [...storeTaxesOf(def).map((x) => taxEntry("store", x)), ...categoryTax, ...ownTaxList.map((x) => taxEntry("product", x)), ...variantTaxes.map((x) => taxEntry("variant", x))],
+      // Per ONE pack / ONE unit, the discounts and taxes above worked out (a bulk discount is by qty, so not in them).
+      ...levelFigures(def, price, effective, variantTaxes),
       is_active: true,
     }
   })
@@ -1070,9 +1089,6 @@ function productView(def) {
   const own = def.variants.length ? null : priceOf(def, null)
   const taxPct = def.taxes.reduce((s, t) => s + (t.type === "percentage" ? t.value : 0), 0)
   const sell = own ? own.unit_price : first.selling_price
-  const category = CATEGORIES[def.category_id]
-  // A product just created has no bulk discount yet.
-  const bulk = BULK_ON_PRODUCT[def.number] && !def.justCreated ? [BULK_ON_PRODUCT[def.number]] : []
   return {
     id: def.number,
     title: def.title,
@@ -1106,22 +1122,11 @@ function productView(def) {
     // Without variants the product carries the per pack / per unit figures itself.
     ...(own ? levelFigures(def, own) : {}),
     has_product_discount: Boolean(def.discount),
-    // Every discount that applies: product, category, bulk, bundle (see level).
-    discounts: [
-      ...(def.discount ? [{ level: "product", name: def.discount.name, type: def.discount.type, value: def.discount.value, applies_to: def.discount.applies_to || "all" }] : []),
-      // A variant with a discount of its own is listed with its variant_id.
-      ...def.variants.flatMap((v, i) => (v.discount ? [{ level: "product", variant_id: i + 1, name: v.discount.name, type: v.discount.type, value: v.discount.value, applies_to: v.discount.applies_to || "all" }] : [])),
-      ...(category.discount_value > 0 ? [{ level: "category", name: category.discount_name, type: category.discount_type, value: category.discount_value }] : []),
-      ...bulk.map((b) => ({ level: "bulk", id: b.id, name: b.name, variant_id: b.variant_id, sale_unit: b.sale_unit, tiers: b.tiers })),
-    ],
+    // Without variants: every discount that applies to the product (with variants: on each variant).
+    ...(def.variants.length ? {} : { discounts: [...(def.discount ? [discountEntry("product", def.discount)] : []), ...categoryDiscount, ...bulkEntries(null)] }),
     has_product_tax: Boolean(def.taxes.length),
-    // Every tax that applies: store (Taxes page), category, product (see level).
-    taxes: [
-      { level: "store", id: GST.id, name: GST.name, type: GST.type, value: GST.value },
-      ...(SUGAR_TAXED.has(def.key) ? [{ level: "store", id: SUGAR_TAX.id, name: SUGAR_TAX.name, type: SUGAR_TAX.type, value: SUGAR_TAX.value }] : []),
-      ...(category.tax_value > 0 ? [{ level: "category", name: category.tax_name, type: category.tax_type, value: category.tax_value }] : []),
-      ...ownTaxes(def).map((x) => ({ level: "product", ...x })),
-    ],
+    // Without variants: every tax that applies to the product (with variants: on each variant).
+    ...(def.variants.length ? {} : { taxes: [...storeTaxesOf(def).map((x) => taxEntry("store", x)), ...categoryTax, ...ownTaxList.map((x) => taxEntry("product", x))] }),
     location_scope: "all",
     location_ids: [],
     stock_scope: "all",
@@ -1143,6 +1148,19 @@ const fail = (status, label, message, extra = {}) => ({ label: `${status} — ${
 
 const productTargetsNote = "products [{ product_id, variant_id? (the variant number), sale_unit?, promo_price?, promo_pack_price?, free_product_id? }]"
 const PRODUCT_VIEWS = PRODUCT_DEFS.map((def) => productView(def))
+
+// The GET /products sample: Pepsi with a product level tax (Import Duty 5%), 500ML with a discount of its own (7%)
+// and Jumbo with a tax of its own (Import GST 10%); the Taxes page has GST only.
+const PEPSI_LIST = {
+  ...PRODUCT_DEFS[0],
+  taxes: [{ name: "Import Duty", type: "percentage", value: 5 }],
+  storeTaxes: [GST],
+  variants: PRODUCT_DEFS[0].variants.map((v, i) => ({
+    ...v,
+    ...(i === 1 ? { discount: { name: "Eid Shopping", type: "percentage", value: 7 } } : {}),
+    ...(i === 5 ? { variantTaxes: [{ name: "Import GST", type: "percentage", value: 10 }] } : {}),
+  })),
+}
 
 const STAFF_ROW = { id: 2, location: L1, name: "Ahmed Malik", email: "ahmed@acadex.co", pin: "2222", role: "cashier", phone: null, is_active: true }
 
@@ -1284,8 +1302,8 @@ export const DEMO_EPS = {
   "prod-bulk": { body: PROD_BULK_BODY, responses: [created([productView(PEPSI_CREATED)], "Products Created")] },
   "prod-list": {
     description:
-      "Every product with all its detail, variants inside, and no stock (the stock of every product and variant, with its lots, is GET /products/stock). One product: { id (product number), title, has_variants, total_variants (how many; null without), variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, is_pack_product, pack_size, pack_cost_price, pack_selling_price, sell_loose, is_weight_based, taxes (its own), image, colors, pack_discount_value, unit_discount_value, pack_tax_value, unit_tax_value, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, cost_price, selling_price, pack fields, sell_loose, is_weight_based, has_bulk_discount, low_stock_threshold, low_stock_unit, total_price_each_unit, total_pack_price, has_product_discount, discounts [], has_product_tax, taxes [], location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own (0 / null), low_stock_threshold 0 and low_stock_unit null: each variant carries its prices and pack (its low stock level is in GET /products/stock). discounts [] lists every discount that applies to the product, each with its level: product (name, type, value, applies_to: all | pack | loose | weight; the product's own, for every variant that has none of its own, and with variant_id when it is one variant's own discount), category (name, type, value) and bulk (id = bulk discount number, name, variant_id (the variant it is on; null = the product), sale_unit, tiers [{ min_qty, discount_type, discount_value }]: from min_qty on every unit is cut). A bundle is across products, so it is not here: see GET /bundle-discounts. taxes [] lists every tax that applies, each with its level: store (id = tax number, the Taxes page taxes that cover this product), category (name, type, value) and product (name, type, value). pack_discount_value / unit_discount_value: what ONE pack / ONE unit is cut by in rupees, worked out from the discounts [] — the product discount, then the category discount, each on what is left. A bulk discount depends on how many are bought, and a bundle on the whole cart, so neither is in these: the POS applies them. pack_tax_value / unit_tax_value: the tax in rupees on ONE pack / ONE unit after those discounts, every tax of taxes [] together (a percentage on the discounted price, a fixed tax per unit — so × pack size on a pack). null = it is not sold that way (no pack, or a pack sold only by the pack for unit). A product without variants carries these four at its own level (after total_pack_price) instead of on variants. Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
-    responses: [page([PRODUCT_VIEWS[0]])],
+      "Every product with all its detail, variants inside, and no stock (the stock of every product and variant, with its lots, is GET /products/stock). One product: { id (product number), title, has_variants, total_variants (how many; null without), variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, is_pack_product, pack_size, pack_cost_price, pack_selling_price, sell_loose, is_weight_based, image, colors, discounts [], taxes [], pack_discount_value, unit_discount_value, pack_tax_value, unit_tax_value, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, cost_price, selling_price, pack fields, sell_loose, is_weight_based, has_bulk_discount, low_stock_threshold, low_stock_unit, total_price_each_unit, total_pack_price, has_product_discount, has_product_tax, location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own (0 / null), low_stock_threshold 0 and low_stock_unit null, and no discounts or taxes of its own: each variant carries its prices, pack, discounts and taxes (its low stock level is in GET /products/stock). has_product_discount / has_product_tax say whether the product itself has a discount / a tax (every variant takes them unless it has its own); has_bulk_discount whether a live bulk discount is on it or one of its variants. discounts [] of a variant lists every discount it is sold with, each with its level: variant (its own — it replaces the product's, they do not add up), product (the product's discount, taken by a variant that has none of its own), category, and bulk (id = bulk discount number, name, sale_unit, tiers [{ min_qty, discount_type, discount_value }]: from min_qty on every unit is cut; on the variant or on its product). A discount entry is { level, name, type, value } (plus applies_to when it is not all: pack | loose | weight). taxes [] of a variant lists every tax it is charged, each with its level: store (id = tax number: a Taxes page tax that covers it), category, product (the product's own taxes) and variant (its own taxes). A tax entry is { level, name, type, value } (a fixed tax is per unit). pack_discount_value / unit_discount_value: what ONE pack / ONE unit is cut by in rupees, worked out from the discounts [] — the variant (or product) discount, then the category discount, each on what is left. A bulk discount depends on how many are bought, and a bundle on the whole cart, so neither is in these: the POS applies them. pack_tax_value / unit_tax_value: the tax in rupees on ONE pack / ONE unit after those discounts, every tax of taxes [] together (a percentage on the discounted price, a fixed tax per unit — so × pack size on a pack). null = it is not sold that way (no pack, or a pack sold only by the pack for unit). A product without variants carries discounts [], taxes [] and these four figures itself (after total_pack_price / has_product_discount / has_product_tax), with the same levels (product instead of variant). Filters: q (title, SKU or barcode), categoryId (category number). Only products sold at the location read are listed. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
+    responses: [page([productView(PEPSI_LIST)])],
   },
   "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
   "prod-weight-list": {
