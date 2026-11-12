@@ -1530,13 +1530,14 @@ const BASE_ENDPOINTS = [
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "categories", default: "", required: false },
+      { name: "type", default: "", required: false },
       { name: "q", default: "", required: false },
-      { name: "categoryId", default: "", required: false },
-      { name: "location_id", default: "", required: false },
     ],
+    enums: { type: ["pack", "loose", "weight"] },
   }),
   ep({
     id: "prod-get",
