@@ -1621,22 +1621,22 @@ const BASE_ENDPOINTS = [
 
   ep({
     id: "movement-list",
+    noEnums: true,
     tag: "inventory",
     method: "GET",
     path: "/api/v1/stock-movements",
     summary: "Stock Movements",
     description:
-      "Stock movements, newest first, in the Bulk Stock Movements shape { id, location, product { id, title, sku, unit, barcode }, variant { id (variant number), name, sku, barcode } (null without variants), supplier, staff, movement_type, reason, reason_note, qty (what moved: in is positive, out is negative), lot { id (lot number), qty, expiry_date }, created_at }. A movement moves one lot: a stock out that takes from two lots (the soonest expiry first) is two movements, each with its own lot and qty; a lot id counts per product / variant. reason is the real cause on a manual movement (purchase, waste, damage, count…) and the same as the type on a sale, refund or transfer. Opening stock shows as stock_in / opening_balance and a stock count from product edit as adjustment / count. Filters: productId (a product's number: its own and its variants' movements), movement_type, reason, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (movement time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "Stock movements, newest first, in the Bulk Stock Movements shape { id, location, product { id, title, sku, unit, barcode }, variant { id (variant number), name, sku, barcode } (null without variants), supplier, staff, movement_type, reason, reason_note, qty (what moved: in is positive, out is negative), lot { id (lot number), qty, expiry_date }, created_at }. A movement moves one lot: a stock out that takes from two lots (the soonest expiry first) is two movements, each with its own lot and qty; a lot id counts per product / variant. reason is the real cause on a manual movement (purchase, waste, damage, count…) and the same as the type on a sale, refund or transfer. Opening stock shows as stock_in / opening_balance and a stock count from product edit as adjustment / count. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — only the movements at those branches; store admin only, a manager / cashier only sees their own), type (movement_type: stock_in | stock_out | adjustment | sale | refund | transfer_out | transfer_in | custom_sale; a list is allowed: type=stock_in,stock_out), reason (purchase | opening_balance | return_to_supplier | customer_return | waste | damage | expiry | theft | count | sale | refund | sync | transfer | custom_sale | other; a list is allowed), q (a text found in the product's title, SKU or barcode, in its variant's name, SKU or barcode, in the note, or the movement number), from / to (movement date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "range", default: "", required: false, values: ["week","month","6months","year"] },
-      { name: "productId", default: "", required: false },
-      { name: "movement_type", default: "", required: false },
-      { name: "reason", default: "", required: false },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
+      { name: "type", default: "", required: false, values: ["stock_in", "stock_out", "adjustment", "sale", "refund", "transfer_out", "transfer_in", "custom_sale"], multi: true },
+      { name: "reason", default: "", required: false, values: ["purchase", "opening_balance", "return_to_supplier", "customer_return", "waste", "damage", "expiry", "theft", "count", "sale", "refund", "sync", "transfer", "custom_sale", "other"], multi: true },
+      { name: "q", default: "", required: false },
     ],
   }),
   ep({
