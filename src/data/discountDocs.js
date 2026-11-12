@@ -84,7 +84,7 @@ export const DISCOUNT_EPS = [
     summary: "Discounts (order level)",
     description:
       "The order level discounts: a discount on the whole bill, picked by the cashier on an order. { id (discount number), name, discount_type (percentage | fixed), discount_value, is_active, status (active | inactive) }. Any role. The category and the product discounts are set on the category and on the product; the bulk and the bundle discounts have their own lists.",
-    query: [...PAGING, { name: "active", default: "", required: false, values: ["1"] }],
+    query: [...PAGING, { name: "active", default: "", required: false, values: ["true", "false"] }],
     ownResponses: true,
     responses: [page(ORDER_DISCOUNTS)],
   },
@@ -97,10 +97,10 @@ export const DISCOUNT_EPS = [
     path: "/api/v1/bulk-discounts",
     summary: "Bulk Discounts",
     description:
-      "A bulk discount is on ONE product (or one variant of it): the more of it is bought, the cheaper each unit gets, in steps (tiers). { id (bulk discount number), name, product { id, title, sku, unit, variant { id, name } | null } (a variant when the discount is on one variant; without variant it is the product), sale_unit (unit | pack: what min_qty counts), tiers [{ min_qty, discount_type (percentage | fixed), discount_value }], start_at, end_at, is_active, status (active | inactive), staff }. From a tier's min_qty on, EVERY unit bought is cut: percentage = that % of the unit's price, fixed = that many rupees off each unit; the highest tier the qty reaches is the one that applies (tiers do not add up). Example — Sugar is Rs 160 a kg and the shopkeeper gives Rs 100 off on 10 kg: one tier { min_qty: 10, fixed, 10 } — 10 kg is Rs 1600 less Rs 100 = Rs 1500; 25 kg is Rs 250 off. A product has at most one bulk discount. The POS works the figure out on the sale line. Any role. Filters: active=1 (live ones only: active, started and not ended), product_id (+ variant_id). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+      "A bulk discount is on ONE product (or one variant of it): the more of it is bought, the cheaper each unit gets, in steps (tiers). { id (bulk discount number), name, product { id, title, sku, unit, variant { id, name } | null } (a variant when the discount is on one variant; without variant it is the product), sale_unit (unit | pack: what min_qty counts), tiers [{ min_qty, discount_type (percentage | fixed), discount_value }], start_at, end_at, is_active, status (active | inactive), staff }. From a tier's min_qty on, EVERY unit bought is cut: percentage = that % of the unit's price, fixed = that many rupees off each unit; the highest tier the qty reaches is the one that applies (tiers do not add up). Example — Sugar is Rs 160 a kg and the shopkeeper gives Rs 100 off on 10 kg: one tier { min_qty: 10, fixed, 10 } — 10 kg is Rs 1600 less Rs 100 = Rs 1500; 25 kg is Rs 250 off. A product has at most one bulk discount. The POS works the figure out on the sale line. Any role. Filters: active (true = the live ones: active, started and not ended; false = the ones that are not live; left out = every one), product_id (+ variant_id). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       ...PAGING,
-      { name: "active", default: "", required: false, values: ["1"] },
+      { name: "active", default: "", required: false, values: ["true", "false"] },
       { name: "product_id", default: "", required: false },
       { name: "variant_id", default: "", required: false },
     ],
@@ -116,8 +116,8 @@ export const DISCOUNT_EPS = [
     path: "/api/v1/bundle-discounts",
     summary: "Bundle Discounts",
     description:
-      "A bundle discount works across products: buy several products together (the components) and get a reward. { id (bundle number), name, components [{ product { id, title, sku, unit, variant { id, name } | null }, qty, sale_unit (unit | pack) }] (everything that has to be bought, each with its qty; two different products, or the same product with a qty of 2 or more), reward { type, items | value }, start_at, end_at, is_active, status (active | inactive), staff }. reward.type free_item: items [{ product, qty, sale_unit }] come free — a different product (1 kg Almonds, Garnier Cream free) or another variant of the same one (2 x Pepsi 1L, Pepsi 500ML free). reward.type percentage | fixed: reward.value is that % (or that many rupees) off the components together. It applies as many times as the cart holds the components (2 x Pepsi 1L twice = 4 x Pepsi 1L gives 2 free). A bundle is across several lines, so it is applied on the order, not on one line. Any role. Filter: active=1 (live ones only). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
-    query: [...PAGING, { name: "active", default: "", required: false, values: ["1"] }],
+      "A bundle discount works across products: buy several products together (the components) and get a reward. { id (bundle number), name, components [{ product { id, title, sku, unit, variant { id, name } | null }, qty, sale_unit (unit | pack) }] (everything that has to be bought, each with its qty; two different products, or the same product with a qty of 2 or more), reward { type, items | value }, start_at, end_at, is_active, status (active | inactive), staff }. reward.type free_item: items [{ product, qty, sale_unit }] come free — a different product (1 kg Almonds, Garnier Cream free) or another variant of the same one (2 x Pepsi 1L, Pepsi 500ML free). reward.type percentage | fixed: reward.value is that % (or that many rupees) off the components together. It applies as many times as the cart holds the components (2 x Pepsi 1L twice = 4 x Pepsi 1L gives 2 free). A bundle is across several lines, so it is applied on the order, not on one line. Any role. Filter: active (true = the live ones; false = the ones that are not live; left out = every one). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [...PAGING, { name: "active", default: "", required: false, values: ["true", "false"] }],
     ownResponses: true,
     responses: [page(BUNDLE_DISCOUNTS)],
   },

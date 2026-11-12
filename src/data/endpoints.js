@@ -1521,6 +1521,7 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "prod-list",
+    noEnums: true,
     tag: "products",
     method: "GET",
     path: "/api/v1/products",
@@ -1537,7 +1538,6 @@ const BASE_ENDPOINTS = [
       { name: "type", default: "", required: false, values: ["pack","loose","weight"], multi: true },
       { name: "q", default: "", required: false },
     ],
-    enums: { type: ["pack", "loose", "weight"] },
   }),
   ep({
     id: "prod-get",

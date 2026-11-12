@@ -123,6 +123,7 @@ const ROWS = [
 export const STOCK_EPS = [
   {
     id: "prod-stock",
+    noEnums: true,
     tag: "products",
     method: "GET",
     path: "/api/v1/products/stock",
@@ -141,9 +142,6 @@ export const STOCK_EPS = [
       { name: "status", default: "", required: false, values: ["ok","warning","critical","out"] },
       { name: "q", default: "", required: false },
     ],
-    enums: {
-      status: ["ok", "warning", "critical", "out"],
-    },
     ownResponses: true,
     responses: [
       { label: "200 OK", status: 200, body: { success: true, message: "OK", data: ROWS, pagination: { page: 1, limit: 20, total: ROWS.length, total_pages: 1 } } },
