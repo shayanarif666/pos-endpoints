@@ -1988,6 +1988,7 @@ function reportSamples() {
 export const DEMO_NEW_EPS = [
   {
     id: "customer-list",
+    noEnums: true,
     tag: "customers",
     method: "GET",
     path: "/api/v1/customers",

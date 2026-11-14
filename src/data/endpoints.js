@@ -1341,6 +1341,7 @@ const BASE_ENDPOINTS = [
   }),
   ep({
     id: "currency-get",
+    noEnums: true,
     tag: "store",
     method: "GET",
     path: "/api/v1/currency",
