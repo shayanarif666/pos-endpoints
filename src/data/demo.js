@@ -1993,15 +1993,13 @@ export const DEMO_NEW_EPS = [
     path: "/api/v1/customers",
     summary: "Customers",
     description:
-      "The store's customers and their udhaar (credit), oldest first: { id (customer number — the customer_id an order sends), name, phone, email, location_id (location number; null = every location), total_debt (all the udhaar ever given), remaining_debt (what the customer still owes), debt_notes, is_active }. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own location, plus the customers that belong to every location. Ids in the reply are the short numbers the POS uses. Search: q matches the name, phone or email. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (created date): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range.",
+      "The store's customers and their udhaar (credit), oldest first: { id (customer number — the customer_id an order sends), name, phone, email, location_id (location number; null = every location), total_debt (all the udhaar ever given), remaining_debt (what the customer still owes), debt_notes, is_active }. Ids in the reply are the short numbers the POS uses. Filters: from / to (created date, YYYY-MM-DD — to covers the whole day), q (matches the name, phone or email). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
-      { name: "q", default: "", required: false },
-      { name: "range", default: "", required: false, values: ["week","month","6months","year"] },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
-      { name: "location_id", default: "", required: false },
+      { name: "q", default: "", required: false },
     ],
     ownResponses: true,
     responses: [
