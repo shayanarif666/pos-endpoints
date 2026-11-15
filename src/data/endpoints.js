@@ -969,7 +969,7 @@ export const getSections = [
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-stock"] },
-  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history", "refund-list", "transaction-list"] },
+  { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history", "order-discounts", "refund-list", "transaction-list"] },
   { id: "get-discounts", name: "Discounts", tag: "discounts", ids: ["discount-list", "bulk-discount-list", "bundle-discount-list"] },
   { id: "get-stock", name: "Inventory", tag: "inventory", ids: ["movement-list", "transfer-list"] },
   { id: "get-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-list"] },
