@@ -262,112 +262,6 @@ function offerBuilder() {
   }
 }
 
-// One sale as the till priced it: every figure is worked out on the POS and saved as sent.
-const orderRow = ({ id, placed_at, lines, payments, total }) => [
-  ["client_local_id", id],
-  ["placed_at", placed_at],
-  ["customer_id", null, "optional"],
-  ["lines", lines],
-  ["order_discount", null, "optional"],
-  ["coupon", null, "optional"],
-  ["payments", payments],
-  ["total_amount", total],
-]
-
-const tax = (level, name, rate, amount) => ({ level, name, rate, amount })
-
-// Three sales, priced by the till: 2 Pepsi (offer 10%) + Lux paid cash; a custom sale; a split
-// card + cash payment. Store: sales tax 18% on, cash payment tax 16%, card 5%.
-const ORDER_ROWS = [
-  orderRow({
-    id: "POS1-20261024-0001",
-    placed_at: "2026-10-24T10:05:00.000Z",
-    lines: [
-      {
-        product_id: 1,
-        variant_id: 1,
-        sale_unit: "unit",
-        qty: 2,
-        unit_price: 100,
-        cost_price: 50,
-        discount_amount: 20,
-        discount: [{ discount_id: 1 }],
-        taxes: [tax("product", "GST", 18, 32.4), tax("category", "GST", 5, 9), tax("sales", "Sales Tax", 18, 32.4)],
-      },
-      {
-        product_id: 11,
-        variant_id: 2,
-        qty: 1,
-        unit_price: 100,
-        cost_price: 75,
-        discount: [],
-        taxes: [tax("product", "GST", 18, 18), tax("category", "GST", 10, 10), tax("sales", "Sales Tax", 18, 18)],
-      },
-    ],
-    payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 63.97, amount: 463.77, paid: 1000 }],
-    total: 463.77,
-  }),
-  orderRow({
-    id: "POS1-20261024-0002",
-    placed_at: "2026-10-24T10:20:00.000Z",
-    lines: [
-      { title: "SP10 Blue Pen", category: "Stationary", qty: 2, unit_price: 50, discount: [], taxes: [tax("sales", "Sales Tax", 18, 18)] },
-      { title: "A4 Notebook", category: "Stationary", qty: 1, unit_price: 120, discount: [], taxes: [tax("sales", "Sales Tax", 18, 21.6)] },
-    ],
-    payments: [{ method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 41.54, amount: 301.14, paid: 500 }],
-    total: 301.14,
-  }),
-  orderRow({
-    id: "POS1-20261024-0003",
-    placed_at: "2026-10-24T11:40:00.000Z",
-    lines: [
-      {
-        product_id: 1,
-        variant_id: 2,
-        qty: 1,
-        unit_price: 100,
-        cost_price: 50,
-        discount_amount: 10,
-        discount: [{ discount_id: 1 }],
-        taxes: [tax("product", "GST", 18, 16.2), tax("category", "GST", 5, 4.5), tax("sales", "Sales Tax", 18, 16.2)],
-      },
-    ],
-    payments: [
-      { method: "card", surcharge_type: "percentage", surcharge_value: 5, surcharge_amount: 2.38, amount: 50, paid: 50 },
-      { method: "cash", surcharge_type: "percentage", surcharge_value: 16, surcharge_amount: 12.68, amount: 91.96, paid: 100 },
-    ],
-    total: 141.96,
-  }),
-  // Sold by the pack: 2 packs of Pack Of Pepsi 1L x 10 (stock goes down by 20 bottles).
-  orderRow({
-    id: "POS1-20261024-0004",
-    placed_at: "2026-10-24T12:15:00.000Z",
-    lines: [
-      {
-        product_id: 6,
-        variant_id: 1,
-        sale_unit: "pack",
-        qty: 2,
-        unit_price: 950,
-        cost_price: 780,
-        discount: [],
-        taxes: [tax("product", "GST", 18, 342)],
-      },
-    ],
-    payments: [{ method: "cash", surcharge_amount: 0, amount: 2242, paid: 2500 }],
-    total: 2242,
-  }),
-]
-
-function orderBuilder() {
-  return {
-    bulk: true,
-    variants: [{ id: "default", label: null, rows: ORDER_ROWS }],
-    bulkTop: [["storeId", 1], ["locationId", 1], ["staffId", 2], ["batchId", 1]],
-    toggles: [{ id: "optional", label: "Show Optional Fields", default: false }],
-  }
-}
-
 export const RESOURCE_ENUMS = {
   plans: {
     type: ["monthly", "yearly"],
@@ -1788,8 +1682,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/orders/bulk",
     summary: "Bulk Order Creation",
     description:
-      "POS sales: { storeId, locationId, staffId, batchId, items: [ ...orders ] }. The POS prices every order itself and sends the figures; the server saves them exactly as sent — nothing is calculated again — and, as before, creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: client_local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), lines[] { product_id (+ variant_id for a product with variants: the variant's number 1, 2, 3…) | title + category, sale_unit (unit | pack — with pack, qty is packs and the prices one pack's; the 4th order sells 2 packs), qty, unit_price, cost_price, discount_amount (the discount on the whole line, worked out by the till), discount [{ discount_id }] (the discounts applied: an array, one object per discount; [] = none), free_qty (BOGO), taxes [{ level, name, rate, amount }] }, order_discount, coupon, payments[] { method, surcharge_type, surcharge_value, surcharge_amount (the method's Payment Method Surcharge; tax_rate / tax_amount from older tills still work), amount, paid } and total_amount. Line subtotal, line total and the order's gross, tax and change totals are the sums of these (the server adds them up; it does not price them). Paid less than total_amount = udhaar (needs customer_id). Each order also sends local_receipt_number (printed on the till receipt), every line's subtotal (qty × unit_price − discount_amount), taxes, tax_amount and total, and the order's gross_amount, discount_amount, subtotal (checked against the lines), tax_amount and surcharge_amount — all saved as sent. A line's discount is [{ discount_id }] (the bulk discounts of GET /bulk-discounts it used; [] = none. Product, category and bundle discounts are in discount_amount, the order level one in order_discount) with discount_amount for the whole line; a pack line sends qty in packs and the pack price; a weight line its qty in the product unit. Reply: each order as saved — client_local_id, local_receipt_number, receiptId, order_items [{ product (with variant), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [{ discount_id, name, type, discount_type, discount_value, amount }], free_qty, subtotal, taxes, tax_amount, total, is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount (line taxes), surcharge_amount, total_amount, payments [{ method, bill_share, surcharge_type, surcharge_value, surcharge_amount, amount, paid, change }], amount_paid, change_due, is_refunded, refund_status, refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total, synced_at. What was given back is on the order itself: per order_items line is_refunded (true / false), refund_qty (in the line's unit), refund_amount (after discount, before tax), refund_tax, refund_discount_amount, refund_total; per order is_refunded, refund_status (none | partial | full), refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total (money that went back, surcharges included). All zero / false until something is refunded; every refund with its lines is in GET /orders/refunds. The examples: order 1 — Pepsi 1.5L (1 pack, Beverages 5% off), 2 Garnier Vitamin C (Azaadi Sale 10% off, with its import taxes) and 2 packs of Almonds 500g (Stock Up & Save 5%), paid by card (2%); order 2 — a custom sale (a bottle and gift wrapping that are not in the inventory) for customer Ali Khan, cash; order 3 — 5 kg Sugar at the Midnight Madness price, 3 Pepsi Cane (Double Delight: 1 free) and 250 g loose Mamra almonds, split over card, JazzCash (Rs 25) and cash. Older form: items[] { productId, qty } without lines — the server prices it from the catalog.",
-    bodyBuilder: orderBuilder(),
+      "POS sales: { storeId, locationId, staffId, batchId, orders: [ ...orders ] }. The POS prices every order itself and the server saves its figures as sent — after checking that they add up (a figure that does not is refused: 400 and the order's index in failed) — and creates each order's receipt and one transaction per payment, takes the qty off stock and books the sale into the batch. Each order: local_id (the till's id — sending it again returns the saved order, no double sale), placed_at, customer_id (udhaar), tax_exempt and discount_exempt (true = no tax / no discount on the whole order), order_items[], bundles[] (when a bundle was used), order_discount, payments[] and summary. The way the figures are worked out: a line's gross is qty × price; every discount comes off the gross (a percentage of it or a fixed amount), none on top of another; subtotal = gross − discounts; every tax is on the subtotal; total = subtotal + taxes. The order discount comes off the lines' totals together — that is the bill; the payments pay the bill plus their surcharge. order_items[]: a catalog line is product_id (+ variant_id for a product with variants: its number 1, 2, 3…), sale_unit (unit | pack — with pack, qty is the packs and price one pack's), qty and price; a custom line (not in the inventory) is is_custom true, name and product_id null. Then gross_amount, discount[], discount_amount (all its discounts together), subtotal, taxes[], tax_amount and total. discount[] — one entry per discount on the line: { id, level, name, type (percentage | fixed), value }. level: category, product, variant (they come with the product: id null), store (a discount of GET /discounts picked for this line: its id), bulk (a bulk discount of GET /bulk-discounts: its id), manual (the shopkeeper's own: id null) and bundle (the reward of a bundle on a bundle's line: the bundle's id). A custom line may send any of them, with an id or with null. taxes[] — one entry per tax: { id, level, name, type, value }; level store | category | product | variant; id only for a store tax (GET /taxes), null for the others; a custom line has store taxes only, and there is no manual tax. bundles[] — the bundles used: { id, name, reward_type (free_item | percentage | fixed), value }; the lines of a bundle carry bundle_id and bundle_role (buy | reward), and its reward is a discount entry of level bundle on the lines it cuts (100% on a free item). Two bundles in one order are two entries. order_discount — null, or { id, name, type, value }: id = a discount of GET /discounts, null for a manual one (a cashier needs approval_request_id for that). payments[] — { method, bill_amount (this method's share of the bill), surcharge_active, type, value (its Payment Method Surcharge), surcharge_amount, amount, paid }. A surcharge that is off (surcharge_active false) charges 0 even though type and value are sent; one that is on charges its value of bill_amount. amount = bill_amount + surcharge_amount, cash rounded to the whole rupee. paid is what the customer handed over: only cash may be more than amount — the rest is change. Paying less than the bill is udhaar (needs customer_id). summary — { currency, total_items (the lines), gross_amount, items_discount_amount, subtotal, order_discount_amount, tax_amount (the lines' taxes), surcharge_amount, total_amount (what the payments add up to) }. Reply: each order as GET /orders returns it — receiptId, the lines as saved (with the refund figures, all zero until something is refunded), bundles, order_discount, payments, summary, amount_paid, change_due, statuses. The examples: order 1 — one line (Beverages 5% off), a 10% Azaadi Sale on the order, paid cash with the cash surcharge on; order 2 — a custom sale (gift wrapping, a Discounts page discount) paid cash; order 3 — a split payment: cash (surcharge on) and card (surcharge off), a manual order discount of Rs 100 (cashier: approval_request_id); order 4 — two bundles in one order (2 Pepsi 1L with a free 500ml, and a Pepsi 1L with a Mountain Dew 1L at 50% off), paid by card.",
     responses: [
       {
         label: "One order failed (200)",
@@ -1871,7 +1764,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/orders",
     summary: "Orders",
     description:
-      "The one list of orders, every order in full, newest first. status picks which: all (default) | completed (also the partly refunded ones) | partial_refunded | pending (not paid yet) | cancelled (cancelled and voided) | refunded. Each order: { id (order number), client_local_id, local_receipt_number, receiptId, location, staff, customer, batch, currency, is_custom, order_items [{ id, product (or title for a custom line), category, qty, sale_unit, unit_price, gross_amount, discount_amount, discount [], free_qty, subtotal, taxes [], tax_amount, total, is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total, lots }], gross_amount, discount_amount, order_discount, coupon, subtotal, tax_amount, surcharge_amount, total_amount, payment_method, payments [], amount_paid, change_due, remaining_amount (udhaar still owed; 0 when paid), payment_status (paid | partial | pending | refunded), order_status (completed | partial_refunded | refunded | pending | cancelled | voided), is_refunded, refund_status (none | partial | full), refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total, cancel_reason, cancelled_by, placed_at, synced_at, channel }. The refunds themselves, with their lines, are GET /orders/refunds. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+      "The one list of orders, every order in full, newest first. status picks which: all (default) | completed (also the partly refunded ones) | partial_refunded | pending (not paid yet) | cancelled (cancelled and voided) | refunded. Each order is in the shape POST /orders/bulk sent it: { id (order number), client_local_id, local_receipt_number, receiptId, location, staff, customer, batch, is_custom, tax_exempt, discount_exempt, order_items [{ id, product (or name for a custom line), category, qty, sale_unit, unit_price, gross_amount, discount [{ id, level, name, type, value }], discount_amount, subtotal, taxes [{ id, level, name, type, value }], tax_amount, total, bundle_id, bundle_role (a bundle's lines), is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total, lots }], bundles [{ id, name, reward_type, value }], order_discount { id, name, type, value } | null, payments [{ method, bill_amount, surcharge_active, type, value, surcharge_amount, amount, paid }], summary { currency, total_items, gross_amount, items_discount_amount, subtotal, order_discount_amount, tax_amount, surcharge_amount, total_amount }, payment_method, amount_paid, change_due, remaining_amount (udhaar still owed; 0 when paid), payment_status (paid | partial | pending | refunded), order_status (completed | partial_refunded | refunded | pending | cancelled | voided), is_refunded, refund_status (none | partial | full), refund_count, refund_amount, refund_tax, refund_discount_amount, refund_total, cancel_reason, cancelled_by, placed_at, synced_at, channel }. What was given back is on the order: per line is_refunded, refund_qty (in the line's unit), refund_amount (after discount, before tax), refund_tax, refund_discount_amount, refund_total; per order the same added up, with refund_status and refund_count (money that went back, surcharges included). The refunds themselves, with their lines and how they were paid back, are GET /orders/refunds; the transactions (one per payment, and per refund payment) are GET /transactions. Other filters: staffId, batchId, is_custom, from / to (placed_at). A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (sale time): range = week | month | 6months | year (counted back from now), or from / to (YYYY-MM-DD — to covers the whole day); from / to win over range. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },

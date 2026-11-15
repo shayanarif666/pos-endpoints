@@ -361,6 +361,69 @@ const POS_PRICED_ORDER = {
   total_amount: must("The order total as the till worked it out. Saved as sent; paid less than it = udhaar for the customer"),
 }
 
+// POS orders (POST /orders/bulk): the till prices every order and the server checks the figures and saves them as sent.
+const ORDER_TOP = {
+  storeId: note("Once, before orders[] (or on each order): your store number (e.g. 1) or UUID. Must be the store of your token (else 403)"),
+  locationId: must("Once, before orders[] (or on each order — all the same location): the location number (e.g. 1) or UUID. A manager / cashier sends their own location"),
+  staffId: must("Once, before orders[]: the staff member who made the sales (user number from PIN, e.g. 2). An order may carry its own staffId, which wins for that order"),
+  batchId: note("Once, before orders[]: the open batch number for every order (an order's own batchId wins). Defaults to the staff member's open batch"),
+}
+
+const ORDER_BULK = {
+  orders: must("The orders: one row per sale"),
+  "orders[].local_id": must("The till's own id for this sale. Sending the same one again returns the order already saved (no double sale after a network drop)"),
+  "orders[].placed_at": must("When the sale happened on the till (ISO date-time) — offline sales sync later, so the sale keeps its real time"),
+  "orders[].customer_id": note("Customer number, or null. Required when part of the bill is credit / udhaar"),
+  "orders[].tax_exempt": note("true = no tax of any kind on this order (every line's taxes [] and tax_amount 0). Default false"),
+  "orders[].discount_exempt": note("true = no discount on this order (every line's discount [] and order_discount null). Default false"),
+  "orders[].approval_request_id": note("Approved discount_override request. A cashier needs it for a manual order discount (order_discount.id null); a manager / store admin does not"),
+  "orders[].order_items": must("Every line of the sale, priced by the till. At least one"),
+  "orders[].order_items[].product_id": note("Catalog line: the product number (e.g. 1) or UUID. Null / left out on a custom line"),
+  "orders[].order_items[].variant_id": note("A product with variants: the variant sold — its number inside the product (1, 2, 3…) or UUID. Null / left out on a product without variants"),
+  "orders[].order_items[].is_custom": note("true on a custom line: something that is not in the inventory (no product_id, no stock). Default false"),
+  "orders[].order_items[].name": note("Custom line only: what was sold"),
+  "orders[].order_items[].sale_unit": note("unit (default) | pack. pack = sold by the whole pack: qty is the number of packs and price one pack's. Stock goes down by qty × pack size"),
+  "orders[].order_items[].qty": must("Units sold (kg for a weight-based product); with sale_unit pack, the number of packs"),
+  "orders[].order_items[].price": must("Price of one unit before any discount (one pack's with sale_unit pack)"),
+  "orders[].order_items[].gross_amount": note("qty × price. Checked: it must be that"),
+  "orders[].order_items[].discount": must("Every discount on the line, one entry each; [] = none"),
+  "orders[].order_items[].discount[].id": must("The discount's number: only a store (GET /discounts), bulk (GET /bulk-discounts) or bundle discount has one; category / product / variant / manual: null. A custom line may send a number or null for any"),
+  "orders[].order_items[].discount[].level": must("category | product | variant | store | bulk | manual | bundle"),
+  "orders[].order_items[].discount[].name": note("Label on the receipt"),
+  "orders[].order_items[].discount[].type": must("percentage | fixed"),
+  "orders[].order_items[].discount[].value": must("The % (percentage) or Rs off the line (fixed)"),
+  "orders[].order_items[].discount_amount": must("All the line's discounts together (each off the gross, none on top of another). Checked"),
+  "orders[].order_items[].subtotal": must("gross_amount − discount_amount. Checked"),
+  "orders[].order_items[].taxes": must("Every tax on the line, one entry each; [] = no tax"),
+  "orders[].order_items[].taxes[].id": must("The Taxes page number: only a store tax has one; category / product / variant: null. A custom line may send a number or null"),
+  "orders[].order_items[].taxes[].level": must("store | category | product | variant"),
+  "orders[].order_items[].taxes[].name": note("Label on the receipt, e.g. GST"),
+  "orders[].order_items[].taxes[].type": must("percentage | fixed (a fixed tax: its value per unit)"),
+  "orders[].order_items[].taxes[].value": must("The % of the subtotal (or Rs per unit)"),
+  "orders[].order_items[].tax_amount": must("All the line's taxes together. Checked"),
+  "orders[].order_items[].total": must("subtotal + tax_amount. Checked"),
+  "orders[].order_items[].bundle_id": note("The bundle (its number, GET /bundle-discounts) this line belongs to. It must be in bundles"),
+  "orders[].order_items[].bundle_role": note("buy (what was bought for the bundle) | reward (what the bundle gives). Needed with bundle_id"),
+  "orders[].bundles": note("The bundles used: one entry each, and every one is on at least one line. Left out when no bundle was used"),
+  "orders[].bundles[].id": must("The bundle's number (GET /bundle-discounts)"),
+  "orders[].bundles[].name": note("Label on the receipt"),
+  "orders[].bundles[].reward_type": must("free_item | percentage | fixed"),
+  "orders[].bundles[].value": note("The % or Rs off; null for free_item"),
+  "orders[].order_discount": note("null, or { id, name, type, value }: id = a discount of GET /discounts (null for a manual one). It comes off the lines' totals together"),
+  "orders[].payments": must("One row per payment method; several rows = split payment"),
+  "orders[].payments[].method": must("cash | card | jazzcash | easypaisa | cod | bank_transfer | raast | sadapay | nayapay | upaisa | digital_wallet | cheque | online | other"),
+  "orders[].payments[].bill_amount": must("This method's share of the bill (the lines' totals − the order discount) before its surcharge. All the rows together are the bill; less = udhaar"),
+  "orders[].payments[].surcharge_active": must("true = the method's Payment Method Surcharge is on and charged; false = it is off, so surcharge_amount is 0"),
+  "orders[].payments[].type": note("percentage | fixed"),
+  "orders[].payments[].value": note("The method's surcharge as set up: its % (percentage) or Rs (fixed). Type and value are sent even while the surcharge is off; null type = the method has none"),
+  "orders[].payments[].surcharge_amount": must("What the surcharge adds: value of bill_amount while surcharge_active, else 0"),
+  "orders[].payments[].amount": must("bill_amount + surcharge_amount; cash is rounded to the whole rupee"),
+  "orders[].payments[].paid": note("What the customer handed over. Only cash may be more than amount — the rest is change. Left out = amount"),
+  "orders[].payments[].transaction_id": note("The card / wallet reference, if the till has one"),
+  "orders[].summary": must("The order's totals as the till worked them out (checked against the lines and payments)"),
+  "orders[].summary.total_amount": note("What the payments add up to (the bill + the surcharges)"),
+}
+
 // One transfer: from one location to one or more destinations, each with its own products and qty.
 const TRANSFER_CREATE = {
   from_location_id: must("Location number (e.g. 1) or UUID the stock leaves from"),
@@ -637,7 +700,7 @@ export const BODY_FIELDS = {
 
   // Orders
   "order-create": { ...ADMIN_LOCATION, ...ORDER_CREATE },
-  "order-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...TOP_STAFF, ...TOP_BATCH, ...bulkOf(POS_PRICED_ORDER) },
+  "order-bulk": { ...ORDER_TOP, ...ORDER_BULK },
   "order-refund": {
     order_item_id: must("The line's item number in the order (1, 2, 3...) or its UUID"),
     qty: R,

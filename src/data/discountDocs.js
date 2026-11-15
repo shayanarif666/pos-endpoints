@@ -65,15 +65,15 @@ const BULK_DISCOUNTS = [
 
 const BUNDLE_DISCOUNTS = [
   {
-    id: 1, name: "2 x Pepsi 1L, Pepsi 500ML free",
+    id: 1, name: "Buy 2 Litre Pepsi Get 1 500ml Free",
     products: [bought(PRODUCTS.pepsi, 3, 2, "unit")],
     reward: { type: "free_item", items: [{ product: PEPSI_500ML, qty: 1, sale_unit: "unit" }] },
     start_at: null, end_at: null, is_active: true, staff: ZAYAN,
   },
   {
-    id: 2, name: "1 kg Almonds, Garnier Cream free",
-    products: [bought(PRODUCTS.almonds, 3, 1, "pack")],
-    reward: { type: "free_item", items: [{ product: GARNIER_CREAM, qty: 1, sale_unit: "unit" }] },
+    id: 2, name: "Buy 1 Litre & 1 Litre Mountain Dew Get 50% Off",
+    products: [bought(PRODUCTS.pepsi, 3, 1, "unit"), bought(PRODUCTS.dew, 1, 1, "unit")],
+    reward: { type: "percentage", value: 50 },
     start_at: null, end_at: null, is_active: true, staff: ZAYAN,
   },
   {

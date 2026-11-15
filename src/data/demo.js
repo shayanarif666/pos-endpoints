@@ -16,6 +16,7 @@
  */
 
 import { REPORT_SECTION, REPORT_SECTIONS, queryRowsFor } from "./reportSections.js"
+import { SAMPLE_BODY, SAMPLE_ORDERS } from "./orderSamples.js"
 
 const R = "required"
 const O = "optional"
@@ -127,11 +128,16 @@ const ALMOND_VARIANTS = [
   pv("California Almonds", "ALMONDS-CALIFORNIA", "8961020000063", { cost: 2.2, price: 2.8, is_pack_product: false, sell_loose: true, stock: [{ location_id: 1, qty: 30000, stock_unit: "unit" }] }),
 ].map((row) => ({ ...row, is_weight_based: true }))
 
+const DEW_VARIANTS = [
+  pv("1L", "DEW-1L", "8961040000018", { is_pack_product: true, pack_size: 5, pack_cost: 400, pack_price: 800, sell_loose: true }),
+].map((row) => ({ ...row, is_weight_based: false, stock: [{ location_id: 1, qty: 5, stock_unit: "pack" }] }))
+
 const PRODUCT_DEFS = [
   { key: "pepsi", number: 1, title: "Pepsi", slug: "pepsi", sku: "PEPSI", barcode: "8961014100004", category_id: 1, unit: "bottle", taxes: [], low_stock_threshold: 10, is_weight_based: false, variants: PEPSI_VARIANTS },
   { key: "garnier", number: 2, title: "Garnier Cream", slug: "garnier-cream", sku: "GARNIER-CREAM", barcode: "8901030000001", category_id: 4, unit: "piece", taxes: GARNIER_TAXES, low_stock_threshold: 10, is_weight_based: false, variants: GARNIER_VARIANTS },
   { key: "almonds", number: 3, title: "Almonds", slug: "almonds", sku: "ALMONDS", barcode: "8961020000001", category_id: 5, unit: "gram", taxes: [], low_stock_threshold: 2000, is_weight_based: true, variants: ALMOND_VARIANTS },
   { key: "sugar", number: 4, title: "Sugar", slug: "sugar", sku: "SUGAR", barcode: "8961030000001", category_id: 3, unit: "kg", taxes: [], low_stock_threshold: 20, is_weight_based: true, cost: 140, price: 160, sell_loose: true, stock: [{ location_id: 1, qty: 100 }], variants: [] },
+  { key: "dew", number: 5, title: "Mountain Dew", slug: "mountain-dew", sku: "DEW", barcode: "8961040000001", category_id: 1, unit: "bottle", taxes: [], low_stock_threshold: 10, is_weight_based: false, variants: DEW_VARIANTS },
 ]
 export const PRODUCTS = Object.fromEntries(PRODUCT_DEFS.map((def) => [def.key, def]))
 // The Taxes page "Sugar tax" (Rs 5 a unit) is on Pepsi (every variant) and Sugar.
@@ -537,180 +543,85 @@ const offerOnLine = (offerId, amount) => {
   return { discount_id: o.id, name: o.name, type: o.type, discount_type: o.discount_type, discount_value: o.discount_value, amount }
 }
 
-// ---------------------------------------------------------------- the POS price of a line
+// ---------------------------------------------------------------- the 4 sales (orderSamples.js is the request)
 
-/**
- * One line as the POS prices it. sale_unit pack: qty = packs, price = one pack's. qty on a loose
- * weight line is in the product unit (grams for Almonds, kg for Sugar).
- */
-function priceLine({ product, variantId = null, sale_unit = "unit", qty, offerId = null, discountAmount = null, freeQty = 0 }) {
-  const price = priceOf(product, variantId)
-  const pack = sale_unit === "pack"
-  const unitPrice = pack ? price.pack_price : price.unit_price
-  const unitCost = pack ? price.pack_cost : price.unit_cost
-  const units = pack ? qty * price.pack_size : qty
-  const gross = r2(unitPrice * qty)
-  const category = CATEGORIES[product.category_id]
-  // The offer's discount when it has one; otherwise the category's (one discount per line).
-  let discount = discountAmount
-  if (discount == null) discount = !offerId && category.discount_type === "percentage" && category.discount_value > 0 ? r2((gross * category.discount_value) / 100) : 0
-  const subtotal = r2(gross - discount)
-  const taxes = [
-    ...product.taxes.map((tax) => ({ level: "product", name: tax.name, rate: tax.value, amount: r2((subtotal * tax.value) / 100) })),
-    { level: "store", name: GST.name, rate: GST.value, amount: r2((subtotal * GST.value) / 100) },
-    ...(SUGAR_TAXED.has(product.key) ? [{ level: "store", name: SUGAR_TAX.name, rate: SUGAR_TAX.value, amount: r2(units * SUGAR_TAX.value) }] : []),
-    ...(category.tax_type === "percentage" && category.tax_value > 0 ? [{ level: "category", name: category.tax_name, rate: category.tax_value, amount: r2((subtotal * category.tax_value) / 100) }] : []),
-  ]
-  const tax_amount = sum(taxes, (tax) => tax.amount)
+/** A discount / tax entry as the till sends it ({ id, level, name, type, value }) and what it comes to on a line. */
+const entryAmount = (entry, base, qty = 1) => (entry.type === "fixed" ? r2(Math.min(entry.value * qty, base)) : r2((base * entry.value) / 100))
+
+function adaptLine(row) {
+  const custom = Boolean(row.is_custom)
+  const product = custom ? null : Object.values(PRODUCTS).find((def) => def.number === row.product_id)
+  const price = product ? priceOf(product, row.variant_id) : null
+  const pack = row.sale_unit === "pack"
   return {
-    product, variantId, sale_unit, qty, units, unitPrice, unitCost, gross, discount, offerId, freeQty, subtotal, taxes, tax_amount,
-    total: r2(subtotal + tax_amount),
+    custom,
+    title: row.name,
+    category: null,
+    product,
+    variantId: row.variant_id || null,
+    sale_unit: row.sale_unit,
+    qty: row.qty,
+    units: pack ? row.qty * price.pack_size : row.qty,
+    unitPrice: row.price,
+    gross: row.gross_amount,
+    discount: row.discount_amount,
+    discounts: row.discount.map((entry) => ({ ...entry, amount: entryAmount(entry, row.gross_amount) })),
+    subtotal: row.subtotal,
+    taxes: row.taxes.map((entry) => ({ id: entry.id, level: entry.level, name: entry.name, type: entry.type, rate: entry.value, amount: entry.type === "fixed" ? r2(entry.value * row.qty) : r2((row.subtotal * entry.value) / 100) })),
+    tax_amount: row.tax_amount,
+    total: row.total,
+    bundleId: row.bundle_id ?? null,
+    bundleRole: row.bundle_role ?? null,
   }
 }
 
-/** The request line (what the POS sends). */
-function lineRequest(line) {
+function adaptOrder(sample, index) {
+  const lines = sample.order_items.map(adaptLine)
+  const payments = sample.payments.map((row) => ({
+    method: row.method,
+    bill_share: row.bill_amount,
+    surcharge_active: row.surcharge_active,
+    surcharge_type: row.type,
+    surcharge_value: row.value,
+    surcharge_amount: row.surcharge_amount,
+    amount: row.amount,
+    paid: row.paid,
+    change: row.method === "cash" ? r2(Math.max(0, row.paid - row.amount)) : 0,
+  }))
+  const s = sample.summary
   return {
-    product_id: line.product.number,
-    ...(line.variantId ? { variant_id: line.variantId } : {}),
-    sale_unit: line.sale_unit,
-    qty: line.qty,
-    unit_price: line.unitPrice,
-    cost_price: line.unitCost,
-    discount_amount: line.discount,
-    discount: line.offerId && isBulkOffer(line.offerId) ? [{ discount_id: line.offerId }] : [],
-    ...(line.freeQty ? { free_qty: line.freeQty } : {}),
-    subtotal: line.subtotal,
-    taxes: line.taxes,
-    tax_amount: line.tax_amount,
-    total: line.total,
+    number: index + 1,
+    localId: sample.local_id,
+    placedAt: sample.placed_at,
+    customer: null,
+    lines,
+    payments,
+    isCustom: lines.every((line) => line.custom),
+    taxExempt: Boolean(sample.tax_exempt),
+    discountExempt: Boolean(sample.discount_exempt),
+    orderDiscount: sample.order_discount,
+    bundles: sample.bundles || [],
+    gross: s.gross_amount,
+    discount: s.items_discount_amount,
+    orderDiscountAmount: s.order_discount_amount,
+    subtotal: s.subtotal,
+    tax: s.tax_amount,
+    surcharge: s.surcharge_amount,
+    total: s.total_amount,
+    paid: sum(payments, (row) => row.paid),
+    change: sum(payments, (row) => row.change),
   }
 }
 
-/** A custom line (not in the catalog). */
-function customLine({ title, category, qty, price, cost }) {
-  const subtotal = r2(qty * price)
-  const taxes = [{ level: "store", name: GST.name, rate: GST.value, amount: r2((subtotal * GST.value) / 100) }]
-  const tax_amount = sum(taxes, (tax) => tax.amount)
-  return { custom: true, title, category, qty, unitPrice: price, unitCost: cost, gross: subtotal, discount: 0, subtotal, taxes, tax_amount, total: r2(subtotal + tax_amount) }
-}
+export const ORDERS = SAMPLE_ORDERS.map(adaptOrder)
+const [O1, O2, O3, O4] = ORDERS
+const ORDER_BULK_BODY = SAMPLE_BODY
 
-/** payments: [{ method, bill_share, paid? }] → the surcharge of each (card 2%, JazzCash Rs 25, cash none). */
-function pay(rows) {
-  return rows.map((row) => {
-    const rule = SURCHARGES[row.method]
-    const surcharge = !rule ? 0 : rule.type === "percentage" ? r2((row.bill_share * rule.charges) / 100) : rule.charges
-    const amount = r2(row.bill_share + surcharge)
-    return {
-      method: row.method,
-      bill_share: row.bill_share,
-      surcharge_type: rule ? rule.type : null,
-      surcharge_value: rule ? rule.charges : null,
-      surcharge_amount: surcharge,
-      amount,
-      paid: row.paid ?? amount,
-      change: row.method === "cash" ? r2((row.paid ?? amount) - amount) : 0,
-    }
-  })
-}
-
-// ---------------------------------------------------------------- the 3 sales
-
-function sale({ number, localId, receiptNo, placedAt, customer = null, lines, payments, isCustom = false }) {
-  const subtotal = sum(lines, (l) => l.subtotal)
-  const tax = sum(lines, (l) => l.tax_amount)
-  const surcharge = sum(payments, (p) => p.surcharge_amount)
-  const total = r2(subtotal + tax + surcharge)
-  const billShare = sum(payments, (p) => p.bill_share)
-  if (Math.abs(billShare - r2(subtotal + tax)) > 0.01) throw new Error(`sale ${number}: payments do not cover the bill`)
-  return {
-    number, localId, receiptNo, placedAt, customer, lines, payments, isCustom,
-    gross: sum(lines, (l) => l.gross), discount: sum(lines, (l) => l.discount), subtotal, tax, surcharge, total,
-    paid: sum(payments, (p) => p.paid), change: sum(payments, (p) => p.change),
-  }
-}
-
-// Order 1 — several items, one payment (card).
-const O1lines = [
-  // 1 pack of Pepsi 1.5L (category discount: Beverages 5%).
-  priceLine({ product: PRODUCTS.pepsi, variantId: 4, sale_unit: "pack", qty: 1 }),
-  // 2 Garnier Vitamin C 50g with Azaadi Sale (10% off).
-  priceLine({ product: PRODUCTS.garnier, variantId: 1, qty: 2, offerId: 1, discountAmount: 130 }),
-  // 2 packs of Almonds 500g with Stock Up & Save (5% off from 2 packs).
-  priceLine({ product: PRODUCTS.almonds, variantId: 2, sale_unit: "pack", qty: 2, offerId: 2, discountAmount: 85 }),
-]
-const O1 = sale({
-  number: 1, localId: "POS1-20261106-0001", receiptNo: "POS1-R-0001", placedAt: "2026-11-06T10:05:00.000Z",
-  lines: O1lines,
-  payments: pay([{ method: "card", bill_share: r2(sum(O1lines, (l) => l.subtotal) + sum(O1lines, (l) => l.tax_amount)) }]),
-})
-
-// Order 2 — a custom sale: a customer buys things that are not in the inventory.
-const O2lines = [
-  customLine({ title: "Steel Water Bottle 1L", category: "Kitchenware", qty: 1, price: 850, cost: 600 }),
-  customLine({ title: "Gift Wrapping", category: "Services", qty: 1, price: 150, cost: 20 }),
-]
-const O2 = sale({
-  number: 2, localId: "POS1-20261106-0002", receiptNo: "POS1-R-0002", placedAt: "2026-11-06T11:20:00.000Z", customer: CUSTOMERS[1], isCustom: true,
-  lines: O2lines,
-  payments: pay([{ method: "cash", bill_share: r2(sum(O2lines, (l) => l.subtotal) + sum(O2lines, (l) => l.tax_amount)), paid: 1200 }]),
-})
-
-// Order 3 — split over three methods (card, JazzCash, cash), in the Midnight Madness hours.
-const O3lines = [
-  priceLine({ product: PRODUCTS.sugar, qty: 5, offerId: 3, discountAmount: 100 }),
-  priceLine({ product: PRODUCTS.pepsi, variantId: 7, qty: 3, offerId: 4, discountAmount: 120, freeQty: 1 }),
-  priceLine({ product: PRODUCTS.almonds, variantId: 4, qty: 250 }),
-]
-const O3bill = r2(sum(O3lines, (l) => l.subtotal) + sum(O3lines, (l) => l.tax_amount))
-const O3 = sale({
-  number: 3, localId: "POS1-20261106-0003", receiptNo: "POS1-R-0003", placedAt: "2026-11-06T19:30:00.000Z",
-  lines: O3lines,
-  payments: pay([
-    { method: "card", bill_share: 1000 },
-    { method: "jazzcash", bill_share: r2(O3bill - 2000) },
-    { method: "cash", bill_share: 1000, paid: 1000 },
-  ]),
-})
-export const ORDERS = [O1, O2, O3]
-
-function orderRequest(order) {
-  return {
-    client_local_id: order.localId,
-    local_receipt_number: order.receiptNo,
-    placed_at: order.placedAt,
-    customer_id: order.customer ? order.customer.id : null,
-    lines: order.lines.map((line) =>
-      line.custom
-        ? {
-            title: line.title, category: line.category, qty: line.qty, unit_price: line.unitPrice, cost_price: line.unitCost,
-            discount_amount: 0, discount: [], subtotal: line.subtotal, taxes: line.taxes, tax_amount: line.tax_amount, total: line.total,
-          }
-        : lineRequest(line)
-    ),
-    order_discount: null,
-    coupon: null,
-    gross_amount: order.gross,
-    discount_amount: order.discount,
-    subtotal: order.subtotal,
-    tax_amount: order.tax,
-    surcharge_amount: order.surcharge,
-    payments: order.payments.map((p) => ({
-      method: p.method,
-      ...(p.surcharge_type ? { surcharge_type: p.surcharge_type, surcharge_value: p.surcharge_value } : {}),
-      surcharge_amount: p.surcharge_amount,
-      amount: p.amount,
-      paid: p.paid,
-    })),
-    total_amount: order.total,
-  }
-}
-const ORDER_BULK_BODY = { storeId: 1, locationId: 1, staffId: 2, batchId: 1, items: ORDERS.map(orderRequest) }
-
-// The sale moves stock (order 2 is custom: no stock).
+// The sales move stock (a custom line holds none).
 const SALE_MOVEMENTS = []
-for (const order of [O1, O3]) {
+for (const order of ORDERS) {
   for (const line of order.lines) {
+    if (line.custom) continue
     const moved = movement({ product: line.product, variantId: line.variantId, type: "sale", reason: "sale", qty: -line.units, staff: AHMED, at: order.placedAt, order: { id: order.number, status: "completed" } })
     // The lots the line was sold from (a refund puts it back there).
     line.lots = moved.lots.map((lot) => ({ ...lot, qty: -lot.qty }))
@@ -720,13 +631,15 @@ for (const order of [O1, O3]) {
 
 // ---------------------------------------------------------------- refunds
 
+const taxRows = (taxes) => taxes.map(({ level, name, rate, amount }) => ({ level, name, rate, amount }))
+
 function refundLine(order, itemNumber, qty, { restock = true } = {}) {
   const line = order.lines[itemNumber - 1]
   const share = qty / line.qty
   const taxes = line.taxes.map((tax) => ({ ...tax, amount: r2(tax.amount * share) }))
   const amount = r2(line.subtotal * share)
-  const tax = sum(taxes, (t) => t.amount)
-  return { order, itemNumber, line, qty, restock: restock && !line.custom, discount: r2(line.discount * share), amount, taxes, tax, total: r2(amount + tax) }
+  const tax = sum(taxes, (x) => x.amount)
+  return { order, itemNumber, line, qty, restock: restock && !line.custom, discount: r2(line.discount * share), amount, taxes: taxRows(taxes), tax, total: r2(amount + tax) }
 }
 
 function refund({ number, type, localId, at, order, reason, lines, payments, receiptId, restockAll }) {
@@ -734,40 +647,48 @@ function refund({ number, type, localId, at, order, reason, lines, payments, rec
   const tax = sum(lines, (l) => l.tax)
   const surcharge = sum(payments, (p) => p.surcharge_amount)
   const total = sum(payments, (p) => p.amount)
-  if (Math.abs(total - r2(amount + tax + surcharge)) > 0.01) throw new Error(`refund ${number}: payments do not add up`)
+  // Cash is paid back in whole rupees.
+  if (Math.abs(total - r2(amount + tax + surcharge)) > 0.5) throw new Error(`refund ${number}: payments do not add up`)
   return { number, type, localId, at, order, reason, lines, payments, receiptId, restockAll, amount, discount: sum(lines, (l) => l.discount), tax, surcharge, total }
 }
 
-/** Pays a refund back: each method its share of the bill, with its surcharge (as on the sale). */
-const backWith = (rows) => pay(rows).map(({ paid, change, ...row }) => row)
+/** Pays a refund back the way the sale was paid: its surcharge (only while it was on) on the share, cash in whole rupees. */
+function backWith(order, rows) {
+  return rows.map((row) => {
+    const rule = order.payments.find((p) => p.method === row.method)
+    const surcharge = rule?.surcharge_active ? (rule.surcharge_type === "fixed" ? rule.surcharge_value : r2((row.bill_share * rule.surcharge_value) / 100)) : 0
+    const raw = r2(row.bill_share + surcharge)
+    return {
+      method: row.method,
+      bill_share: row.bill_share,
+      ...(rule?.surcharge_type ? { surcharge_type: rule.surcharge_type, surcharge_value: rule.surcharge_value } : {}),
+      surcharge_amount: surcharge,
+      amount: row.method === "cash" ? Math.round(raw) : raw,
+    }
+  })
+}
 
-// Partial: something from each order (staff Zayan — refunds need a store admin / manager).
-const R1lines = [refundLine(O1, 2, 1)]
+// Partial: a gift wrap from the custom sale (cash), and two bundle items from order 4 (card). Staff Zayan — refunds need a store admin / manager.
+const R1lines = [refundLine(O2, 1, 1)]
 const R1 = refund({
-  number: 1, type: "partial", localId: "POS1-R-20261106-0001", at: "2026-11-06T13:00:00.000Z", order: O1, reason: "Customer return", receiptId: 4,
-  lines: R1lines, payments: backWith([{ method: "card", bill_share: r2(sum(R1lines, (l) => l.total)) }]),
+  number: 1, type: "partial", localId: "POS1-R-20261106-0001", at: "2026-11-06T13:00:00.000Z", order: O2, reason: "Gift wrap not needed", receiptId: 5,
+  lines: R1lines, payments: backWith(O2, [{ method: "cash", bill_share: r2(sum(R1lines, (l) => l.total)) }]),
 })
-const R2lines = [refundLine(O2, 2, 1)]
+const R2lines = [refundLine(O4, 4, 1)]
 const R2 = refund({
-  number: 2, type: "partial", localId: "POS1-R-20261106-0002", at: "2026-11-06T13:10:00.000Z", order: O2, reason: "Gift wrap not needed", receiptId: 5,
-  lines: R2lines, payments: backWith([{ method: "cash", bill_share: r2(sum(R2lines, (l) => l.total)) }]),
+  number: 2, type: "partial", localId: "POS1-R-20261106-0002", at: "2026-11-06T13:10:00.000Z", order: O4, reason: "Customer return", receiptId: 6,
+  lines: R2lines, payments: backWith(O4, [{ method: "card", bill_share: r2(sum(R2lines, (l) => l.total)) }]),
 })
-const R3lines = [refundLine(O3, 1, 2)]
+const R3lines = [refundLine(O4, 3, 1)]
 const R3 = refund({
-  number: 3, type: "partial", localId: "POS1-R-20261106-0003", at: "2026-11-06T20:10:00.000Z", order: O3, reason: "Bought too much", receiptId: 6,
-  lines: R3lines, payments: backWith([{ method: "cash", bill_share: r2(sum(R3lines, (l) => l.total)) }]),
+  number: 3, type: "partial", localId: "POS1-R-20261106-0003", at: "2026-11-06T20:10:00.000Z", order: O4, reason: "Bought too much", receiptId: 7,
+  lines: R3lines, payments: backWith(O4, [{ method: "card", bill_share: r2(sum(R3lines, (l) => l.total)) }]),
 })
-// Complete: what is left on order 3 (3 kg Sugar, 3 Pepsi Cane, 250 g Mamra), back the way it was paid.
-const R4lines = [refundLine(O3, 1, 3), refundLine(O3, 2, 3), refundLine(O3, 3, 250)]
-const R4bill = r2(sum(R4lines, (l) => l.total))
+// Complete: what is left on order 4 (the 2 Pepsi 1L and the free 500ml), back the way it was paid.
+const R4lines = [refundLine(O4, 1, 2), refundLine(O4, 2, 1)]
 const R4 = refund({
-  number: 4, type: "complete", localId: "POS1-R-20261107-0001", at: "2026-11-07T09:00:00.000Z", order: O3, reason: "Customer changed mind", receiptId: 7, restockAll: true,
-  lines: R4lines,
-  payments: backWith([
-    { method: "card", bill_share: 1000 },
-    { method: "jazzcash", bill_share: O3.payments[1].bill_share },
-    { method: "cash", bill_share: r2(R4bill - 1000 - O3.payments[1].bill_share) },
-  ]),
+  number: 4, type: "complete", localId: "POS1-R-20261107-0001", at: "2026-11-07T09:00:00.000Z", order: O4, reason: "Customer changed mind", receiptId: 8, restockAll: true,
+  lines: R4lines, payments: backWith(O4, [{ method: "card", bill_share: r2(sum(R4lines, (l) => l.total)) }]),
 })
 export const REFUNDS = [R1, R2, R3, R4]
 
@@ -780,7 +701,8 @@ for (const ref of REFUNDS) {
   }
 }
 
-const statusOf = (order) => (order === O3 ? "refunded" : "partial_refunded")
+// Order 4 is given back in full; order 2 in part; 1 and 3 not at all.
+const statusOf = (order) => (order === O4 ? "refunded" : REFUNDS.some((r) => r.order === order) ? "partial_refunded" : "completed")
 
 function refundRequest(ref) {
   return {
@@ -809,7 +731,7 @@ function refundRequest(ref) {
 }
 
 function lineProduct(line) {
-  return line.custom ? { title: line.title, category: { id: null, name: line.category } } : { product: productRef(line.product, line.variantId) }
+  return line.custom ? { title: line.title, category: null } : { product: productRef(line.product, line.variantId) }
 }
 
 function refundView(ref) {
@@ -871,17 +793,19 @@ function lineRefund(order, itemNumber) {
 function orderItemView(line, index, refundOf) {
   const common = {
     gross_amount: line.gross,
+    // Every discount of the line: { id (the Discounts page number: store / bulk / bundle only), level, name, type, value }.
+    discount: line.discounts.map(({ id, level, name, type, value }) => ({ id, level, name, type, value })),
     discount_amount: line.discount,
-    discount: line.offerId && isBulkOffer(line.offerId) ? [offerOnLine(line.offerId, line.discount)] : [],
-    free_qty: line.freeQty || 0,
     subtotal: line.subtotal,
-    taxes: line.taxes,
+    // Every tax of the line: { id (the Taxes page number: store only), level, name, type, value }.
+    taxes: line.taxes.map(({ id, level, name, type, rate }) => ({ id, level, name, type, value: rate })),
     tax_amount: line.tax_amount,
     total: line.total,
+    ...(line.bundleId != null ? { bundle_id: line.bundleId, bundle_role: line.bundleRole } : {}),
     ...(refundOf === undefined ? {} : refundOf ? lineRefund(refundOf, index + 1) : { is_refunded: false, refund_qty: 0, refund_amount: 0, refund_tax: 0, refund_discount_amount: 0, refund_total: 0 }),
   }
   if (line.custom) {
-    return { id: index + 1, title: line.title, category: { id: null, name: line.category }, qty: line.qty, unit_price: line.unitPrice, ...common }
+    return { id: index + 1, is_custom: true, name: line.title, category: line.category ? { id: null, name: line.category } : null, qty: line.qty, unit_price: line.unitPrice, ...common }
   }
   const category = CATEGORIES[line.product.category_id]
   return {
@@ -902,7 +826,7 @@ function orderRefund(order, afterRefunds) {
   const rows = afterRefunds ? REFUNDS.filter((r) => r.order === order) : []
   return {
     is_refunded: rows.length > 0,
-    refund_status: !rows.length ? "none" : order === O3 ? "full" : "partial",
+    refund_status: !rows.length ? "none" : statusOf(order) === "refunded" ? "full" : "partial",
     refund_count: rows.length,
     refund_amount: sum(rows, (r) => r.amount),
     refund_tax: sum(rows, (r) => r.tax),
@@ -915,29 +839,46 @@ export function orderView(order, { afterRefunds = false } = {}) {
   return {
     id: order.number,
     client_local_id: order.localId,
-    local_receipt_number: order.receiptNo,
+    local_receipt_number: null,
     receiptId: order.number,
     location: L1,
     staff: AHMED,
     customer: order.customer,
     batch: BATCH,
-    currency: "PKR",
     is_custom: order.isCustom,
+    tax_exempt: order.taxExempt,
+    discount_exempt: order.discountExempt,
     order_items: order.lines.map((line, index) => orderItemView(line, index, afterRefunds ? order : null)),
-    gross_amount: order.gross,
-    discount_amount: order.discount,
-    order_discount: null,
-    coupon: null,
-    subtotal: order.subtotal,
-    tax_amount: order.tax,
-    surcharge_amount: order.surcharge,
-    total_amount: order.total,
+    // The bundles used: { id, name, reward_type, value }.
+    bundles: order.bundles,
+    order_discount: order.orderDiscount,
+    // Per method: its share of the bill, its surcharge (charged only while surcharge_active), what it paid and handed over.
+    payments: order.payments.map((p) => ({
+      method: p.method,
+      bill_amount: p.bill_share,
+      surcharge_active: p.surcharge_active,
+      type: p.surcharge_type,
+      value: p.surcharge_value,
+      surcharge_amount: p.surcharge_amount,
+      amount: p.amount,
+      paid: p.paid,
+    })),
+    summary: {
+      currency: "PKR",
+      total_items: order.lines.length,
+      gross_amount: order.gross,
+      items_discount_amount: order.discount,
+      subtotal: order.subtotal,
+      order_discount_amount: order.orderDiscountAmount,
+      tax_amount: order.tax,
+      surcharge_amount: order.surcharge,
+      total_amount: order.total,
+    },
     payment_method: order.payments.length > 1 ? "mixed" : order.payments[0].method,
-    payments: order.payments,
     amount_paid: order.paid,
     change_due: order.change,
     remaining_amount: 0,
-    payment_status: afterRefunds && order === O3 ? "refunded" : "paid",
+    payment_status: afterRefunds && statusOf(order) === "refunded" ? "refunded" : "paid",
     order_status: afterRefunds ? statusOf(order) : "completed",
     // What was given back, every partial and complete refund added up (each one is in GET /orders/refunds).
     ...orderRefund(order, afterRefunds),
@@ -958,12 +899,12 @@ function receiptView(order, { withHistory = false } = {}) {
   const view = {
     id: order.number,
     order_id: order.number,
-    local_receipt_number: order.receiptNo,
+    local_receipt_number: null,
     store: { name: STORE.name, ntn: STORE.ntn, strn: STORE.strn },
     issued_at: order.placedAt,
     channel: "pos",
     status: statusOf(order),
-    payment_status: order === O3 ? "refunded" : "paid",
+    payment_status: statusOf(order) === "refunded" ? "refunded" : "paid",
     payment_method: order.payments.length > 1 ? "mixed" : order.payments[0].method,
     location: L1,
     cashier: { id: AHMED.id, name: AHMED.name },
@@ -1168,6 +1109,14 @@ const PEPSI_LIST = {
 }
 
 const STAFF_ROW = { id: 2, location: L1, name: "Ahmed Malik", email: "ahmed@acadex.co", pin: "2222", role: "cashier", phone: null, is_active: true }
+
+/** The lines discounts added up by where they came from (product / variant, category, bulk, a Discounts page one, a bundle, the shopkeeper). */
+function discountsBySource() {
+  const out = { product: 0, category: 0, "product+category": 0, bulk_tier: 0, offer: 0, custom: 0, unknown: 0 }
+  const source = { product: "product", variant: "product", category: "category", bulk: "bulk_tier", store: "offer", bundle: "offer", manual: "custom" }
+  for (const entry of ORDERS.flatMap((o) => o.lines).flatMap((l) => l.discounts)) out[source[entry.level]] = r2(out[source[entry.level]] + entry.amount)
+  return out
+}
 
 const salesTotals = (() => {
   const orders = ORDERS
@@ -1419,13 +1368,23 @@ export const DEMO_EPS = {
   },
 
   // ---- Orders
-  "order-bulk": { body: ORDER_BULK_BODY, responses: [created(ORDERS.map((o) => orderView(o)), "Order Created")] },
-  "order-list-completed": { responses: [page([orderView(O2, { afterRefunds: true }), orderView(O1, { afterRefunds: true })])] },
+  "order-bulk": {
+    body: ORDER_BULK_BODY,
+    responses: [
+      created(ORDERS.map((o) => orderView(o)), "Order Created"),
+      { ...created([orderView(O1)], "Order Created"), label: "201 — order 1 sent again (same local_id): the saved order, no double sale" },
+      fail(400, "figures do not add up", "order_items[0].total 120 is not subtotal + tax (112.1)", { data: [], failed: [{ index: 0, message: "order_items[0].total 120 is not subtotal + tax (112.1)", status: 400 }] }),
+      fail(400, "surcharge off", "payments[0]: surcharge_active is false, so surcharge_amount must be 0", { data: [], failed: [{ index: 0, message: "payments[0]: surcharge_active is false, so surcharge_amount must be 0", status: 400 }] }),
+      fail(404, "unknown bundle", "Bundle discount 99 not found", { data: [], failed: [{ index: 0, message: "Bundle discount 99 not found", status: 404 }] }),
+      fail(403, "cashier discount", "A manager must perform this action", { data: [], failed: [{ index: 0, message: "A manager must perform this action", status: 403 }] }),
+    ],
+  },
+  "order-list-completed": { responses: [page([orderView(O3, { afterRefunds: true }), orderView(O1, { afterRefunds: true })])] },
   "order-list-pending": { responses: [page([])] },
   "order-list-cancelled": { responses: [page([])] },
   "order-history": {
     responses: [
-      page([O3, O2, O1].map((o) => orderView(o, { afterRefunds: true }))),
+      page([O4, O3, O2, O1].map((o) => orderView(o, { afterRefunds: true }))),
       fail(400, "status", "status must be completed, partial_refunded, pending, cancelled, refunded or all"),
     ],
   },
@@ -1453,8 +1412,8 @@ export const DEMO_EPS = {
     body: { storeId: 1, locationId: 1, staffId: 1, batchId: 1, items: [R1, R2, R3].map(refundRequest) },
     responses: [
       created([R1, R2, R3].map(refundView), "Refunded Successfully"),
-      fail(400, "more than sold", "Order 1 line 2: only 1 left to refund (2 sent)", { data: [], failed: [{ index: 0, message: "Order 1 line 2: only 1 left to refund (2 sent)", status: 400 }] }),
-      fail(400, "total ≠ payments", "total_amount 1103.9 is not the sum of payments (1100)", { data: [], failed: [{ index: 0, message: "total_amount 1103.9 is not the sum of payments (1100)", status: 400 }] }),
+      fail(400, "more than sold", "Order 2 line 1: only 1 left to refund (2 sent)", { data: [], failed: [{ index: 0, message: "Order 2 line 1: only 1 left to refund (2 sent)", status: 400 }] }),
+      fail(400, "total ≠ payments", "total_amount 380 is not the sum of payments (370)", { data: [], failed: [{ index: 0, message: "total_amount 380 is not the sum of payments (370)", status: 400 }] }),
     ],
   },
   "order-refund-complete-bulk": {
@@ -1462,7 +1421,7 @@ export const DEMO_EPS = {
     responses: [
       created([refundView(R4)], "Refunded Successfully"),
       { ...created([refundView(R4)], "Refunded Successfully"), label: "201 — sent again (same client_local_id): the saved refund" },
-      fail(400, "lines left out", "Order 3: a complete refund must give back every remaining line (line 3 has 250 left)", { data: [], failed: [{ index: 0, message: "Order 3: a complete refund must give back every remaining line (line 3 has 250 left)", status: 400 }] }),
+      fail(400, "lines left out", "Order 4: a complete refund must give back every remaining line (line 2 has 1 left)", { data: [], failed: [{ index: 0, message: "Order 4: a complete refund must give back every remaining line (line 2 has 1 left)", status: 400 }] }),
     ],
   },
   // Every refund, partial and complete together, newest first.
@@ -1480,7 +1439,7 @@ export const DEMO_EPS = {
         location: L1,
         cashier: { id: ZAYAN.id, name: ZAYAN.name },
         currency: "PKR",
-        items: R1.lines.map((l) => ({ id: l.itemNumber, title: productRef(l.line.product, l.line.variantId).title, sku: productRef(l.line.product, l.line.variantId).sku, qty: l.qty, unit_price: l.line.unitPrice, total: l.total })),
+        items: R1.lines.map((l) => ({ id: l.itemNumber, title: l.line.custom ? l.line.title : productRef(l.line.product, l.line.variantId).title, sku: l.line.custom ? null : productRef(l.line.product, l.line.variantId).sku, qty: l.qty, unit_price: l.line.unitPrice, total: l.total })),
         subtotal: R1.amount,
         tax_amount: r2(R1.tax + R1.surcharge),
         total: R1.total,
@@ -1728,7 +1687,7 @@ Object.assign(DEMO_EPS, {
     body: { locationId: 1, items: [{ id: 2, payment_method: "easypaisa" }] },
     responses: [
       {
-        ...ok([{ ...orderView(O2), payment_method: "easypaisa", payments: O2.payments.map((p) => ({ ...p, method: "easypaisa", paid: p.amount, change: 0 })) }], "Payment Method Updated"),
+        ...ok([{ ...orderView(O2), payment_method: "easypaisa", payments: orderView(O2).payments.map((p) => ({ ...p, method: "easypaisa", paid: p.amount })) }], "Payment Method Updated"),
         label: "200 OK — order 2 paid by EasyPaisa, not cash (before its refund)",
       },
       fail(409, "after a refund", "This sale has a refund; its payment method cannot change", { data: [], failed: [{ index: 0, message: "This sale has a refund; its payment method cannot change", status: 409 }] }),
@@ -2033,18 +1992,18 @@ export const DEMO_NEW_EPS = [
         to: "2026-11-07",
         filters: {},
         summary: {
-          orders: 3,
+          orders: ORDERS.length,
           units_sold: r2(ORDERS.flatMap((o) => o.lines).reduce((s, l) => s + (l.units ?? l.qty), 0)),
           gross_sales: salesTotals.gross,
           line_discounts: salesTotals.discounts,
-          order_discounts: 0,
+          order_discounts: sum(ORDERS, (o) => o.orderDiscountAmount),
           discounts: salesTotals.discounts,
           net_sales: salesTotals.net,
           taxes: {
             sales_tax: 0,
             product_tax: sum(ORDERS.flatMap((o) => o.lines).flatMap((l) => l.taxes).filter((t) => t.level !== "category"), (t) => t.amount),
             category_tax: sum(ORDERS.flatMap((o) => o.lines).flatMap((l) => l.taxes).filter((t) => t.level === "category"), (t) => t.amount),
-            payment_method_tax: { cash: 0, card: salesTotals.byMethod.card || 0, jazzcash: salesTotals.byMethod.jazzcash || 0, total: salesTotals.surcharge },
+            payment_method_tax: { cash: salesTotals.byMethod.cash || 0, card: salesTotals.byMethod.card || 0, total: salesTotals.surcharge },
             total: r2(salesTotals.tax + salesTotals.surcharge),
           },
           shipping: 0,
@@ -2053,30 +2012,30 @@ export const DEMO_NEW_EPS = [
           on_credit: 0,
           refunds: salesTotals.refunds,
           refunded_tax: sum(REFUNDS, (r) => r.tax + r.surcharge),
-          refunded_orders: 3,
+          refunded_orders: new Set(REFUNDS.map((r) => r.order.number)).size,
           refunded_items: REFUNDS.reduce((s, r) => s + r.lines.length, 0),
           voided_orders: 0,
           cancelled_orders: 0,
-          discounts_by_source: { product: 0, category: O1.lines[0].discount, "product+category": 0, bulk_tier: 0, offer: r2(salesTotals.discounts - O1.lines[0].discount), custom: 0, unknown: 0 },
+          discounts_by_source: discountsBySource(),
           tax: r2(salesTotals.tax + salesTotals.surcharge),
-          avg_order_value: r2(salesTotals.total / 3),
+          avg_order_value: r2(salesTotals.total / ORDERS.length),
           payments_net: r2(salesTotals.total - salesTotals.refunds),
         },
         tables: {
           trend: {
             rows: [
-              { date: "2026-11-06", orders: 3, gross_sales: salesTotals.gross, discounts: salesTotals.discounts, net_sales: salesTotals.net, tax: r2(salesTotals.tax + salesTotals.surcharge), total_sales: salesTotals.total, refunds: sum([R1, R2, R3], (r) => r.total) },
+              { date: "2026-11-06", orders: ORDERS.length, gross_sales: salesTotals.gross, discounts: salesTotals.discounts, net_sales: salesTotals.net, tax: r2(salesTotals.tax + salesTotals.surcharge), total_sales: salesTotals.total, refunds: sum([R1, R2, R3], (r) => r.total) },
               { date: "2026-11-07", orders: 0, gross_sales: 0, discounts: 0, net_sales: 0, tax: 0, total_sales: 0, refunds: R4.total },
             ],
             pagination: { page: 1, limit: 20, total: 2, total_pages: 1 },
           },
           payments: {
-            rows: ["card", "jazzcash", "cash"].map((method) => {
+            rows: ["card", "cash"].map((method) => {
               const sold = sum(ORDERS.flatMap((o) => o.payments).filter((p) => p.method === method), (p) => p.amount)
               const back = sum(REFUNDS.flatMap((r) => r.payments).filter((p) => p.method === method), (p) => p.amount)
               return { method, collected: sold, refunded: back, net: r2(sold - back) }
             }),
-            pagination: { page: 1, limit: 20, total: 3, total_pages: 1 },
+            pagination: { page: 1, limit: 20, total: 2, total_pages: 1 },
           },
         },
       }), section: "sales", label: "Sales · 200 OK" },
@@ -2260,27 +2219,4 @@ export const DEMO_FIELDS = {
     "items[].role": must("manager | cashier"),
   },
   "prod-bulk": { storeId: note("Your store number (e.g. 1)"), items: R, ...prefixed("items[].", PRODUCT_FIELDS) },
-  "order-bulk": {
-    storeId: note("Your store number (e.g. 1)"),
-    locationId: must("The location number of every order"),
-    staffId: must("The cashier (user number) of every order; an order may carry its own"),
-    batchId: note("The open batch number (cash drawer)"),
-    items: must("One row per order — an array even for one"),
-    "items[].client_local_id": must("The till's id for the order — sent again, the saved order comes back (no double sale)"),
-    "items[].local_receipt_number": note("The number printed on the till (offline) receipt"),
-    "items[].placed_at": note("When it was sold at the till (ISO, at most 30 days ago)"),
-    "items[].customer_id": note("The customer number (needed for udhaar)"),
-    "items[].lines": must("The lines as the till priced them"),
-    ...prefixed("items[].lines[].", ORDER_LINE),
-    "items[].order_discount": note("null, or { type: percentage | fixed, value, amount } off the whole bill"),
-    "items[].coupon": note("null, or { code, amount }"),
-    "items[].gross_amount": note("Σ qty × unit_price"),
-    "items[].discount_amount": note("Σ line discount_amount"),
-    "items[].subtotal": note("Σ line subtotal — checked against the lines"),
-    "items[].tax_amount": note("Σ line tax_amount"),
-    "items[].surcharge_amount": note("Σ payment surcharges"),
-    "items[].payments": must("One row per payment method; several = split payment"),
-    ...prefixed("items[].payments[].", PAYMENT),
-    "items[].total_amount": must("subtotal − order_discount − coupon + tax_amount + surcharge_amount"),
-  },
 }
