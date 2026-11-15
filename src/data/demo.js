@@ -793,8 +793,6 @@ function orderItemView(line, index, refundOf) {
     ...(line.sale_unit === "pack" ? { pack_size: line.units / line.qty, units: line.units } : {}),
     unit_price: line.unitPrice,
     ...common,
-    // The lots it was sold from (soonest expiry first): [{ id (lot number), qty, expiry_date }].
-    lots: (line.lots || []).map(({ id, qty, expiry_date }) => ({ id, qty, expiry_date })),
   }
 }
 
