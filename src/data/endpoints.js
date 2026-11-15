@@ -1334,11 +1334,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/batches/open",
     summary: "Batch Opening",
-    description: "Opens the cash drawer for a staff member. One counter (device) holds one open batch: several items at once need their own device_id (one per counter)."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Opens the cash drawer for a staff member on a counter (PC). A staff member may have several open batches (one on each counter), so an open batch of theirs is no error; one counter holds one open batch (409 \"This counter already has an open batch\" otherwise). deviceId is the PC: its pos_devices id, its hardware id or its number — sent once before items[] (every row without its own device_id is on it) or on a row; left out = the device of your POS token, or none. Response { id, staff, location, device_id (the device number, null without one), opening_amount, opening_at }."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" sales are booked into their open batch. Response { id, staff, opening_amount, opening_at } (id = batch number, used as batch_id / batchId on orders). Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       locationId: 1,
       staffId: 2,
+      deviceId: 1,
       items: [
         { opening_amount: 5000, opening_at: "2026-10-24T09:00:00.000Z" },
       ],
@@ -1350,11 +1351,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/batches/close",
     summary: "Batch Closing",
-    description: "Closes the staff member's open batch with the counted cash. Several items = several staff members, each closing their own open batch."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Closes a staff member's open batch with the counted cash. Which one: batch_id, or deviceId (the batch the staff member opened on that PC: its pos_devices id, hardware id or number — sent once before items[] or on a row); with neither, their only open batch. A staff member with several open batches who names neither gets 400 (\"send batch_id or device_id\"). Several items = several staff members or several batches, each saved on its own. Response { id, staff, location, device_id, total_cash, closing_at }."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, total_cash, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       locationId: 1,
       staffId: 2,
+      deviceId: 1,
       items: [
         { total_cash: 10000, closing_at: "2026-10-24T17:00:00.000Z" },
       ],

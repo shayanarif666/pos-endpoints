@@ -239,6 +239,7 @@ export const SAMPLE_RESPONSES = {
             "id": 1,
             "name": "Gulshan e Iqbal Block 13 D"
           },
+          "device_id": 1,
           "opening_amount": 5000,
           "opening_at": "2026-10-24T09:00:00.000Z"
         }
@@ -4217,6 +4218,7 @@ export const SAMPLE_RESPONSES = {
             "id": 1,
             "name": "Gulshan e Iqbal Block 13 D"
           },
+          "device_id": 1,
           "total_cash": 10000,
           "closing_at": "2026-10-24T17:00:00.000Z"
         }
