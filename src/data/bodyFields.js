@@ -388,11 +388,8 @@ const REFUND_BULK = {
   "refunds[].refund_items[].tax_amount": must("The line's taxes for that qty (their share of the sale line's). Checked"),
   "refunds[].refund_items[].total": must("subtotal + tax_amount. Checked"),
   "refunds[].order_discount_amount": must("The share of the order discount that comes back (0 when the order had none). Checked: order discount × the lines' total ÷ the order's lines' total"),
-  "refunds[].payments": must("How the money goes back: one row per method the sale was paid with — split in the proportion it was paid"),
-  "refunds[].payments[].method": must("cash | card | credit | … (as on the sale; credit = off the customer's udhaar)"),
-  "refunds[].payments[].return_amount": must("What goes back this way: its share of the refunded bill + its own surcharge (only a surcharge that was charged); cash in whole rupees. Checked"),
-  "refunds[].total_payment_surcharge_refunded": must("The surcharges of all the methods together. Checked"),
-  "refunds[].total_refunded_amount": must("The whole refund — must equal the sum of payments[].return_amount"),
+  "refunds[].total_payment_surcharge_refunded": must("The surcharges that go back, all payment methods together: each method's surcharge on its share of the refund, only the ones that were charged on the sale. Checked"),
+  "refunds[].total_refunded_amount": must("The whole refund: the refunded bill (the lines' total − order_discount_amount) + the surcharges given back, cash in whole rupees. Checked against how the sale was paid"),
 }
 
 // POS orders (POST /orders/bulk): the till prices every order and the server checks the figures and saves them as sent.
