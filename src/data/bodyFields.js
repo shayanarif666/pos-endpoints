@@ -682,6 +682,7 @@ export const BODY_FIELDS = {
   // Categories
   "cat-create": CATEGORY_CREATE,
   "cat-bulk": { ...TOP_STORE, ...bulkOf(CATEGORY_CREATE) },
+  "cat-create": CATEGORY_CREATE,
   "cat-patch": allOptional(CATEGORY_CREATE),
 
   // Products

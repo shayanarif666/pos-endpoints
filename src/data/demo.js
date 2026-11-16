@@ -1106,6 +1106,104 @@ const salesTotals = (() => {
   return { gross, discounts, net, tax, surcharge, total, refunds, byMethod }
 })()
 
+// ---------------------------------------------------------------- dashboard lists and detail pages
+
+/** The transactions of the sales (one per payment), numbered in the order they were paid. */
+const TXNS = ORDERS.flatMap((order) => order.payments.map((p) => ({ order, p }))).map(({ order, p }, index) => ({
+  id: index + 1,
+  reference: null,
+  order: { id: order.number, status: statusOf(order) },
+  location: L1,
+  method: p.method,
+  amount: p.amount,
+  surcharge_amount: p.surcharge_amount,
+  currency: "PKR",
+  status: "success",
+  paid_at: order.placedAt,
+}))
+
+const productListRow = (view) => ({
+  id: view.id,
+  title: view.title,
+  sku: view.sku,
+  barcode: view.barcode,
+  category: view.category ?? null,
+  total_variants: (view.variants || []).length,
+  is_active: view.is_active !== false,
+  status: view.is_active === false ? "inactive" : "active",
+})
+const PRODUCT_LIST_ROWS = PRODUCT_VIEWS.map(productListRow)
+
+/** One row per product (or variant) sold by weight. */
+const WEIGHTED_ROWS = PRODUCT_DEFS.flatMap((def) => {
+  const category = { id: CATEGORIES[def.category_id].id, name: CATEGORIES[def.category_id].name }
+  const rows = def.variants.length ? def.variants.map((v, i) => [i + 1, v]).filter(([, v]) => v.is_weight_based) : def.is_weight_based ? [[null, def]] : []
+  return rows.map(([variantId, row]) => ({
+    id: def.number,
+    title: def.title,
+    variant: variantId ? { id: variantId, name: row.name } : null,
+    sku: row.sku,
+    category,
+    unit: def.unit,
+    price: row.price ?? null,
+    cost_price: row.cost ?? null,
+    status: "active",
+  }))
+})
+
+const soldAt = (row) =>
+  row.location_scope === "selected"
+    ? { scope: "selected", locations: row.location_ids.map((id) => ({ id, name: LOCATIONS[id].name })) }
+    : { scope: "all", locations: [] }
+const CATEGORY_LIST_ROWS = CATEGORY_ROWS.map((row) => ({ id: row.id, name: row.name, sold_at: soldAt(row), is_active: true, status: "active" }))
+
+const LOCATION_STAFF = {
+  1: [
+    { id: 2, name: "Ahmed Malik", email: "ahmed@acadex.co", phone: "03001112233", role: "manager", pin: "2222", is_active: true },
+    { id: 3, name: "Sana Tariq", email: "sana@acadex.co", phone: null, role: "cashier", pin: "3333", is_active: true },
+  ],
+  2: [{ id: 4, name: "Bilal Raza", email: "bilal@acadex.co", phone: "03111234567", role: "manager", pin: "5555", is_active: true }],
+  3: [],
+}
+const LOCATION_DETAILS = {
+  1: { address: "Shop # 432 Allama rasheed main rashid Minhas road Gulshan e Iqbal Block 13 D Karachi", city: "Karachi", phone: "03162196345", is_default: true },
+  2: { address: "Plot 7, Main Shahrah-e-Faisal, Karachi", city: "Karachi", phone: "03211234567", is_default: false },
+  3: { address: "Shop # 12, Main University Road, Gulshan e Iqbal Block 2, Karachi", city: "Karachi", phone: "03001234567", is_default: false },
+}
+const managerOf = (id) => {
+  const user = LOCATION_STAFF[id].find((row) => row.role === "manager")
+  return user ? { id: user.id, name: user.name, email: user.email, phone: user.phone } : null
+}
+const LOCATION_LIST_ROWS = [1, 2, 3].map((id) => ({ id, name: LOCATIONS[id].name, city: LOCATION_DETAILS[id].city, manager: managerOf(id), is_active: true, status: "active" }))
+const locationDetail = (id) => ({
+  id,
+  name: LOCATIONS[id].name,
+  address: LOCATION_DETAILS[id].address,
+  city: LOCATION_DETAILS[id].city,
+  country: "PK",
+  postal_code: null,
+  phone: LOCATION_DETAILS[id].phone,
+  is_default: LOCATION_DETAILS[id].is_default,
+  is_active: true,
+  status: "active",
+  manager: LOCATION_STAFF[id].find((row) => row.role === "manager") || null,
+  users: LOCATION_STAFF[id],
+  created_at: "2026-10-31T09:27:34.000Z",
+  updated_at: "2026-10-31T09:27:34.000Z",
+})
+const DEVICE_ROWS = [
+  { id: 1, device_id: "ACADEX-PC-01", name: "Counter 1", location: L1, platform: "windows", app_version: "1.4.0", last_seen_at: "2026-11-07T09:58:00.000Z", is_active: true, status: "active" },
+  { id: 2, device_id: "ACADEX-PC-02", name: "Counter 2", location: L1, platform: "windows", app_version: "1.4.0", last_seen_at: "2026-11-06T21:10:00.000Z", is_active: true, status: "active" },
+  { id: 3, device_id: "ACADEX-PC-03", name: "Branch 2 till", location: L2, platform: "windows", app_version: "1.3.2", last_seen_at: null, is_active: false, status: "inactive" },
+]
+
+/** GET /orders/:id: the order (as GET /orders gives it), its transactions and its refunds. */
+const orderDetail = (order) => ({
+  ...orderView(order, { afterRefunds: true }),
+  transactions: TXNS.filter((row) => row.order.id === order.number),
+  refunds: REFUNDS.filter((r) => r.order === order).map(refundView),
+})
+
 export const DEMO_EPS = {
   // ---- Authentication / license
   "auth-login": { body: { email: "zayan@acadex.co", password: "zayanahmed" } },
@@ -1233,7 +1331,10 @@ export const DEMO_EPS = {
       "Every product with all its detail, variants inside, and no stock (the stock of every product and variant, with its lots, is GET /products/stock). One product: { id (product number), title, has_variants, total_variants (how many; null without), variants [{ id (variant number 1, 2, 3…), name, sku, barcode, cost_price, selling_price, is_pack_product, pack_size, pack_cost_price, pack_selling_price, sell_loose, is_weight_based, image, colors, discounts [], taxes [], pack_discount_value, unit_discount_value, pack_tax_value, unit_tax_value, is_active }], slug, category { id, name }, sku, barcode, image, colors, description, unit, currency (the store's currency code, e.g. PKR), cost_price, selling_price, pack fields, sell_loose, is_weight_based, has_bulk_discount, low_stock_threshold, low_stock_unit, total_price_each_unit, total_pack_price, has_product_discount, has_product_tax, location_scope / location_ids, stock_scope / stock_location_ids, is_active, is_pos_visible, is_web_visible }. A product with variants has no price or pack of its own (0 / null), low_stock_threshold 0 and low_stock_unit null, and no discounts or taxes of its own: each variant carries its prices, pack, discounts and taxes (its low stock level is in GET /products/stock). has_product_discount / has_product_tax say whether the product itself has a discount / a tax (every variant takes them unless it has its own); has_bulk_discount whether a live bulk discount is on it or one of its variants. discounts [] of a variant lists every discount it is sold with, each with its level: variant (its own — it replaces the product's, they do not add up), product (the product's discount, taken by a variant that has none of its own), category, and bulk (id = bulk discount number, name, sale_unit, tiers [{ min_qty, discount_type, discount_value }]: from min_qty on every unit is cut; on the variant or on its product). A discount entry is { level, name, type, value } (plus applies_to when it is not all: pack | loose | weight). taxes [] of a variant lists every tax it is charged, each with its level: store (id = tax number: a Taxes page tax that covers it), category, product (the product's own taxes) and variant (its own taxes). A tax entry is { level, name, type, value } (a fixed tax is per unit). pack_discount_value / unit_discount_value: what ONE pack / ONE unit is cut by in rupees, worked out from the discounts [] — the variant (or product) discount, then the category discount, each on what is left. A bulk discount depends on how many are bought, and a bundle on the whole cart, so neither is in these: the POS applies them. pack_tax_value / unit_tax_value: the tax in rupees on ONE pack / ONE unit after those discounts, every tax of taxes [] together (a percentage on the discounted price, a fixed tax per unit — so × pack size on a pack). null = it is not sold that way (no pack, or a pack sold only by the pack for unit). A product without variants carries discounts [], taxes [] and these four figures itself (after total_pack_price / has_product_discount / has_product_tax), with the same levels (product instead of variant). Filters: locations (a list of location numbers or UUIDs: locations=1,2 — the products sold at any of those branches; store admin only, a manager / cashier only sees the products sold at their own location), categories (a list of category numbers: categories=1,2), type (pack = sold in packs, loose = a plain item that is neither pack nor weight based, weight = sold by weight; a list is allowed: type=pack,weight; a product with variants matches when any of its variants does), q (a text found in the title, SKU or barcode of the product or of a variant), from / to (created date, YYYY-MM-DD — to covers the whole day). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     responses: [page([productView(PEPSI_LIST)])],
   },
-  "prod-get": { responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }] },
+  "prod-get": {
+    description: "One product (:id = product number or UUID) — its information only, no stock (the stock is GET /products/stock): the product (title, sku, barcode, category, unit, taxes, discount, low stock level, where it is sold) and its variants, each with its own prices / pack, discount, taxes and low stock level; without variants its own prices and pack. The same shape as a product of GET /products.",
+    responses: [ok(PRODUCT_VIEWS[0]), { ...ok(PRODUCT_VIEWS[3]), label: "200 OK · without variants" }],
+  },
   "prod-weight-list": {
     description:
       "The Weight Based Products tab as a short list: one row per product, or per variant, sold by weight: { id (product number), title, variant { id, name } | null, sku, category { id, name }, image, unit (kg, gram…), price, cost_price, price_with_tax, pack { size, price } | null, stock, qty_packs, status (active | inactive) }. A product with variants is not a row itself: each of its weight variants is, with the product's id and title and its own variant. price and cost_price are per ONE unit (per kg, per gram); price_with_tax is what one unit is charged: the price after the product and category discounts, plus every tax (the product's own, the Taxes page and the category tax). pack only for a pack product (the pack's size in units and its price), else null; stock is in the unit, at the location read (every location for a store admin without location_id); qty_packs = the whole packs in it (pack products only, else null). cost_price is for the store admin / manager. image is the variant's own, else the product's. Ordered by title, then variant. Paged: page (from 1) and limit (1–200, default 20), with pagination { page, limit, total, total_pages }; range / from / to filter by the created date.",
@@ -1362,19 +1463,15 @@ export const DEMO_EPS = {
       fail(400, "status", "status must be completed, partial_refunded, pending, cancelled, refunded or all"),
     ],
   },
-  "order-get": { responses: [ok(receiptView(O1, { withHistory: true }))] },
+  "order-get": {
+    description: "One order — :id is the order number (e.g. 1) or UUID — in the same shape as GET /orders (every line with its discounts, taxes, bundle and what was given back of it: is_refunded, refund_qty, refund_amount, refund_tax, refund_discount_amount, refund_total; bundles, order_discount, payments, summary, statuses, the order's refund totals), plus transactions [{ id, reference, order, location, method, amount, surcharge_amount, currency, status, paid_at }] (one per payment, as GET /transactions) and refunds [ …each refund of the order as GET /orders/refunds gives it: refund_items, order_discount_amount, payments { method, return_amount }, total_payment_surcharge_refunded, total_refunded_amount ]. A manager / cashier only sees orders of their own location.",
+    responses: [ok(orderDetail(O4)), { ...ok(orderDetail(O3)), label: "200 OK · a split payment, refunded in full" }, fail(404, "not found", "Order not found")],
+  },
   "order-receipt": { responses: [ok(receiptView(O1))] },
   "transaction-list": {
-    responses: [
-      page(
-        [
-          ...ORDERS.flatMap((o) => o.payments.map((p) => ({ kind: "sale", order: { id: o.number, status: statusOf(o) }, method: p.method, amount: p.amount, surcharge_amount: p.surcharge_amount, at: o.placedAt }))),
-          ...REFUNDS.flatMap((r) => r.payments.map((p) => ({ kind: "refund", order: { id: r.order.number, status: statusOf(r.order) }, method: p.method, amount: -p.amount, surcharge_amount: -p.surcharge_amount, at: r.at }))),
-        ]
-          .map((row, i) => ({ id: i + 1, reference: null, type: row.kind, order: row.order, location: L1, method: row.method, amount: row.amount, surcharge_amount: row.surcharge_amount, currency: "PKR", status: "success", paid_at: row.at }))
-          .reverse()
-      ),
-    ],
+    description:
+      "The orders' transactions — one per payment, created with the order (id = the transaction number 1, 2, 3…), newest first: { id, reference (the card / wallet reference the till sent, if any), order { id, status }, location { id, name }, method, amount (what the method paid, surcharge included), surcharge_amount (its Payment Method Surcharge), currency, status (initiated | success | failed), paid_at }. Money given back by a refund is not a transaction: it is in GET /orders/refunds. Filters: orderId, method, status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (payment time): range = week | month | 6months | year, or from / to (YYYY-MM-DD — to covers the whole day).",
+    responses: [page([...TXNS].reverse())],
   },
   "order-bulk-patch": {
     body: { locationId: 1, items: [{ id: 1, customer_id: 2 }] },
@@ -1916,6 +2013,234 @@ function reportSamples() {
 }
 
 export const DEMO_NEW_EPS = [
+  // ---- Orders (dashboard)
+  {
+    id: "order-lists",
+    noEnums: true,
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/orders/lists",
+    summary: "Orders List",
+    description: "The Orders History table: the orders of GET /orders with only the columns it shows, newest first: { id (order number), placed_at, staff { id, name, role } (the cashier), total_items (the lines), total_amount, currency, order_status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status }. GET /orders/:id has the whole order. The same filters as GET /orders: status (all | completed | partial_refunded | pending | cancelled | refunded), staffId, batchId, is_custom, from / to (placed_at), range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "status", default: "all", required: false, values: ["all", "completed", "partial_refunded", "pending", "cancelled", "refunded"] },
+      { name: "staffId", default: "", required: false },
+      { name: "batchId", default: "", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+      { name: "location_id", default: "", required: false },
+    ],
+    ownResponses: true,
+    responses: [
+      page(
+        [O4, O3, O2, O1].map((order) => {
+          const view = orderView(order, { afterRefunds: true })
+          return { id: view.id, placed_at: view.placed_at, staff: view.staff, total_items: view.summary.total_items, total_amount: view.summary.total_amount, currency: view.summary.currency, order_status: view.order_status, payment_status: view.payment_status }
+        })
+      ),
+    ],
+  },
+  // ---- Transactions (dashboard)
+  {
+    id: "transaction-lists",
+    noEnums: true,
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/transactions/lists",
+    summary: "Transactions List",
+    description: "The Transactions table: the transactions of GET /transactions with only the columns it shows, newest first: { id (transaction number), order { id, status }, paid_at, method, amount, currency, status }. GET /transactions/:id has the whole transaction. The same filters as GET /transactions: orderId, method, status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "orderId", default: "", required: false },
+      { name: "method", default: "", required: false, values: ["cash", "card", "jazzcash", "easypaisa", "bank_transfer", "raast", "other"] },
+      { name: "status", default: "", required: false, values: ["initiated", "success", "failed"] },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
+    ownResponses: true,
+    responses: [page([...TXNS].reverse().map(({ id, order, paid_at, method, amount, currency, status }) => ({ id, order, paid_at, method, amount, currency, status })))],
+  },
+  {
+    id: "transaction-get",
+    noEnums: true,
+    tag: "orders",
+    method: "GET",
+    path: "/api/v1/transactions/:id",
+    summary: "Transaction Detail",
+    description: "One transaction — :id is the transaction number (e.g. 1) or UUID — in the shape of GET /transactions: { id, reference, order { id, status }, location { id, name }, method, amount (surcharge included), surcharge_amount, currency, status, paid_at }. A manager / cashier only sees the transactions of their own location.",
+    pathParams: [{ name: "id", default: "5", required: true }],
+    ownResponses: true,
+    responses: [ok(TXNS[4]), fail(404, "not found", "Transaction not found")],
+  },
+  // ---- Products (dashboard)
+  {
+    id: "prod-lists",
+    noEnums: true,
+    tag: "products",
+    method: "GET",
+    path: "/api/v1/products/lists",
+    summary: "Products List",
+    description: "The Products table: the products of GET /products with only the columns it shows: { id (product number), title, sku, barcode, category { id, name }, total_variants (0 for a product without variants), is_active, status (active | inactive) }. GET /products/:id has the whole product. The same filters as GET /products: q (title, SKU or barcode), categories (a list of category numbers), type (pack | loose | weight), locations (store admin). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "q", default: "", required: false },
+      { name: "categories", default: "", required: false },
+      { name: "type", default: "", required: false, values: ["pack", "loose", "weight"], multi: true },
+    ],
+    ownResponses: true,
+    responses: [page(PRODUCT_LIST_ROWS)],
+  },
+  {
+    id: "prod-weighted",
+    noEnums: true,
+    tag: "products",
+    method: "GET",
+    path: "/api/v1/products/weighted",
+    summary: "Weighted Products",
+    description: "Every product (or variant) sold by weight, one row each: { id (product number), title, variant { id, name } | null, sku, category { id, name }, unit (kg, gram…), price (one unit's), cost_price (one unit's; null for a cashier), status }. A product with variants is not a row itself: its weight variants are. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+    ],
+    ownResponses: true,
+    responses: [page(WEIGHTED_ROWS)],
+  },
+  {
+    id: "prod-create",
+    tag: "products",
+    method: "POST",
+    path: "/api/v1/products",
+    summary: "Add Product",
+    description: "One product, in the same body as one item of POST /products/bulk (Bulk Products): title, sku, barcode, category_id, unit, taxes, discount, where it is sold and its variants (each with its prices, pack, discount, low stock level and opening stock), or — without variants — its own prices, pack and stock. The reply is the product as GET /products/:id gives it.",
+    body: PROD_BULK_BODY.items[0],
+    ownResponses: true,
+    responses: [{ ...ok(productView(PEPSI_CREATED), "Products Created"), label: "201 Created", status: 201 }],
+  },
+  // ---- Categories (dashboard)
+  {
+    id: "cat-lists",
+    noEnums: true,
+    tag: "categories",
+    method: "GET",
+    path: "/api/v1/categories/lists",
+    summary: "Categories List",
+    description: "The Categories table: the categories of GET /categories with only the columns it shows: { id (category number), name, sold_at { scope (all | selected), locations [{ id, name }] (the locations it is sold at when selected) }, is_active, status }. GET /categories/:id has the category and its products. The same filters as GET /categories: q, isActive, locations (store admin). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "q", default: "", required: false },
+      { name: "isActive", default: "", required: false, values: ["true", "false"] },
+    ],
+    ownResponses: true,
+    responses: [page(CATEGORY_LIST_ROWS)],
+  },
+  {
+    id: "cat-get",
+    noEnums: true,
+    tag: "categories",
+    method: "GET",
+    path: "/api/v1/categories/:id",
+    summary: "Category Detail",
+    description: "One category — :id is the category number (e.g. 1) or UUID — as GET /categories gives it (name, tax, discount, location_scope, location_ids, is_active), with sold_at { scope, locations [{ id, name }] } and products: its products in the columns of GET /products/lists { id, title, sku, barcode, category, total_variants, is_active, status }. The products are paged: page and limit, with pagination next to data.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+    ],
+    ownResponses: true,
+    responses: [
+      {
+        label: "200 OK",
+        status: 200,
+        body: {
+          success: true,
+          message: "OK",
+          data: { ...categoryView(CATEGORY_ROWS[0]), sold_at: soldAt(CATEGORY_ROWS[0]), products: PRODUCT_LIST_ROWS.filter((row) => row.category?.id === 1) },
+          pagination: { page: 1, limit: 20, total: PRODUCT_LIST_ROWS.filter((row) => row.category?.id === 1).length, total_pages: 1 },
+        },
+      },
+      fail(404, "not found", "Category not found"),
+    ],
+  },
+  {
+    id: "cat-create",
+    tag: "categories",
+    method: "POST",
+    path: "/api/v1/categories",
+    summary: "Add Category",
+    description: "One category, in the same body as one item of POST /categories/bulk (Bulk Categories): name, its tax (tax_name, tax_type, tax_value), its discount (discount_name, discount_type, discount_value) and where it is sold (location_scope all | selected, with location_ids). The reply is the category as GET /categories gives it.",
+    body: CAT_BULK_BODY.items[0],
+    ownResponses: true,
+    responses: [{ ...ok(categoryView(CATEGORY_ROWS[0]), "Categories Created"), label: "201 Created", status: 201 }],
+  },
+  // ---- Locations & devices & store (dashboard)
+  {
+    id: "location-lists",
+    noEnums: true,
+    tag: "locations",
+    method: "GET",
+    path: "/api/v1/locations/lists",
+    summary: "Locations List",
+    description: "The Locations table: { id (location number), name, city, manager { id, name, email, phone } | null (a location may have no manager), is_active, status }. GET /locations/:id has the whole location and its staff. A manager only sees their own location. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+    ],
+    ownResponses: true,
+    responses: [page(LOCATION_LIST_ROWS)],
+  },
+  {
+    id: "location-get",
+    noEnums: true,
+    tag: "locations",
+    method: "GET",
+    path: "/api/v1/locations/:id",
+    summary: "Location Detail",
+    description: "One location — :id is the location number (e.g. 1) or UUID — with everything: { id, name, address, city, country, postal_code, phone, is_default, is_active, status, manager { id, name, email, phone, role, pin, is_active } | null, users [ the manager and the cashiers of the location, the PIN only for a store admin ], created_at, updated_at }. A manager only sees their own location.",
+    pathParams: [{ name: "id", default: "1", required: true }],
+    ownResponses: true,
+    responses: [ok(locationDetail(1)), { ...ok(locationDetail(3)), label: "200 OK · no manager yet" }, fail(404, "not found", "Location not found")],
+  },
+  {
+    id: "device-lists",
+    noEnums: true,
+    tag: "locations",
+    method: "GET",
+    path: "/api/v1/devices",
+    summary: "Devices",
+    description: "The tills (PCs) registered to the store: { id (device number), device_id (the PC's own hardware id), name, location { id, name }, platform, app_version, last_seen_at, is_active, status (active | inactive) }. Store admin / manager (a manager only sees their own location's). Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+    ],
+    ownResponses: true,
+    responses: [page(DEVICE_ROWS)],
+  },
+  {
+    id: "store-detail",
+    noEnums: true,
+    tag: "store",
+    method: "GET",
+    path: "/api/v1/stores/detail",
+    summary: "Store Information",
+    description: "Everything about the store (store admin only; 403 for anyone else): { id (store number), name, legal_name, owner_name, business_type, address, city, contact_email, contact_phone, logo_url, currency, timezone, ntn, strn, fbr_invoice_enabled, expiry_warning_days, expiry_critical_days, receipt_footer, default_location { id, name }, plan { name, code, reporting_level, max_devices, max_locations }, account_manager { name, phone } | null, counts { locations, devices, staff }, status, is_active, trial_ends_at, created_at }.",
+    ownResponses: true,
+    responses: [
+      ok({
+        id: 1, name: "Acadex", legal_name: "Acadex Traders (Pvt) Ltd", owner_name: "Zayan Ahmed", business_type: "grocery",
+        address: "Shop # 432 Allama rasheed main rashid Minhas road Gulshan e Iqbal Block 13 D Karachi", city: "Karachi",
+        contact_email: "info@acadex.co", contact_phone: "03162196345", logo_url: null, currency: "PKR", timezone: "Asia/Karachi",
+        ntn: STORE.ntn, strn: STORE.strn, fbr_invoice_enabled: false, expiry_warning_days: 30, expiry_critical_days: 7, receipt_footer: "Thank you for shopping at Acadex",
+        default_location: L1, plan: { name: "Advanced", code: "advanced", reporting_level: "advanced", max_devices: 5, max_locations: 3 },
+        account_manager: null, counts: { locations: 3, devices: 3, staff: 4 }, status: "active", is_active: true, trial_ends_at: null, created_at: "2026-10-31T09:27:34.000Z",
+      }),
+      fail(403, "not the store admin", "Only the store admin can see the store information"),
+    ],
+  },
   {
     id: "customer-list",
     noEnums: true,
@@ -2080,7 +2405,7 @@ export const DEMO_NEW_EPS = [
 ]
 
 // These are no longer documented (POST /locations: locations come with the store; POST /customers: use Bulk Customers).
-export const DEMO_REMOVED_IDS = ["order-refund-complete-bulk", "batch-current", "tax-get", "surcharge-get", "discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk", "plans-create", "admin-create-store", "admin-register-superadmin", "plans-list", "order-list-completed", "order-list-pending", "order-list-cancelled", "order-get", "order-receipt", "refund-receipt", "prod-get", "prod-weight-list", "prod-expiry", "prod-image-get", "location-create", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
+export const DEMO_REMOVED_IDS = ["order-refund-complete-bulk", "batch-current", "tax-get", "surcharge-get", "discount-bulk", "bulk-discount-bulk", "bundle-discount-bulk", "plans-create", "admin-create-store", "admin-register-superadmin", "plans-list", "order-list-completed", "order-list-pending", "order-list-cancelled", "order-receipt", "refund-receipt", "prod-weight-list", "prod-expiry", "prod-image-get", "customer-create", "rep-all-locations", "rep-location", "rep-profit"]
 
 // ---------------------------------------------------------------- the attributes of the bodies above
 
@@ -2190,4 +2515,5 @@ export const DEMO_FIELDS = {
     "items[].role": must("manager | cashier"),
   },
   "prod-bulk": { storeId: note("Your store number (e.g. 1)"), items: R, ...prefixed("items[].", PRODUCT_FIELDS) },
+  "prod-create": PRODUCT_FIELDS,
 }

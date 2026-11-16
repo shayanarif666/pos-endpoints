@@ -90,6 +90,20 @@ const PAGING = [
 ]
 
 export const DISCOUNT_EPS = [
+  // ---- Dashboard: every discount in one list
+  {
+    id: "discount-lists",
+    noEnums: true,
+    tag: "discounts",
+    method: "GET",
+    path: "/api/v1/discounts/lists",
+    summary: "Discounts List",
+    description:
+      "The Discounts tab: every discount of the store in one reply — { discounts, bulk_discounts, bundle_discounts }. discounts = the order level discounts { id, name, discount_type, discount_value, is_active, status }; bulk_discounts = the bulk discounts { id, name, product { id, title, sku, unit, variant { id, name } | null }, sale_unit, tiers [{ min_qty, discount_type, discount_value }], start_at, end_at, is_active, status, staff }; bundle_discounts = the bundle discounts { id, name, products [...], reward { type, items | value }, start_at, end_at, is_active, staff } (as GET /discounts gives them). Filter: active (true = only the live ones; false = the ones that are not live; left out = every one). Not paged.",
+    query: [{ name: "active", default: "", required: false, values: ["true", "false"] }],
+    ownResponses: true,
+    responses: [ok("200 OK", 200, "OK", { discounts: ORDER_DISCOUNTS, bulk_discounts: BULK_DISCOUNTS, bundle_discounts: BUNDLE_DISCOUNTS })],
+  },
   // ---- Order level
   {
     id: "discount-list",
