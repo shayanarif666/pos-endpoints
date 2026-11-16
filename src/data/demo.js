@@ -1470,7 +1470,7 @@ export const DEMO_EPS = {
   "order-receipt": { responses: [ok(receiptView(O1))] },
   "transaction-list": {
     description:
-      "The orders' transactions — one per payment, created with the order (id = the transaction number 1, 2, 3…), newest first: { id, reference (the card / wallet reference the till sent, if any), order { id, status }, location { id, name }, method, amount (what the method paid, surcharge included), surcharge_amount (its Payment Method Surcharge), currency, status (initiated | success | failed), paid_at }. Money given back by a refund is not a transaction: it is in GET /orders/refunds. Filters: orderId, method, status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (payment time): range = week | month | 6months | year, or from / to (YYYY-MM-DD — to covers the whole day).",
+      "The orders' transactions — one per payment, created with the order (id = the transaction number 1, 2, 3…), newest first: { id, reference (the card / wallet reference the till sent, if any), order { id, status }, location { id, name }, method, amount (what the method paid, surcharge included), surcharge_amount (its Payment Method Surcharge), currency, status (initiated | success | failed), paid_at }. Money given back by a refund is not a transaction: it is in GET /orders/refunds. Filters: orderId, method, status, from / to. A store admin sees every location, or the ones in locations (a list of location numbers: locations=1,2; location_id = one location still works); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data. Dates (payment time): range = week | month | 6months | year, or from / to (YYYY-MM-DD — to covers the whole day).",
     responses: [page([...TXNS].reverse())],
   },
   "order-bulk-patch": {
@@ -2021,7 +2021,7 @@ export const DEMO_NEW_EPS = [
     method: "GET",
     path: "/api/v1/orders/lists",
     summary: "Orders List",
-    description: "The Orders History table: the orders of GET /orders with only the columns it shows, newest first: { id (order number), placed_at, staff { id, name, role } (the cashier), total_items (the lines), total_amount, currency, order_status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status }. GET /orders/:id has the whole order. The same filters as GET /orders: status (all | completed | partial_refunded | pending | cancelled | refunded), staffId, batchId, is_custom, from / to (placed_at), range. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    description: "The Orders History table: the orders of GET /orders with only the columns it shows, newest first: { id (order number), placed_at, staff { id, name, role } (the cashier), total_items (the lines), total_amount, currency, order_status (completed | partial_refunded | refunded | pending | cancelled | voided), payment_status }. GET /orders/:id has the whole order. The same filters as GET /orders: status (all | completed | partial_refunded | pending | cancelled | refunded), staffId, batchId, is_custom, from / to (placed_at), range. A store admin sees every location, or the ones in locations (a list of location numbers: locations=1,2; location_id = one location still works); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -2031,6 +2031,7 @@ export const DEMO_NEW_EPS = [
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
       { name: "location_id", default: "", required: false },
+      { name: "locations", default: "", required: false },
     ],
     ownResponses: true,
     responses: [
@@ -2050,7 +2051,7 @@ export const DEMO_NEW_EPS = [
     method: "GET",
     path: "/api/v1/transactions/lists",
     summary: "Transactions List",
-    description: "The Transactions table: the transactions of GET /transactions with only the columns it shows, newest first: { id (transaction number), order { id, status }, paid_at, method, amount, currency, status }. GET /transactions/:id has the whole transaction. The same filters as GET /transactions: orderId, method, status, from / to. A store admin sees every location (or one with location_id = location number or UUID); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+    description: "The Transactions table: the transactions of GET /transactions with only the columns it shows, newest first: { id (transaction number), order { id, status }, paid_at, method, amount, currency, status }. GET /transactions/:id has the whole transaction. The same filters as GET /transactions: orderId, method, status, from / to. A store admin sees every location, or the ones in locations (a list of location numbers: locations=1,2; location_id = one location still works); a manager / cashier only their own. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -2059,6 +2060,7 @@ export const DEMO_NEW_EPS = [
       { name: "status", default: "", required: false, values: ["initiated", "success", "failed"] },
       { name: "from", default: "", required: false },
       { name: "to", default: "", required: false },
+      { name: "locations", default: "", required: false },
     ],
     ownResponses: true,
     responses: [page([...TXNS].reverse().map(({ id, order, paid_at, method, amount, currency, status }) => ({ id, order, paid_at, method, amount, currency, status })))],
@@ -2090,6 +2092,7 @@ export const DEMO_NEW_EPS = [
       { name: "q", default: "", required: false },
       { name: "categories", default: "", required: false },
       { name: "type", default: "", required: false, values: ["pack", "loose", "weight"], multi: true },
+      { name: "locations", default: "", required: false },
     ],
     ownResponses: true,
     responses: [page(PRODUCT_LIST_ROWS)],
@@ -2134,6 +2137,7 @@ export const DEMO_NEW_EPS = [
       { name: "limit", default: "20", required: false },
       { name: "q", default: "", required: false },
       { name: "isActive", default: "", required: false, values: ["true", "false"] },
+      { name: "locations", default: "", required: false },
     ],
     ownResponses: true,
     responses: [page(CATEGORY_LIST_ROWS)],
