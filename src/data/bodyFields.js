@@ -514,6 +514,25 @@ function bulkUpdateOf(label, spec, extra = {}) {
   }
 }
 
+/** A PATCH /bulk takes the body of its POST: storeId (and the POST's other top keys) + items[] with the POST fields and each row's id. */
+function patchOf(label, spec, top = {}) {
+  return { ...TOP_STORE, ...top, ...bulkUpdateOf(label, spec) }
+}
+
+/** The order PATCHes take the body of POST /orders/bulk: storeId, locationId, staffId, orders[]. */
+function ordersPatchOf(spec) {
+  return {
+    ...TOP_STORE,
+    locationId: UPDATE_LOCATION,
+    staffId: UPDATE_STAFF_ID,
+    orders: must("One row per order to change; a row that fails is listed in failed[], the rest still save"),
+    "orders[].id": must("The order's number (1, 2, 3…)"),
+    ...prefixed("orders[].", spec),
+  }
+}
+
+const ACTIVE_NOTE = (off) => note(`As on create: false = ${off}, true = active again (is_active also works)`)
+
 const UPDATE_STAFF_ID = note("The staff member doing it (user number, e.g. 3), sent once; a row may carry its own. Leave out = the signed-in admin / manager")
 const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager / cashier: their own location")
 
@@ -766,7 +785,7 @@ export const BODY_FIELDS = {
   }),
 
   // Bulk updates (PATCH)
-  "prod-bulk-patch": bulkUpdateOf("product", {
+  "prod-bulk-patch": patchOf("product", {
     ...allOptional(PRODUCT_CREATE, {
       category_id: note("The category's number (e.g. 2)"),
       cost: note("Loose Item: cost of one unit (cost_price also works)"),
@@ -778,29 +797,36 @@ export const BODY_FIELDS = {
       "variants[].stock[].qty": must("The total counted there (units)"),
     }),
     sku: O,
+    is_weight_based: note("true = sold by weight (kg / g), false = by unit"),
+    isActive: ACTIVE_NOTE("off sale (the record and its history stay; its variants follow)"),
+    is_pos_visible: note("Shown on the POS"),
+    is_web_visible: note("Shown on the website"),
     "variants[].id": note("The variant's number inside the product (1, 2, 3…) or its UUID — changes that variant. Left out = a new variant (numbered next)"),
   }),
-  "prod-bulk-weight-patch": bulkUpdateOf("product", { is_weight_based: must("true = sold by weight (kg / g), false = by unit") }),
-  "prod-bulk-status-patch": bulkUpdateOf("product", { is_active: must("false = off sale (record and history stay), true = back on sale") }),
-  "prod-bulk-visibility-patch": bulkUpdateOf("product", { is_pos_visible: note("Shown on the POS"), is_web_visible: note("Shown on the website") }),
-  "cat-bulk-patch": bulkUpdateOf("category", allOptional(CATEGORY_CREATE)),
-  "cat-bulk-status-patch": bulkUpdateOf("category", { is_active: R }),
-  "cat-locations-patch": {
-    category_ids: must("The categories to change: their numbers (1, 2, 3…). Every one gets the same locations"),
-    location_scope: must("all = every location (location_ids not needed) | selected = only location_ids"),
-    location_ids: note("Required with selected: one or several location numbers (e.g. [1, 2]). Replaces each category's current locations"),
-  },
-  "movement-patch": {
-    items: must("One row per movement to fix — an array even for one; a row that fails is listed in failed[], the rest still save"),
-    "items[].id": must("The movement number (1, 2, 3…), not the UUID"),
-    "items[].movement_type": note("stock_in | stock_out | adjustment. Left out = stays"),
-    "items[].reason": note("stock_in: purchase, customer_return, other · stock_out: damage, expiry, waste, theft, return_to_supplier, other · adjustment: count, other"),
-    "items[].qty": note("The amount moved (not the stock): stock_in adds it, stock_out takes it away, an adjustment keeps its + / − sign. The difference goes on the stock"),
-    "items[].reason_note": note("Why it was fixed; null clears it"),
-  },
+  "cat-bulk-patch": patchOf("category", {
+    ...allOptional(CATEGORY_CREATE),
+    location_ids: note("With location_scope selected: the location numbers (e.g. [1, 2]); replaces the category's current locations"),
+    isActive: ACTIVE_NOTE("hidden from the POS and the dashboard lists"),
+  }),
+  "movement-patch": patchOf(
+    "movement",
+    {
+      movement_type: note("stock_in | stock_out | adjustment. Left out = stays"),
+      reason: note("stock_in: purchase, customer_return, other · stock_out: damage, expiry, waste, theft, return_to_supplier, other · adjustment: count, other"),
+      reason_note: note("Why it was fixed; null clears it"),
+      stock: note("As on create, one row: [{ qty }]. The movement's location stays"),
+      "stock[].qty": must("The amount moved (not the stock): stock_in adds it, stock_out takes it away, an adjustment keeps its + / − sign. The difference goes on the stock"),
+      variants: note("A product with variants may send it as on create: [{ id, stock: [{ qty }] }] (the variant stays)"),
+      "variants[].id": note("The movement's variant number"),
+      "variants[].stock": note("[{ qty }]"),
+      "variants[].stock[].qty": note("As stock[].qty"),
+    },
+    TOP_STAFF
+  ),
   "stock-entry-patch": {
+    ...TOP_STORE,
     locationId: note("The location number, sent once for every item (an item's own location_id wins)"),
-    staff_id: note("Who did it (user number), sent once; a row may carry its own. Leave out = the signed-in user"),
+    staffId: note("Who did it (user number), sent once; a row may carry its own. Leave out = the signed-in user"),
     items: must("One row per product and location — an array even for one; a row that fails is listed in failed[]"),
     "items[].product_id": must("The product number (e.g. 1)"),
     "items[].variant_id": note("The variant number inside the product (1, 2, 3…), for a product with variants"),
@@ -814,94 +840,81 @@ export const BODY_FIELDS = {
     "items[].reason": note("For a qty change: count (default), purchase, damage, expiry, waste, theft, return_to_supplier, customer_return, other"),
     "items[].movement_type": note("stock_in | stock_out | adjustment (default) — must match the direction"),
     "items[].reason_note": note("Saved on the movement"),
-    "items[].lot_id": note("One lot (its number, GET /products/expiry): qty / number_of_packs are that lot's new total and expiry_date its date. Left out: qty is the whole stock's new total (a cut comes off the lot that expires first) and expiry_date goes on that lot"),
+    "items[].lot_id": note("One lot (its number): qty / number_of_packs are that lot's new total and expiry_date its date. Left out: qty is the whole stock's new total (a cut comes off the lot that expires first) and expiry_date goes on that lot"),
   },
   "stock-entry-delete": {
     reason_note: note("Optional; saved on the movement that sets the qty to 0"),
   },
-  "transfer-bulk-patch": {
-    staff_id: note("Who changed it (user number), sent once. Leave out = the signed-in admin"),
-    items: must("One row per transfer to change — an array even for one; a row that fails is listed in failed[]"),
-    "items[].id": must("The transfer number (1, 2, 3…), not the UUID"),
-    "items[].from_location_id": note("Location number the stock leaves from. Left out = stays"),
-    "items[].note": note("Left out = stays; null clears it"),
-    "items[].destinations": note("The whole new list, as on create — it replaces every product of the transfer. Left out = the products stay"),
-    "items[].destinations[].to_location_id": must("Location number (e.g. 2) — not the source"),
-    "items[].destinations[].products": must("What this destination gets: one row per product"),
-    "items[].destinations[].products[].product_id": must("Product number (e.g. 1)"),
-    "items[].destinations[].products[].variant_id": note("A product with variants: the variant number inside it (1, 2, 3…)"),
-    "items[].destinations[].products[].qty": must("Above 0. The source must hold, per product, the qty of every destination together"),
-  },
-  "order-bulk-patch": bulkUpdateOf("order", { customer_id: must("The customer's number; only an order with no customer yet") }, { locationId: UPDATE_LOCATION }),
-  "order-bulk-status-patch": bulkUpdateOf(
-    "order",
+  "transfer-bulk-patch": patchOf(
+    "transfer",
     {
-      status: must("completed (pending web / COD order paid) | cancelled (pending order) | voided (completed sale)"),
-      reason: note("Shown on the order"),
-      approval_request_id: note("A cashier voiding: the approved void_order request"),
-      staff_id: note("This row's staff member (user number), if not the one sent once"),
+      from_location_id: note("Location number the stock leaves from. Left out = stays"),
+      note: note("Left out = stays; null clears it"),
+      destinations: note("The whole new list, as on create — it replaces every product of the transfer. Left out = the products stay"),
+      "destinations[].to_location_id": must("Location number (e.g. 2) — not the source"),
+      "destinations[].products": must("What this destination gets: one row per product"),
+      "destinations[].products[].product_id": must("Product number (e.g. 1)"),
+      "destinations[].products[].variant_id": note("A product with variants: the variant number inside it (1, 2, 3…)"),
+      "destinations[].products[].qty": must("Above 0. The source must hold, per product, the qty of every destination together"),
     },
-    { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
+    { staffId: note("Who changed it (user number), sent once. Leave out = the signed-in admin") }
   ),
-  "order-bulk-payment-method-patch": bulkUpdateOf(
-    "order",
-    { payment_method: must("cash | card | jazzcash | easypaisa — same payment tax as the old method") },
-    { locationId: UPDATE_LOCATION, staff_id: UPDATE_STAFF_ID }
-  ),
-  "sup-bulk-patch": bulkUpdateOf("supplier", { ...allOptional(SUPPLIER_CREATE), is_active: O }),
+  "order-bulk-patch": ordersPatchOf({ customer_id: must("The customer's number; only an order with no customer yet") }),
+  "order-bulk-status-patch": ordersPatchOf({
+    status: must("completed (pending web / COD order paid) | cancelled (pending order) | voided (completed sale)"),
+    reason: note("Shown on the order"),
+    approval_request_id: note("A cashier voiding: the approved void_order request"),
+    staffId: note("This order's staff member (user number), if not the one sent once"),
+  }),
+  "order-bulk-payment-method-patch": ordersPatchOf({ payment_method: must("cash | card | jazzcash | easypaisa — same surcharge as the old method") }),
+  "sup-bulk-patch": patchOf("supplier", { ...allOptional(SUPPLIER_CREATE), isActive: ACTIVE_NOTE("left out of the supplier pickers") }),
   "tax-bulk-patch": {
-    ...bulkUpdateOf("tax", { ...allOptional(TAX_CREATE), product_ids: note("Replaces the products the tax applies to (with product_scope selected)") }),
+    ...patchOf("tax", { ...allOptional(TAX_CREATE), product_ids: note("Replaces the products the tax applies to (with product_scope selected)"), isActive: ACTIVE_NOTE("not charged on any sale") }),
     "items[].id": TAX_ID,
   },
   "surcharge-bulk-patch": {
-    ...bulkUpdateOf("surcharge", allOptional(SURCHARGE_CREATE)),
+    ...patchOf("surcharge", { ...allOptional(SURCHARGE_CREATE), isActive: ACTIVE_NOTE("not added to any bill") }),
     "items[].id": SURCHARGE_ID,
   },
-  "surcharge-bulk-status-patch": {
-    ...bulkUpdateOf("surcharge", { is_active: must("false = not added to any bill, true = added again") }),
-    "items[].id": SURCHARGE_ID,
-  },
-  "tax-bulk-status-patch": {
-    ...bulkUpdateOf("tax", { is_active: must("false = not charged on any sale, true = charged again") }),
-    "items[].id": TAX_ID,
-  },
-  "staff-bulk-patch": bulkUpdateOf("staff member", {
+  "staff-bulk-patch": patchOf("staff member", {
     name: O,
     email: note("Unique in the store"),
     phone: O,
     role: note("manager | cashier. Store admin only"),
-    location_id: note("The location number; the PIN must be free there"),
-    is_active: note("false = suspended (cannot sign in or use a PIN), true = active again"),
+    locationId: note("The location number (as on create); the PIN must be free there"),
+    isActive: ACTIVE_NOTE("suspended (cannot sign in or use a PIN)"),
     pin: note("4–6 digits, unique at the location"),
   }),
-  "batch-bulk-patch": bulkUpdateOf("batch", {
-    opening_cash: note("Cash in the drawer at opening, >= 0"),
+  "batch-bulk-patch": patchOf("batch", {
+    opening_amount: note("As on Batch Open: cash in the drawer at opening, >= 0"),
+    opening_at: note("As on Batch Open: ISO date-time"),
+    total_cash: note("As on Batch Close (a closed batch): the cash counted; the variance is worked out again"),
+    closing_at: note("As on Batch Close (a closed batch): ISO date-time, after opening_at"),
     cash_in: note(">= 0"),
     cash_out: note(">= 0"),
-    counted_cash: note("A closed batch: the cash counted at closing; the variance is worked out again"),
-    opened_at: note("ISO date-time"),
-    closed_at: note("A closed batch: ISO date-time, after opened_at"),
     note: O,
   }),
-  "staff-session-bulk-patch": bulkUpdateOf("session", {
-    clock_in_at: note("ISO date-time"),
-    clock_out_at: note("ISO date-time, after clock_in_at. Closes the session"),
+  "staff-session-bulk-patch": patchOf("session", {
+    clock_in_at: note("ISO date-time — the clocked_at of the clock-in"),
+    clock_out_at: note("ISO date-time, after clock_in_at — the clocked_at of the clock-out. Closes the session"),
   }),
-  "customer-bulk-patch": bulkUpdateOf("customer", {
+  "customer-bulk-patch": patchOf("customer", {
     name: O,
     phone: O,
     email: O,
-    location_id: note("The location number"),
+    locationId: note("The location number"),
+    total_debt: note("As on create: everything the customer has ever owed (>= 0)"),
+    remaining_debt: note("As on create: what is still unpaid (>= 0, never more than total_debt)"),
     debt_notes: O,
-    is_active: O,
+    isActive: ACTIVE_NOTE("hidden from the customer pickers"),
   }),
   "discount-bulk-patch": bulkUpdateOf("discount", allOptional(without(ORDER_DISCOUNT_CREATE, ["staff_id"]))),
   "bulk-discount-bulk-patch": bulkUpdateOf("discount", allOptional(without(BULK_DISCOUNT_CREATE, ["staff_id"]))),
   "bundle-discount-bulk-patch": bulkUpdateOf("bundle", allOptional(without(BUNDLE_DISCOUNT_CREATE, ["staff_id"]))),
-  "location-bulk-patch": bulkUpdateOf(
-    "location",
-    allOptional(LOCATION_CREATE, { manager_password: note("Leave blank to keep the current password"), manager_is_active: O })
-  ),
+  "location-bulk-patch": patchOf("location", {
+    ...allOptional(without(LOCATION_CREATE, ["is_active"]), { manager_password: note("Leave blank to keep the current password"), manager_is_active: O }),
+    isActive: ACTIVE_NOTE("closed: left out of the location pickers"),
+  }),
 }
 
 /** Rules for a body: explicit entry, or the generic `ids` rule of the data bulk-delete routes. */

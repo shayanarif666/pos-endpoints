@@ -2,6 +2,7 @@ import { bodyFieldsFor, enumsFromFields } from "./bodyFields.js"
 import { buildBody, defaultToggles } from "./bodyBuilder.js"
 import { SAMPLE_RESPONSES } from "./sampleResponses.js"
 import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
+import { PATCH_DOCS, PATCH_REMOVED_IDS } from "./patchDocs.js"
 import { DISCOUNT_EPS } from "./discountDocs.js"
 import { STOCK_EPS } from "./stockDocs.js"
 
@@ -730,6 +731,15 @@ function ep({
     if (demo.query) query = demo.query
     if (demo.pathParams) pathParams = demo.pathParams
   }
+  // A PATCH /bulk takes the body of its POST (patchDocs.js).
+  const patchDoc = PATCH_DOCS[id]
+  if (patchDoc) {
+    if (patchDoc.body) {
+      body = patchDoc.body
+      bodyBuilder = null
+    }
+    if (patchDoc.description) description = patchDoc.description
+  }
   const effectiveBody = bodyBuilder
     ? buildBody(bodyBuilder, bodyBuilder.variants[0].id, defaultToggles(bodyBuilder))
     : body
@@ -947,13 +957,13 @@ export const postSections = [
 
 // The PUT & PATCH group: the bulk updates by section, then every other PUT / PATCH under "Other".
 export const patchSections = [
-  { id: "patch-products", name: "Products", tag: "products", ids: ["prod-bulk-patch", "prod-bulk-status-patch"] },
-  { id: "patch-categories", name: "Categories", tag: "categories", ids: ["cat-bulk-patch", "cat-bulk-status-patch", "cat-locations-patch"] },
+  { id: "patch-products", name: "Products", tag: "products", ids: ["prod-bulk-patch"] },
+  { id: "patch-categories", name: "Categories", tag: "categories", ids: ["cat-bulk-patch"] },
   { id: "patch-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-patch", "stock-entry-patch"] },
   { id: "patch-transfers", name: "Stock Transfers", tag: "inventory", ids: ["transfer-bulk-patch"] },
   { id: "patch-orders", name: "Orders", tag: "orders", ids: ["order-bulk-patch", "order-bulk-status-patch", "order-bulk-payment-method-patch"] },
-  { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch", "tax-bulk-status-patch"] },
-  { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch", "surcharge-bulk-status-patch"] },
+  { id: "patch-taxes", name: "Taxes", tag: "taxes", ids: ["tax-bulk-patch"] },
+  { id: "patch-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharge-bulk-patch"] },
   { id: "patch-suppliers", name: "Suppliers", tag: "suppliers", ids: ["sup-bulk-patch"] },
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
@@ -2539,7 +2549,7 @@ const BASE_ENDPOINTS = [
 
 // The documented list: the entries above (minus the ones no longer documented) and the demo store's new ones.
 export const endpoints = [
-  ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id)),
+  ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id) && !PATCH_REMOVED_IDS.includes(item.id)),
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
   ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
