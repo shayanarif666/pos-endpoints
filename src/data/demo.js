@@ -1084,14 +1084,6 @@ const PEPSI_LIST = {
 
 const STAFF_ROW = { id: 2, location: L1, name: "Ahmed Malik", email: "ahmed@acadex.co", pin: "2222", role: "cashier", phone: null, is_active: true }
 
-/** The lines discounts added up by where they came from (product / variant, category, bulk, a Discounts page one, a bundle, the shopkeeper). */
-function discountsBySource() {
-  const out = { product: 0, category: 0, "product+category": 0, bulk_tier: 0, offer: 0, custom: 0, unknown: 0 }
-  const source = { product: "product", variant: "product", category: "category", bulk: "bulk_tier", store: "offer", bundle: "offer", manual: "custom" }
-  for (const entry of ORDERS.flatMap((o) => o.lines).flatMap((l) => l.discounts)) out[source[entry.level]] = r2(out[source[entry.level]] + entry.amount)
-  return out
-}
-
 const salesTotals = (() => {
   const orders = ORDERS
   const gross = sum(orders, (o) => o.gross)
@@ -1770,114 +1762,189 @@ Object.assign(DEMO_EPS, {
 // the rest of the docs. (The sales reply is written out in full below.)
 
 const RPT_API_LABEL = {
-  sales: "Sales Summary", top_products: "Top Products", top_categories: "Top Categories", payments: "Payments", batches: "Z-Reports (Batches)",
-  inventory: "Inventory", movements: "Stock Movements", refunds_cancelled: "Refunds / Cancelled", cashiers: "By Cashier", tax: "Tax Breakdown",
+  sales: "Sales Summary", profit: "Profit & Margin", payments: "Payments", batches: "Z-Reports", sessions: "Sessions History",
+  top_products: "By Products", top_categories: "By Categories", inventory: "Inventory", refunds_cancelled: "Refunds / Cancelled",
+  cashiers: "By Cashiers", offers: "Discount Performance", tax: "Tax Breakdown",
 }
 const rptTables = (lists) =>
   Object.fromEntries(Object.entries(lists).map(([name, rows]) => [name, { rows, pagination: { page: 1, limit: 20, total: rows.length, total_pages: 1 } }]))
-function rptReply(id, summary, lists) {
+function rptReply(id, summary, lists = {}) {
   const section = REPORT_SECTION[id]
-  const reply = ok({ section: id, label: RPT_API_LABEL[id], level: section.level, reporting_level: "standard", location: "all", from: "2026-11-01", to: "2026-11-07", filters: {}, summary, tables: rptTables(lists) })
+  const reply = ok({ section: id, label: RPT_API_LABEL[id], level: section.level, reporting_level: "advanced", location: "all", from: "2026-11-01", to: "2026-11-07", filters: {}, summary, tables: rptTables(lists) })
   return { ...reply, section: id, label: `${section.label} · 200 OK` }
 }
 function rptPercent(rows, key) {
   const total = sum(rows, (row) => row[key])
   return rows.map((row) => ({ ...row, percent: total > 0 ? Math.round((row[key] / total) * 100) : 0 }))
 }
-const rptTax = (line, level) => sum(line.taxes.filter((tax) => tax.level === level), (tax) => tax.amount)
-const rptFigures = (line) => ({
-  units_sold: line.custom ? line.qty : line.units,
-  gross_sales: line.gross,
-  discounts: line.discount,
-  net_sales: line.subtotal,
-  sales_tax: 0,
-  product_tax: sum(line.taxes.filter((tax) => tax.level !== "category"), (tax) => tax.amount),
-  category_tax: rptTax(line, "category"),
-  tax: line.tax_amount,
-  total_sales: line.total,
-})
-/** The sold lines added up per group (a product / variant, or a category), best seller first. */
-function rptGroupLines(keyOf, headOf) {
-  const groups = new Map()
-  for (const order of ORDERS) {
-    for (const line of order.lines) {
-      const k = keyOf(line)
-      const figures = rptFigures(line)
-      if (!groups.has(k)) groups.set(k, { ...headOf(line), ...Object.fromEntries(Object.keys(figures).map((name) => [name, 0])) })
-      const row = groups.get(k)
-      for (const [name, value] of Object.entries(figures)) row[name] = r2(row[name] + value)
-    }
-  }
-  return rptPercent([...groups.values()].sort((a, b) => b.total_sales - a.total_sales), "total_sales")
+const rptCategoryName = (line) => (line.custom ? line.category || "Custom" : CATEGORIES[line.product.category_id].name)
+/** A sold line's cost: a pack sold as a pack at pack_cost, else the unit cost. */
+function rptCost(line) {
+  if (line.custom) return 0
+  const variant = line.variantId ? line.product.variants[line.variantId - 1] : line.product
+  if (line.sale_unit === "pack") return r2((variant.pack_cost || 0) * line.qty)
+  return r2((variant.cost || 0) * (line.units ?? line.qty))
 }
-const rptProductName = (line) => (line.custom ? line.title : productRef(line.product, line.variantId, { barcode: false }).title)
-const rptCategoryName = (line) => (line.custom ? line.category : CATEGORIES[line.product.category_id].name)
-const rptReason = (reason) => String(reason || "other").split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
+const RPT_LINES = ORDERS.flatMap((order) => order.lines.map((line) => ({ order, line })))
+/** The order discount of a line: its share of the order discount (by the line's subtotal). */
+const rptOrderDiscount = (order, line) => (order.orderDiscountAmount > 0 && order.subtotal > 0 ? r2((order.orderDiscountAmount * line.subtotal) / order.subtotal) : 0)
+/** Lines added up per group, best seller first. */
+function rptGroup(keyOf, headOf) {
+  const groups = new Map()
+  for (const { order, line } of RPT_LINES) {
+    const k = keyOf(line)
+    if (!groups.has(k)) groups.set(k, { ...headOf(line), orders: new Set(), units_sold: 0, gross_sales: 0, discounts: 0, net_sales: 0, tax: 0, total_sales: 0, cost: 0 })
+    const row = groups.get(k)
+    const orderDiscount = rptOrderDiscount(order, line)
+    row.orders.add(order.number)
+    row.units_sold = r2(row.units_sold + (line.units ?? line.qty))
+    row.gross_sales = r2(row.gross_sales + line.gross)
+    row.discounts = r2(row.discounts + line.discount + orderDiscount)
+    row.net_sales = r2(row.net_sales + line.subtotal - orderDiscount)
+    row.tax = r2(row.tax + line.tax_amount)
+    row.total_sales = r2(row.total_sales + line.subtotal - orderDiscount + line.tax_amount)
+    row.cost = r2(row.cost + rptCost(line))
+  }
+  return rptPercent(
+    [...groups.values()].map(({ orders, cost, ...row }) => ({ ...row, orders: orders.size, cost, gross_profit: r2(row.net_sales - cost) })).sort((a, b) => b.total_sales - a.total_sales),
+    "total_sales"
+  )
+}
 
 function reportSamples() {
-  // By Products / By Categories
-  const products = rptGroupLines((line) => rptProductName(line), (line) => ({ product: rptProductName(line), category: rptCategoryName(line), unit: line.custom ? null : line.product.unit })).map((row, index) => ({ id: index + 1, ...row }))
-  const categories = rptGroupLines((line) => rptCategoryName(line), (line) => ({ category: rptCategoryName(line) }))
+  const lineDiscounts = sum(RPT_LINES, ({ line }) => line.discount)
+  const orderDiscounts = sum(ORDERS, (order) => order.orderDiscountAmount)
+  const net = r2(salesTotals.net - orderDiscounts)
+  const cost = sum(RPT_LINES, ({ line }) => rptCost(line))
 
-  // Payments: what each method took, what went back by it, the surcharge kept.
-  const sold = ORDERS.flatMap((order) => order.payments)
+  // Sales Summary / Profit & Margin: single values only.
+  const salesValues = {
+    orders: ORDERS.length,
+    units_sold: sum(RPT_LINES, ({ line }) => line.units ?? line.qty),
+    gross_sales: salesTotals.gross,
+    items_discounts: lineDiscounts,
+    order_discounts: orderDiscounts,
+    discounts: r2(lineDiscounts + orderDiscounts),
+    net_sales: net,
+    tax: salesTotals.tax,
+    payments_tax: salesTotals.surcharge,
+    shipping: 0,
+    total_sales: salesTotals.total,
+    total_collected: salesTotals.total,
+    on_credit: 0,
+    refunds: salesTotals.refunds,
+    refunded_tax: sum(REFUNDS, (refund) => refund.tax),
+    refunded_orders: new Set(REFUNDS.map((refund) => refund.order.number)).size,
+    refunded_items: REFUNDS.reduce((count, refund) => count + refund.lines.length, 0),
+    cancelled_orders: 0,
+    cost,
+    gross_profit: r2(net - cost),
+  }
+
+  // By Products / By Categories: every product (variant) and category sold.
+  const products = rptGroup(
+    (line) => (line.custom ? `custom:${line.title}` : `${line.product.number}|${line.variantId || 0}`),
+    (line) => {
+      if (line.custom) return { id: null, variant_id: null, product: line.title, variant: null, sku: null, category: rptCategoryName(line), unit: null }
+      const variant = line.variantId ? line.product.variants[line.variantId - 1] : null
+      return { id: line.product.number, variant_id: line.variantId || null, product: line.product.title, variant: variant?.name || null, sku: variant?.sku || line.product.sku, category: rptCategoryName(line), unit: line.product.unit }
+    }
+  )
+  const categoryProducts = new Map()
+  for (const { line } of RPT_LINES) {
+    const name = rptCategoryName(line)
+    if (!categoryProducts.has(name)) categoryProducts.set(name, new Set())
+    categoryProducts.get(name).add(line.custom ? line.title : `${line.product.number}|${line.variantId || 0}`)
+  }
+  const categories = rptGroup(
+    (line) => rptCategoryName(line),
+    (line) => ({ id: line.custom ? null : line.product.category_id, category: rptCategoryName(line) })
+  ).map(({ id, category, ...rest }) => ({ id, category, products: categoryProducts.get(category).size, ...rest }))
+
+  // Payments: every method the store created (cash 16%, card 8% — Payment Surcharges) and any other used.
+  const RULES = [
+    { id: 1, method: "cash", type: "percentage", charges: 16 },
+    { id: 2, method: "card", type: "percentage", charges: 8 },
+  ]
+  const sold = ORDERS.flatMap((order) => {
+    const bills = sum(order.payments, (part) => part.bill_share)
+    return order.payments.map((part) => ({ ...part, tax: bills > 0 ? r2((order.tax * part.bill_share) / bills) : 0 }))
+  })
   const back = REFUNDS.flatMap((refund) => refund.payments).filter((part) => part.method !== "credit")
-  const methods = [...new Set(sold.map((part) => part.method))]
+  const methods = [...RULES.map((rule) => rule.method), ...new Set(sold.map((part) => part.method))].filter((method, index, list) => list.indexOf(method) === index)
   const paymentRows = rptPercent(
-    methods
-      .map((method) => {
-        const taken = sold.filter((part) => part.method === method)
-        const gross = sum(taken, (part) => part.amount)
-        const refunds = sum(back.filter((part) => part.method === method), (part) => part.amount)
-        const tax = r2(sum(taken, (part) => part.surcharge_amount) - sum(back.filter((part) => part.method === method), (part) => part.surcharge_amount))
-        return { method: method.toUpperCase(), transactions: taken.length, gross_amount: gross, tax, refunds, net_amount: r2(Math.max(0, gross - refunds)) }
-      })
-      .sort((a, b) => b.net_amount - a.net_amount),
+    methods.map((method) => {
+      const rule = RULES.find((row) => row.method === method)
+      const taken = sold.filter((part) => part.method === method)
+      const returned = back.filter((part) => part.method === method)
+      const amount = sum(taken, (part) => part.amount)
+      const refunds = sum(returned, (part) => part.amount)
+      return {
+        id: rule?.id ?? null,
+        method,
+        surcharge_type: rule?.type ?? null,
+        surcharge_value: rule?.charges ?? null,
+        is_active: rule ? true : null,
+        transactions: taken.length,
+        bill_amount: sum(taken, (part) => part.bill_share),
+        tax: sum(taken, (part) => part.tax),
+        surcharge: sum(taken, (part) => part.surcharge_amount),
+        amount,
+        refunds,
+        surcharge_refunded: sum(returned, (part) => part.surcharge_amount),
+        net_amount: r2(Math.max(0, amount - refunds)),
+      }
+    }),
     "net_amount"
   )
-  const paymentTotals = {
+  const paymentValues = {
+    methods: paymentRows.length,
     transactions: sum(paymentRows, (row) => row.transactions),
-    gross_amount: sum(paymentRows, (row) => row.gross_amount),
+    bill_amount: sum(paymentRows, (row) => row.bill_amount),
     tax: sum(paymentRows, (row) => row.tax),
+    surcharge: sum(paymentRows, (row) => row.surcharge),
+    amount: sum(paymentRows, (row) => row.amount),
     refunds: sum(paymentRows, (row) => row.refunds),
     net_amount: sum(paymentRows, (row) => row.net_amount),
   }
 
-  // Z-Reports: batch 1 (Ahmed's drawer, opened with Rs 5,000) and each cashier's overall sales.
+  // Z-Reports: the batches history — batch 1, Ahmed's drawer at the first location.
   const methodNet = (name) => paymentRows.find((row) => row.method === name)?.net_amount || 0
   const opening = 5000
   const batchRow = {
-    id: "6f1c2a52-9d0e-4b6a-8e57-1a2b3c4d5e61",
-    session_id: "SESS-5E61",
-    batch_number: 1,
-    cashier_id: "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30",
-    date_time: "2026-11-06T09:00:00.000Z",
-    closed_at: null,
-    status: "OPEN",
+    id: 1,
+    location: L1.name,
+    location_id: L1.id,
     cashier: AHMED.name,
+    cashier_id: AHMED.id,
+    status: "open",
+    opened_at: "2026-11-06T09:00:00.000Z",
+    closed_at: null,
     opening_amount: opening,
     orders: ORDERS.length,
     gross_sales: salesTotals.gross,
-    discounts: salesTotals.discounts,
-    net_sales: salesTotals.net,
-    tax: r2(salesTotals.tax + salesTotals.surcharge),
+    discounts: r2(lineDiscounts + orderDiscounts),
+    net_sales: net,
+    tax: salesTotals.tax,
+    surcharge: salesTotals.surcharge,
     refunds: salesTotals.refunds,
     total_sales: salesTotals.total,
-    cash_sales: methodNet("CASH"),
-    card_sales: methodNet("CARD"),
-    jazzcash_sales: methodNet("JAZZCASH"),
-    easypaisa_sales: methodNet("EASYPAISA"),
+    cash_sales: methodNet("cash"),
+    card_sales: methodNet("card"),
+    jazzcash_sales: 0,
+    easypaisa_sales: 0,
     cash_in: 0,
     cash_out: 0,
-    expected_cash: r2(opening + methodNet("CASH")),
+    expected_cash: r2(opening + methodNet("cash")),
     counted_cash: null,
     variance: 0,
-    sales: salesTotals.total,
   }
-  const cashierId = "8a4e0b1c-5d27-4c3a-9a10-2b7c6d5e4f30"
-  // by_cashier (Z-Reports): each cashier's batches added up.
-  const batchCashiers = [{ id: cashierId, cashier: AHMED.name, batches: 1, orders: ORDERS.length, discounts: salesTotals.discounts, tax: batchRow.tax, refunds: salesTotals.refunds, total_sales: batchRow.total_sales }]
-  const cashierNet = r2(Math.max(0, salesTotals.total - salesTotals.refunds))
+
+  // Sessions History: every clock in / clock out.
+  const sessionRows = [
+    { id: 2, staff: ZAYAN.name, staff_id: ZAYAN.id, role: ZAYAN.role, location: L1.name, location_id: L1.id, clock_in_at: "2026-11-06T10:00:00.000Z", clock_out_at: null, hours_worked: 8, status: "on_duty" },
+    { id: 1, staff: AHMED.name, staff_id: AHMED.id, role: AHMED.role, location: L1.name, location_id: L1.id, clock_in_at: "2026-11-06T09:00:00.000Z", clock_out_at: "2026-11-06T17:00:00.000Z", hours_worked: 8, status: "clocked_out" },
+  ]
 
   // Inventory: the stock at the first location, and what came in / went out in the movements.
   const stockKeys = new Map()
@@ -1893,48 +1960,27 @@ function reportSamples() {
   const productOf = (move) => Object.values(PRODUCTS).find((product) => product.number === move.product.id)
   const soonest = (product, move) =>
     (LOTS.get(key(product, move.variant?.id || 0, 1)) || []).filter((lot) => lot.qty > 0 && lot.expiry_date).map((lot) => lot.expiry_date).sort()[0] || null
-  const inventoryRows = [...stockKeys.values()]
-    .slice(0, 8)
-    .map(({ move, in: inn, out }, index) => {
-      const product = productOf(move)
-      return {
-        id: `stock-${index + 1}`,
-        product: move.variant ? `${move.product.title} - ${move.variant.name}` : move.product.title,
-        sku: move.variant ? move.variant.sku : move.product.sku,
-        category: CATEGORIES[product.category_id].name,
-        location: LOCATIONS[1].name,
-        location_id: 1,
-        unit: move.product.unit,
-        // weight = sold by weight; pack = a pack product; loose = the rest.
-        type: product.is_weight_based ? "weight" : (move.variant ? product.variants[move.variant.id - 1] : product).is_pack_product ? "pack" : "loose",
-        stock_in: inn,
-        stock_out: out,
-        current_stock: move.qty_after,
-        // out = nothing left; low = at or under its alert; ok = above it.
-        stock_status: move.qty_after <= 0 ? "out" : product.low_stock_threshold != null && move.qty_after <= product.low_stock_threshold ? "low" : "ok",
-        // The soonest expiry of the stock, and its state (none = no expiry date).
-        expiry_date: soonest(product, move),
-        expiry_status: lotStatus(soonest(product, move)) || "none",
-      }
-    })
-
-  // Stock Movements: the latest ones.
-  const movementRows = [...MOVEMENTS]
-    .reverse()
-    .slice(0, 8)
-    .map((move) => ({
-      id: move.id,
-      date: move.created_at,
-      product: move.variant ? `${move.product.title} - ${move.variant.name}` : move.product.title,
-      location: move.location.name,
-      location_id: move.location.id,
-      type: move.movement_type.toUpperCase(),
-      qty: move.qty,
+  const inventoryRows = [...stockKeys.values()].slice(0, 8).map(({ move, in: inn, out }) => {
+    const product = productOf(move)
+    return {
+      id: move.product.id,
+      variant_id: move.variant?.id ?? null,
+      product: move.product.title,
+      variant: move.variant?.name ?? null,
+      sku: move.variant ? move.variant.sku : move.product.sku,
+      category: CATEGORIES[product.category_id].name,
+      location: L1.name,
+      location_id: L1.id,
       unit: move.product.unit,
-      reason: rptReason(move.reason),
-      channel: "pos",
-      cashier: move.staff?.name || "System",
-    }))
+      type: product.is_weight_based ? "weight" : (move.variant ? product.variants[move.variant.id - 1] : product).is_pack_product ? "pack" : "loose",
+      stock_in: inn,
+      stock_out: out,
+      current_stock: move.qty_after,
+      stock_status: move.qty_after <= 0 ? "out" : product.low_stock_threshold != null && move.qty_after <= product.low_stock_threshold ? "low" : "ok",
+      expiry_date: soonest(product, move),
+      expiry_status: lotStatus(soonest(product, move)) || "none",
+    }
+  })
 
   // Refunds / Cancelled: every refund (partial and complete), newest first. No order was cancelled or voided.
   const refundRows = [...REFUNDS]
@@ -1950,65 +1996,104 @@ function reportSamples() {
       cashier: AHMED.name,
       refund_methods: refund.payments.map((part) => part.method),
     }))
+  const refundValues = {
+    refunds: refundRows.length,
+    complete_refunds: refundRows.filter((row) => row.type === "complete_refund").length,
+    partial_refunds: refundRows.filter((row) => row.type === "partial_refund").length,
+    voided_orders: 0,
+    cancelled_orders: 0,
+    refunded_amount: sum(refundRows, (row) => row.amount),
+    cancelled_amount: 0,
+  }
 
-  // Tax: every tax rule on the lines (the payment surcharge is listed apart).
-  const taxGroups = new Map()
-  for (const order of ORDERS) {
-    for (const line of order.lines) {
-      for (const tax of line.taxes) {
-        const k = `${tax.level}|${tax.name}`
-        if (!taxGroups.has(k)) taxGroups.set(k, { tax_rule: tax.name, level: tax.level, tax_type: tax.name === SUGAR_TAX.name ? "fixed" : "percentage", rate: tax.rate, tax_collected: 0 })
-        taxGroups.get(k).tax_collected = r2(taxGroups.get(k).tax_collected + tax.amount)
-      }
+  // By Cashiers: highest total sales first.
+  const cashierRows = [
+    {
+      id: AHMED.id,
+      cashier: AHMED.name,
+      role: AHMED.role,
+      orders: ORDERS.length,
+      units_sold: salesValues.units_sold,
+      gross_sales: salesTotals.gross,
+      discounts: salesValues.discounts,
+      net_sales: net,
+      tax: salesTotals.tax,
+      total_sales: salesTotals.total,
+      refunds: salesTotals.refunds,
+    },
+  ]
+
+  // Discount Performance: every discount given (the line discounts and the order discounts).
+  const discountGroups = new Map()
+  const discountRow = (entry) => {
+    const k = `${entry.level}|${entry.id ?? ""}|${entry.name}`
+    if (!discountGroups.has(k)) discountGroups.set(k, { id: entry.id ?? null, discount: entry.name, level: entry.level, type: entry.type, value: entry.value, orders: new Set(), units: 0, sales: 0, discount_given: 0 })
+    return discountGroups.get(k)
+  }
+  for (const { order, line } of RPT_LINES) {
+    for (const entry of line.discounts) {
+      if (!(entry.amount > 0)) continue
+      const row = discountRow(entry)
+      row.orders.add(order.number)
+      row.units = r2(row.units + (line.units ?? line.qty))
+      row.sales = r2(row.sales + line.subtotal)
+      row.discount_given = r2(row.discount_given + entry.amount)
+    }
+    const orderDiscount = rptOrderDiscount(order, line)
+    if (order.orderDiscount && orderDiscount > 0) {
+      const row = discountRow({ ...order.orderDiscount, level: "order" })
+      row.orders.add(order.number)
+      row.units = r2(row.units + (line.units ?? line.qty))
+      row.sales = r2(row.sales + line.subtotal - orderDiscount)
+      row.discount_given = r2(row.discount_given + orderDiscount)
     }
   }
-  const taxRows = [...taxGroups.values()].sort((a, b) => b.tax_collected - a.tax_collected).map((row, index) => ({ id: index + 1, ...row }))
-  const surchargeRows = Object.values(SURCHARGES).map((rule) => {
-    const taken = sold.filter((part) => part.method === rule.method)
-    return { id: rule.method, method: rule.method.toUpperCase(), surcharge_type: rule.type, surcharge_value: rule.charges, payments: taken.length, surcharge_collected: sum(taken, (part) => part.surcharge_amount) }
-  })
+  const discountRows = [...discountGroups.values()].map(({ orders, ...row }) => ({ ...row, orders: orders.size })).sort((a, b) => b.discount_given - a.discount_given)
+  const discounted = RPT_LINES.filter(({ order, line }) => line.discount > 0 || rptOrderDiscount(order, line) > 0)
+  const discountValues = {
+    discounts: discountRows.length,
+    orders_discounted: new Set(discounted.map(({ order }) => order.number)).size,
+    discount_given: sum(discountRows, (row) => row.discount_given),
+    sales: sum(discounted, ({ order, line }) => line.subtotal - rptOrderDiscount(order, line)),
+  }
+
+  // Tax Breakdown: every tax on the lines (the payment surcharges are in Payments).
+  const taxGroups = new Map()
+  for (const { line } of RPT_LINES) {
+    for (const tax of line.taxes) {
+      const k = `${tax.level}|${tax.name}`
+      if (!taxGroups.has(k)) taxGroups.set(k, { id: tax.level === "store" ? tax.id ?? null : null, tax: tax.name, level: tax.level, type: tax.type || "percentage", rate: tax.rate, taxable_amount: 0, tax_collected: 0 })
+      const row = taxGroups.get(k)
+      row.taxable_amount = r2(row.taxable_amount + line.subtotal)
+      row.tax_collected = r2(row.tax_collected + tax.amount)
+    }
+  }
+  const taxRows = [...taxGroups.values()].sort((a, b) => b.tax_collected - a.tax_collected)
+  const byLevel = (level) => sum(taxRows.filter((row) => row.level === level), (row) => row.tax_collected)
+  const taxValues = {
+    orders: ORDERS.length,
+    net_sales: net,
+    tax_collected: salesTotals.tax,
+    store_tax: byLevel("store"),
+    product_tax: byLevel("product"),
+    variant_tax: byLevel("variant"),
+    category_tax: byLevel("category"),
+    sales_with_tax: r2(net + salesTotals.tax),
+  }
 
   return [
-    rptReply("top_products", { shown: products.length, total: products.length, top_only: false }, { rows: products }),
-    rptReply("top_categories", { shown: categories.length, total: categories.length, top_only: false }, { rows: categories }),
-    rptReply("payments", { totals: paymentTotals }, { rows: paymentRows }),
-    rptReply("batches", {}, { rows: [batchRow], by_cashier: batchCashiers }),
-    rptReply("inventory", {}, { rows: inventoryRows }),
-    rptReply("movements", {}, { rows: movementRows }),
-    rptReply(
-      "refunds_cancelled",
-      { totals: { refund_count: refundRows.length, complete: refundRows.filter((row) => row.type === "complete_refund").length, partial: refundRows.filter((row) => row.type === "partial_refund").length, voids: 0, cancelled: 0, amount: sum(refundRows, (row) => row.amount) } },
-      { rows: refundRows }
-    ),
-    rptReply("cashiers", {}, { rows: [{ id: cashierId, cashier: AHMED.name, orders: ORDERS.length, total_sales: salesTotals.total, discounts: salesTotals.discounts, tax: salesTotals.tax, refunds: salesTotals.refunds, net_sales: cashierNet }] }),
-    rptReply(
-      "tax",
-      {
-        totals: {
-          orders: ORDERS.length,
-          net_sales: salesTotals.net,
-          tax_collected: r2(salesTotals.tax + salesTotals.surcharge),
-          total_sales: salesTotals.total,
-          taxes: { sales_tax: 0, product_tax: salesTotals.tax, category_tax: 0, payment_method_tax: { total: salesTotals.surcharge }, total: r2(salesTotals.tax + salesTotals.surcharge) },
-          fbr_reported: 0,
-        },
-        // The surcharge is no tax: the tax without it, and the surcharge on its own.
-        tax_collected_excl_surcharge: salesTotals.tax,
-        surcharge_collected: salesTotals.surcharge,
-      },
-      {
-        // rows: the older summary (kept for the dashboard); rules: per tax rule, what the filters narrow.
-        rows: [
-          { id: "sales_tax", tax_rule: "Sales Tax", tax_collected: 0 },
-          { id: "product_tax", tax_rule: "Product Level Tax", tax_collected: salesTotals.tax },
-          { id: "category_tax", tax_rule: "Category Level Tax", tax_collected: 0 },
-          { id: "payment_tax", tax_rule: "Payment Method Tax (total)", tax_collected: salesTotals.surcharge },
-          { id: "total", tax_rule: "Total Tax", tax_collected: r2(salesTotals.tax + salesTotals.surcharge) },
-        ],
-        rules: taxRows,
-        surcharges: surchargeRows,
-      }
-    ),
+    rptReply("sales", salesValues),
+    rptReply("profit", { net_sales: net, cost, tax: salesTotals.tax, gross_profit: r2(net - cost) }),
+    rptReply("payments", paymentValues, { payments: paymentRows }),
+    rptReply("batches", {}, { batches: [batchRow] }),
+    rptReply("sessions", { sessions: sessionRows.length, on_duty_now: 1, hours_worked: sum(sessionRows, (row) => row.hours_worked) }, { sessions: sessionRows }),
+    rptReply("top_products", {}, { products }),
+    rptReply("top_categories", {}, { categories }),
+    rptReply("inventory", {}, { inventory: inventoryRows }),
+    rptReply("refunds_cancelled", refundValues, { orders: refundRows }),
+    rptReply("cashiers", {}, { cashiers: cashierRows }),
+    rptReply("offers", discountValues, { discounts: discountRows }),
+    rptReply("tax", taxValues, { taxes: taxRows }),
   ]
 }
 
@@ -2276,69 +2361,12 @@ export const DEMO_NEW_EPS = [
     path: "/api/v1/reporting/:section",
     summary: "Detailed Reporting",
     description:
-      "ONE endpoint for every report. :section picks the report, the query string filters it. Open View Section Names for the sections (the POS shows the ten listed there), View Section Filters for every filter of a section, and View Query Parameters: it lists the filters of the section in :section by itself, so nothing has to be typed from memory. Every reply is { section, label, level, reporting_level, location, from, to, summary, tables } — summary = the single figures, tables = { <list name>: { rows, pagination } }; each list is paged (table = the list page / limit / search are for; limit=all for an export). Store admin / manager (a manager: their own location only). A section needs its store plan (level in View Section Names): a lower plan gets 403 plan_locked. A filter the section does not know is ignored; a value that does not fit (an unknown choice, a bad number) is a 400. The reply echoes the filters it applied in filters.",
+      "ONE endpoint for every report. :section picks the report, the query string filters it. The twelve reports: sales (Sales Summary) and profit (Profit & Margin) are single values only (summary, no lists); payments, batches (Z-Reports: Batches History), sessions (Sessions History), top_products (By Products), top_categories (By Categories), inventory, refunds_cancelled, cashiers (By Cashiers, highest sales first), offers (Discount Performance) and tax (Tax Breakdown) carry ONE list each, with their totals as single values in summary (the KPIs). Every id is a number (product / variant / category / batch / session / staff / tax / surcharge), never a UUID. Payment surcharges are never counted as tax: sales gives tax and payments_tax apart, payments gives each method's tax and surcharge apart. locations takes one or several location numbers (1,2) or all. Open View Section Names for the sections, View Section Filters for every filter of a section, and View Query Parameters: it lists the filters of the section in :section by itself, so nothing has to be typed from memory. Every reply is { section, label, level, reporting_level, location, from, to, summary, tables } — summary = the single figures, tables = { <list name>: { rows, pagination } }; each list is paged (table = the list page / limit / search are for; limit=all for an export). Store admin / manager (a manager: their own location only). A section needs its store plan (level in View Section Names): a lower plan gets 403 plan_locked. A filter the section does not know is ignored; a value that does not fit (an unknown choice, a bad number) is a 400. The reply echoes the filters it applied in filters.",
     pathParams: [{ name: "section", default: "sales", required: true }],
     query: queryRowsFor("sales"),
     sections: REPORT_SECTIONS,
     ownResponses: true,
     responses: [
-      { ...ok({
-        section: "sales",
-        label: "Sales Summary",
-        level: "basic",
-        reporting_level: "standard",
-        location: "all",
-        from: "2026-11-01",
-        to: "2026-11-07",
-        filters: {},
-        summary: {
-          orders: ORDERS.length,
-          units_sold: r2(ORDERS.flatMap((o) => o.lines).reduce((s, l) => s + (l.units ?? l.qty), 0)),
-          gross_sales: salesTotals.gross,
-          line_discounts: salesTotals.discounts,
-          order_discounts: sum(ORDERS, (o) => o.orderDiscountAmount),
-          discounts: salesTotals.discounts,
-          net_sales: salesTotals.net,
-          taxes: {
-            sales_tax: 0,
-            product_tax: sum(ORDERS.flatMap((o) => o.lines).flatMap((l) => l.taxes).filter((t) => t.level !== "category"), (t) => t.amount),
-            category_tax: sum(ORDERS.flatMap((o) => o.lines).flatMap((l) => l.taxes).filter((t) => t.level === "category"), (t) => t.amount),
-            payment_method_tax: { cash: salesTotals.byMethod.cash || 0, card: salesTotals.byMethod.card || 0, total: salesTotals.surcharge },
-            total: r2(salesTotals.tax + salesTotals.surcharge),
-          },
-          shipping: 0,
-          total_sales: salesTotals.total,
-          total_collected: salesTotals.total,
-          on_credit: 0,
-          refunds: salesTotals.refunds,
-          refunded_tax: sum(REFUNDS, (r) => r.tax + r.surcharge),
-          refunded_orders: new Set(REFUNDS.map((r) => r.order.number)).size,
-          refunded_items: REFUNDS.reduce((s, r) => s + r.lines.length, 0),
-          voided_orders: 0,
-          cancelled_orders: 0,
-          discounts_by_source: discountsBySource(),
-          tax: r2(salesTotals.tax + salesTotals.surcharge),
-          avg_order_value: r2(salesTotals.total / ORDERS.length),
-          payments_net: r2(salesTotals.total - salesTotals.refunds),
-        },
-        tables: {
-          trend: {
-            rows: [
-              { date: "2026-11-06", orders: ORDERS.length, gross_sales: salesTotals.gross, discounts: salesTotals.discounts, net_sales: salesTotals.net, tax: r2(salesTotals.tax + salesTotals.surcharge), total_sales: salesTotals.total, refunds: sum([R1, R2], (r) => r.total) },
-              { date: "2026-11-07", orders: 0, gross_sales: 0, discounts: 0, net_sales: 0, tax: 0, total_sales: 0, refunds: sum([R3, R4], (r) => r.total) },
-            ],
-            pagination: { page: 1, limit: 20, total: 2, total_pages: 1 },
-          },
-          payments: {
-            rows: ["card", "cash"].map((method) => {
-              const sold = sum(ORDERS.flatMap((o) => o.payments).filter((p) => p.method === method), (p) => p.amount)
-              const back = sum(REFUNDS.flatMap((r) => r.payments).filter((p) => p.method === method), (p) => p.amount)
-              return { method, collected: sold, refunded: back, net: r2(sold - back) }
-            }),
-            pagination: { page: 1, limit: 20, total: 2, total_pages: 1 },
-          },
-        },
-      }), section: "sales", label: "Sales · 200 OK" },
       ...reportSamples(),
     ],
   },

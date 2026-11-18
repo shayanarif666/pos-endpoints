@@ -1082,9 +1082,13 @@ function SectionFiltersPanel({ sections, value, onPick, onUse }) {
         <p className="text-sm text-slate-700">{section.about}</p>
         <p className="mt-1 text-sm text-slate-500">
           Lists in the reply (<code className="font-mono">table=</code>):{" "}
-          {section.tables.map((name) => (
-            <code key={name} className="mr-1 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">{name}</code>
-          ))}
+          {section.tables.length ? (
+            section.tables.map((name) => (
+              <code key={name} className="mr-1 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">{name}</code>
+            ))
+          ) : (
+            <span className="text-slate-500">none — single values only (summary)</span>
+          )}
           <span className={`ml-2 rounded px-2 py-0.5 text-xs font-semibold capitalize ${LEVEL_CLASS[section.level]}`}>{section.level} plan</span>
         </p>
         {section.today ? <p className="mt-1 text-xs text-amber-700">{section.today}</p> : null}
