@@ -938,7 +938,7 @@ const SAMPLE_CATALOG_ORDER = {
   is_web_visible: false,
 }
 // The POST group is laid out by these sections (in this order) instead of by tag.
-export const postSections = [
+const POST_SECTIONS = [
   { id: "authentication", name: "Authentication", tag: "auth", ids: ["auth-login", "auth-pin-verify"] },
   { id: "license", name: "License", tag: "license", ids: ["license-validate", "license-renew"] },
   { id: "user-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-clock-in", "staff-clock-out"] },
@@ -956,7 +956,7 @@ export const postSections = [
 ]
 
 // The PUT & PATCH group: the bulk updates by section, then every other PUT / PATCH under "Other".
-export const patchSections = [
+const PATCH_SECTIONS = [
   { id: "patch-products", name: "Products", tag: "products", ids: ["prod-bulk-patch"] },
   { id: "patch-categories", name: "Categories", tag: "categories", ids: ["cat-bulk-patch"] },
   { id: "patch-stock", name: "Stock Inventory", tag: "inventory", ids: ["movement-patch", "stock-entry-patch"] },
@@ -973,7 +973,7 @@ export const patchSections = [
 ]
 
 // The GET group: these sections in this order, then every other GET under "Other".
-export const getSections = [
+const GET_SECTIONS = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "store-detail", "location-list", "location-lists", "location-get", "device-lists", "currency-get"] },
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
@@ -2547,13 +2547,26 @@ const BASE_ENDPOINTS = [
   }),
 ]
 
+// Taken off the docs page (the API still has them).
+const HIDDEN_IDS = [
+  "prod-create", "cat-create", "store-detail", "location-lists", "location-get", "device-lists",
+  "cat-lists", "cat-get", "prod-lists", "prod-get", "prod-weighted", "order-lists", "order-get",
+  "transaction-lists", "transaction-get", "discount-lists",
+]
+const shown = (spec) => !HIDDEN_IDS.includes(spec.id)
+/** A sections list without the hidden entries (a section left empty goes too). */
+const visibleSections = (sections) => sections.map((section) => ({ ...section, ids: section.ids.filter((id) => !HIDDEN_IDS.includes(id)) })).filter((section) => section.ids.length)
+export const postSections = visibleSections(POST_SECTIONS)
+export const patchSections = visibleSections(PATCH_SECTIONS)
+export const getSections = visibleSections(GET_SECTIONS)
+
 // The documented list: the entries above (minus the ones no longer documented) and the demo store's new ones.
 export const endpoints = [
   ...BASE_ENDPOINTS.filter((item) => !DEMO_REMOVED_IDS.includes(item.id) && !PATCH_REMOVED_IDS.includes(item.id)),
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
   ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
-]
+].filter(shown)
 
 
 export function endpointsByTag(tagId) {
