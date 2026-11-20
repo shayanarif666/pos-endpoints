@@ -109,12 +109,12 @@ export const PATCH_DOCS = {
     body: { storeId: 1, items: [{ id: 2, locationId: 1, phone: "03001112222", pin: "2323", isActive: true }] },
   },
   "staff-session-bulk-patch": {
-    description: `${same("Clock In / Clock Out (POST /staff-sessions/clock-in, clock-out)")} A manager corrects attendance: clock_in_at and / or clock_out_at (ISO date-time; clocked_at of the clock-in / clock-out). Setting clock_out_at closes the session (e.g. the cashier forgot to clock out). Store admin / manager.`,
+    description: `${same("Clock In / Clock Out (POST /staff-sessions/clock-in, clock-out)")} A manager corrects attendance: clock_in_at and / or clock_out_at (ISO date-time; clocked_at of the clock-in / clock-out), clock_in_device_id / clock_out_device_id (the tills — deviceId of the clock-in / clock-out: device number, pos_devices id or hardware id at the session's location; null clears it). Setting clock_out_at closes the session (e.g. the cashier forgot to clock out). Each row of the reply carries clock_in_device_id and clock_out_device_id (device numbers). Store admin / manager.`,
     body: {
       storeId: 1,
       items: [
         { id: 1, clock_out_at: "2026-10-24T18:30:00.000Z" },
-        { id: 2, clock_in_at: "2026-10-24T09:00:00.000Z", clock_out_at: "2026-10-24T17:00:00.000Z" },
+        { id: 2, clock_in_at: "2026-10-24T09:00:00.000Z", clock_out_at: "2026-10-24T17:00:00.000Z", clock_in_device_id: 1, clock_out_device_id: 2 },
       ],
     },
   },

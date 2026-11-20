@@ -901,6 +901,8 @@ export const BODY_FIELDS = {
   "staff-session-bulk-patch": patchOf("session", {
     clock_in_at: note("ISO date-time — the clocked_at of the clock-in"),
     clock_out_at: note("ISO date-time, after clock_in_at — the clocked_at of the clock-out. Closes the session"),
+    clock_in_device_id: note("The till of the clock-in (deviceId of Clock In): device number, pos_devices id or hardware id at the session's location; null clears it"),
+    clock_out_device_id: note("The till of the clock-out (deviceId of Clock Out): device number, pos_devices id or hardware id at the session's location; null clears it"),
   }),
   "customer-bulk-patch": patchOf("customer", {
     name: O,

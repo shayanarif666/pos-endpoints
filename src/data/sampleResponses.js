@@ -4270,7 +4270,9 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "status": "clock_out",
-          "closing_at": "2026-10-24T18:30:00.000Z"
+          "closing_at": "2026-10-24T18:30:00.000Z",
+          "clock_in_device_id": 1,
+          "clock_out_device_id": 2
         }
       ]
     }
