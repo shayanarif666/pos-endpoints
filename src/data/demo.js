@@ -1206,7 +1206,21 @@ export const DEMO_EPS = {
     body: { storeId: 1, items: [{ locationId: 1, name: "Ahmed Malik", email: "ahmed@acadex.co", password: "ahmedmalik", pin: "2222", role: "cashier" }] },
     responses: [created([STAFF_ROW], "Staff Created")],
   },
-  "staff-list": { responses: [page([{ ...STAFF_ROW, status: "clock_in" }])] },
+  "staff-list": {
+    responses: [
+      page([
+        {
+          ...STAFF_ROW,
+          status: "clock_in",
+          sessions_total: 2,
+          sessions: [
+            { id: 2, location: L1, status: "clock_in", opening_at: "2026-11-07T09:00:00.000Z", closing_at: null, hours_worked: 3.5 },
+            { id: 1, location: L1, status: "clock_out", opening_at: "2026-11-06T09:00:00.000Z", closing_at: "2026-11-06T17:00:00.000Z", hours_worked: 8 },
+          ],
+        },
+      ]),
+    ],
+  },
 
   // ---- Store, locations, sessions, batches (GET)
   "store-me": {

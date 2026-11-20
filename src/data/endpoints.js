@@ -1659,7 +1659,7 @@ const BASE_ENDPOINTS = [
     path: "/api/v1/staff",
     summary: "Staff",
     description:
-      "Managers and cashiers: { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active }. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — only the staff of those branches; store admin only, a manager / cashier always sees their own), roles (a list: manager, cashier), isActive (true = active staff only, false = inactive only, left out = every one), q (a text found in the name, email or phone, or the staff number), from / to (created date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
+      "Managers and cashiers: { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active, sessions_total, sessions }. sessions = that staff member's own sessions history (clock in / clock out), newest first: [{ id (session number), location, status, opening_at, closing_at (null while on shift), hours_worked }] — only for the staff of the page returned (never every staff member's at once), the latest sessions_limit of each (default 10, 1–50); sessions_total = all their sessions. Filters: locations (a list of location numbers or UUIDs: locations=1,2 — only the staff of those branches; store admin only, a manager / cashier always sees their own), roles (a list: manager, cashier), isActive (true = active staff only, false = inactive only, left out = every one), q (a text found in the name, email or phone, or the staff number), from / to (created date, YYYY-MM-DD — to covers the whole day). Ids in the reply are the short numbers the POS uses. Paged: page (from 1) and limit (1–200, default 20); the reply carries pagination { page, limit, total, total_pages } next to data.",
     query: [
       { name: "page", default: "1", required: false },
       { name: "limit", default: "20", required: false },
@@ -1669,6 +1669,7 @@ const BASE_ENDPOINTS = [
       { name: "roles", default: "", required: false, values: ["manager","cashier"], multi: true },
       { name: "isActive", default: "", required: false, values: ["true","false"] },
       { name: "q", default: "", required: false },
+      { name: "sessions_limit", default: "10", required: false },
     ],
   }),
   ep({
