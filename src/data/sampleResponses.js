@@ -215,6 +215,7 @@ export const SAMPLE_RESPONSES = {
             "id": 1,
             "name": "Gulshan e Iqbal Block 13 D"
           },
+          "device_id": 1,
           "status": "clock_in",
           "opening_at": "2026-10-24T09:00:00.000Z"
         }
@@ -4243,6 +4244,7 @@ export const SAMPLE_RESPONSES = {
             "id": 1,
             "name": "Gulshan e Iqbal Block 13 D"
           },
+          "device_id": 1,
           "status": "clock_out",
           "closing_at": "2026-10-24T17:00:00.000Z"
         }

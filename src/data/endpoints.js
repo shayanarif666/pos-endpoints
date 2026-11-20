@@ -1313,11 +1313,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-in",
     summary: "User Session Clock In",
-    description: "Attendance (clock in)."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" staffId = the staff member (user number, from PIN verification). Response { id, staff, status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Attendance (clock in). deviceId is the PC (till) they clock in on: its pos_devices id, its hardware id or its number, at this location — sent once before items[] (every row without its own deviceId is on it) or on a row; left out = the device of your POS token, or none. 404 \"Device not found\" / 400 \"Device is not at this location\"."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" staffId = the staff member (user number, from PIN verification). Response { id, staff, location, device_id (the device number, null without one), status: clock_in, opening_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       locationId: 1,
       staffId: 2,
+      deviceId: 1,
       items: [
         { clocked_at: "2026-10-24T09:00:00.000Z" },
       ],
@@ -1329,11 +1330,12 @@ const BASE_ENDPOINTS = [
     method: "POST",
     path: "/api/v1/staff-sessions/clock-out",
     summary: "User Session Clock Out",
-    description: "Ends the staff member's open attendance session."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
+    description: "Ends the staff member's open attendance session. deviceId is the PC (till) they clock out on — it may differ from the clock-in one: its pos_devices id, its hardware id or its number, at the session's location — sent once before items[] or on a row; left out = the device of your POS token, or none."+" POS offline sync: { storeId, locationId, staffId, items: [ ... ] } — storeId, locationId and staffId are sent once, before items[] (a row may carry its own staffId when it is a different staff member); clock in / out or open / close many at once (each item saved on its own, failures listed in failed[]; the reply data is the list). A single object without items still works."+" Response { id, staff, location, device_id (the clock-out device number, null without one), status: clock_out, closing_at }. Each reference in the reply is an object with its id and a short summary (no separate id field) — staff { id, name, role }, location { id, name }, product { id, title, sku, unit }, batch { id, status }, order { id, status }, category / supplier / customer { id, name } — so no second call is needed to show names.",
     body: {
       storeId: 1,
       locationId: 1,
       staffId: 2,
+      deviceId: 1,
       items: [
         { clocked_at: "2026-10-24T17:00:00.000Z" },
       ],
