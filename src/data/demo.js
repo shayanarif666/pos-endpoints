@@ -2112,6 +2112,41 @@ function reportSamples() {
 }
 
 export const DEMO_NEW_EPS = [
+  // ---- Staff detail with the sessions history
+  {
+    id: "staff-get",
+    noEnums: true,
+    tag: "staff",
+    method: "GET",
+    path: "/api/v1/staff/:id",
+    summary: "Staff Detail",
+    description:
+      "One staff member — :id is the staff number (e.g. 2) or UUID — as GET /staff lists them { id, location, name, email, pin, role, phone, status (clock_in | clock_out right now), is_active, sessions_total }, with their sessions history: sessions [{ id (session number), location, status, opening_at, closing_at (null while on shift), hours_worked }], newest first. The sessions are paged: page and limit (1–200, default 20) are for them, with pagination { page, limit, total, total_pages } next to data; from / to (YYYY-MM-DD) narrow them to their clock-in dates. sessions_total = their sessions in those dates (every one without from / to). A manager / cashier only sees the staff of their own location (else 404).",
+    pathParams: [{ name: "id", default: "2", required: true }],
+    query: [
+      { name: "page", default: "1", required: false },
+      { name: "limit", default: "20", required: false },
+      { name: "from", default: "", required: false },
+      { name: "to", default: "", required: false },
+    ],
+    ownResponses: true,
+    responses: [
+      ok(
+        {
+          ...STAFF_ROW,
+          status: "clock_in",
+          sessions_total: 2,
+          sessions: [
+            { id: 2, location: L1, status: "clock_in", opening_at: "2026-11-07T09:00:00.000Z", closing_at: null, hours_worked: 3.5 },
+            { id: 1, location: L1, status: "clock_out", opening_at: "2026-11-06T09:00:00.000Z", closing_at: "2026-11-06T17:00:00.000Z", hours_worked: 8 },
+          ],
+        },
+        "OK",
+        { pagination: { page: 1, limit: 20, total: 2, total_pages: 1 } }
+      ),
+      { label: "404 — not found", status: 404, body: { success: false, message: "Staff not found" } },
+    ],
+  },
   // ---- Orders (dashboard)
   {
     id: "order-lists",
