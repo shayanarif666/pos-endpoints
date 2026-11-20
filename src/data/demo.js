@@ -1214,8 +1214,8 @@ export const DEMO_EPS = {
           status: "clock_in",
           sessions_total: 2,
           sessions: [
-            { id: 2, location: L1, status: "clock_in", opening_at: "2026-11-07T09:00:00.000Z", closing_at: null, hours_worked: 3.5 },
-            { id: 1, location: L1, status: "clock_out", opening_at: "2026-11-06T09:00:00.000Z", closing_at: "2026-11-06T17:00:00.000Z", hours_worked: 8 },
+            { id: 2, location: L1, clock_in_device_id: 1, clock_out_device_id: null, status: "clock_in", opening_at: "2026-11-07T09:00:00.000Z", closing_at: null, hours_worked: 3.5 },
+            { id: 1, location: L1, clock_in_device_id: 1, clock_out_device_id: 2, status: "clock_out", opening_at: "2026-11-06T09:00:00.000Z", closing_at: "2026-11-06T17:00:00.000Z", hours_worked: 8 },
           ],
         },
       ]),
@@ -1268,9 +1268,9 @@ export const DEMO_EPS = {
   "staff-session-list": {
     responses: [
       page([
-        { id: 3, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, status: "clock_in", opening_at: "2026-11-06T09:00:00.000Z", closing_at: null },
-        { id: 2, staff: { id: 1, name: "Zayan Ahmed", role: "store_admin" }, location: L1, status: "clock_out", opening_at: "2026-11-05T09:00:00.000Z", closing_at: "2026-11-05T17:30:00.000Z" },
-        { id: 1, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, status: "clock_out", opening_at: "2026-11-05T08:55:00.000Z", closing_at: "2026-11-05T17:00:00.000Z" },
+        { id: 3, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, clock_in_device_id: 1, clock_out_device_id: null, status: "clock_in", opening_at: "2026-11-06T09:00:00.000Z", closing_at: null },
+        { id: 2, staff: { id: 1, name: "Zayan Ahmed", role: "store_admin" }, location: L1, clock_in_device_id: 2, clock_out_device_id: 2, status: "clock_out", opening_at: "2026-11-05T09:00:00.000Z", closing_at: "2026-11-05T17:30:00.000Z" },
+        { id: 1, staff: { id: 2, name: "Ahmed Malik", role: "cashier" }, location: L1, clock_in_device_id: null, clock_out_device_id: 1, status: "clock_out", opening_at: "2026-11-05T08:55:00.000Z", closing_at: "2026-11-05T17:00:00.000Z" },
       ]),
       fail(400, "status", "status must be clock_in or clock_out"),
     ],

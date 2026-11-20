@@ -4473,6 +4473,8 @@ export const SAMPLE_RESPONSES = {
             "id": 1,
             "name": "Gulshan e Iqbal Block 13 D"
           },
+          "clock_in_device_id": 1,
+          "clock_out_device_id": 2,
           "status": "clock_out",
           "opening_at": "2026-10-24T09:00:00.000Z",
           "closing_at": "2026-10-24T18:30:00.000Z"
