@@ -6,6 +6,7 @@ import { PATCH_DOCS, PATCH_REMOVED_IDS } from "./patchDocs.js"
 import { DISCOUNT_EPS } from "./discountDocs.js"
 import { STOCK_EPS } from "./stockDocs.js"
 import { DELETE_EPS, DELETE_SECTIONS, KEPT_DELETE_IDS } from "./deleteDocs.js"
+import { LICENSE_EPS } from "./licenseDocs.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -976,6 +977,7 @@ const PATCH_SECTIONS = [
 // The GET group: these sections in this order, then every other GET under "Other".
 const GET_SECTIONS = [
   { id: "get-store", name: "Store & Locations", tag: "store", ids: ["store-me", "store-detail", "location-list", "location-lists", "location-get", "device-lists", "currency-get"] },
+  { id: "get-licenses", name: "Licenses", tag: "license", ids: ["license-current"] },
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list"] },
@@ -2576,6 +2578,7 @@ export const endpoints = [
   ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
   ...DELETE_EPS.map((spec) => ep({ ...spec, ownResponses: true })),
+  ...LICENSE_EPS.map((spec) => ep(spec)),
 ]
   .filter(shown)
   .filter(keptDelete)
