@@ -1408,6 +1408,12 @@ export const DEMO_EPS = {
         [pickMovement("sale"), pickMovement("adjustment"), pickMovement("stock_out", "damage"), pickMovement("stock_in", "purchase")]
           .sort((a, b) => b.id - a.id)
           .map(movementView)
+          // The list also gives the pictures: the product's, and a variant's own (null = the product's).
+          .map((view) => ({
+            ...view,
+            product: view.product ? { ...view.product, image: `https://res.cloudinary.com/demo/image/upload/pak-pos/products/${view.product.id}.jpg` } : view.product,
+            variant: view.variant ? { ...view.variant, image: null } : view.variant,
+          }))
       ),
     ],
   },
