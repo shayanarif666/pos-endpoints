@@ -1283,6 +1283,8 @@ export const DEMO_EPS = {
           staff: { id: 2, name: "Ahmed Malik", role: "manager" },
           location: { id: 1, name: "Gulshan e Iqbal Block 13 D" },
           status: "closed",
+          opening_device_id: 1,
+          closing_device_id: 2,
           opening_amount: 5000,
           cash_sales: 1058.53,
           total_cash: 10000,

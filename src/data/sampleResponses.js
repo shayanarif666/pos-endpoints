@@ -4220,6 +4220,7 @@ export const SAMPLE_RESPONSES = {
             "name": "Gulshan e Iqbal Block 13 D"
           },
           "device_id": 1,
+          "closing_device_id": 1,
           "total_cash": 10000,
           "closing_at": "2026-10-24T17:00:00.000Z"
         }
