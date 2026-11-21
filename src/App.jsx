@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { endpoints, getSections, patchSections, postSections, tags } from "./data/endpoints.js"
+import { deleteSections, endpoints, getSections, patchSections, postSections, tags } from "./data/endpoints.js"
 import { missingBodyFields } from "./data/bodyFields.js"
 import { allToggles, buildBody } from "./data/bodyBuilder.js"
 
@@ -22,7 +22,7 @@ import { AuthorizeBar } from "./components/AuthorizeBar.jsx"
 import { EndpointCard } from "./components/EndpointCard.jsx"
 import { Sidebar, sectionKey } from "./components/Sidebar.jsx"
 
-const SECTION_LISTS = { post: postSections, get: getSections, "put-patch": patchSections }
+const SECTION_LISTS = { post: postSections, get: getSections, "put-patch": patchSections, delete: deleteSections }
 
 /** The listed sections (their ids in order), then any other request of the group under "Other". */
 function sectionsOf(sections, items) {

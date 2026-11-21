@@ -120,7 +120,7 @@ export function EndpointCard({
     })
   }, [hasSections, sectionId])
   const [headerMap, setHeaderMap] = useState(() =>
-    defaultHeaders(endpoint.auth, endpoint.method, session)
+    defaultHeaders(endpoint.auth, endpoint.method, session, { withBody: endpoint.body != null })
   )
   // A bodyBuilder endpoint (see data/bodyBuilder.js) regenerates its body from the selected
   // radio variant and checkboxes, so a body saved from an older template is not restored.
@@ -160,6 +160,7 @@ export function EndpointCard({
     const merged = {
       ...defaultHeaders(endpoint.auth, endpoint.method, session, {
         multipart: hasFiles,
+        withBody: endpoint.body != null,
       }),
       ...headerMap,
     }

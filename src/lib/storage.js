@@ -92,10 +92,11 @@ export function defaultHeaders(
   auth,
   method,
   { accessToken },
-  { multipart = false } = {}
+  { multipart = false, withBody = false } = {}
 ) {
   const headers = { Accept: "application/json" }
-  if (!multipart && method !== "GET" && method !== "DELETE") {
+  // A DELETE sends JSON only when it has a body (the bulk deletes: { storeId, items }).
+  if (!multipart && method !== "GET" && (method !== "DELETE" || withBody)) {
     headers["Content-Type"] = "application/json"
   }
   if (auth !== "public" && accessToken) {

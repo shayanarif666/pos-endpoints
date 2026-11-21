@@ -5,6 +5,7 @@ import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
 import { PATCH_DOCS, PATCH_REMOVED_IDS } from "./patchDocs.js"
 import { DISCOUNT_EPS } from "./discountDocs.js"
 import { STOCK_EPS } from "./stockDocs.js"
+import { DELETE_EPS, DELETE_SECTIONS, KEPT_DELETE_IDS } from "./deleteDocs.js"
 
 const UUID = "00000000-0000-4000-8000-000000000001"
 
@@ -2562,6 +2563,11 @@ const visibleSections = (sections) => sections.map((section) => ({ ...section, i
 export const postSections = visibleSections(POST_SECTIONS)
 export const patchSections = visibleSections(PATCH_SECTIONS)
 export const getSections = visibleSections(GET_SECTIONS)
+export const deleteSections = visibleSections(DELETE_SECTIONS)
+
+// DELETE: only the bulk deletes of deleteDocs.js (one per thing the dashboard deletes) and the store data wipe.
+const NEW_DELETE_IDS = DELETE_EPS.map((spec) => spec.id)
+const keptDelete = (item) => item.method !== "DELETE" || KEPT_DELETE_IDS.includes(item.id) || NEW_DELETE_IDS.includes(item.id)
 
 // The documented list: the entries above (minus the ones no longer documented) and the demo store's new ones.
 export const endpoints = [
@@ -2569,7 +2575,10 @@ export const endpoints = [
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
   ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
-].filter(shown)
+  ...DELETE_EPS.map((spec) => ep({ ...spec, ownResponses: true })),
+]
+  .filter(shown)
+  .filter(keptDelete)
 
 
 export function endpointsByTag(tagId) {

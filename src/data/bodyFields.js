@@ -923,6 +923,20 @@ export const BODY_FIELDS = {
   }),
 }
 
+// The bulk deletes (deleteDocs.js): { storeId, items: [{ id }] }.
+const BULK_DELETE_FIELDS = {
+  ...TOP_STORE,
+  items: must("One row per thing to delete; each deleted on its own (POS offline sync)"),
+  "items[].id": must("Its number (e.g. 3) — or its UUID where the dashboard has one"),
+}
+for (const id of [
+  "products-bulk-delete", "categories-bulk-delete", "suppliers-bulk-delete", "locations-bulk-delete", "staff-bulk-delete",
+  "staff-sessions-bulk-delete", "batches-bulk-delete", "stock-movements-bulk-delete", "stock-transfers-bulk-delete",
+  "taxes-bulk-delete", "surcharges-bulk-delete", "discounts-bulk-delete", "bulk-discounts-bulk-delete", "bundle-discounts-bulk-delete",
+]) {
+  BODY_FIELDS[id] = BULK_DELETE_FIELDS
+}
+
 /** Rules for a body: explicit entry, or the generic `ids` rule of the data bulk-delete routes. */
 export function bodyFieldsFor(endpoint) {
   if (DEMO_FIELDS[endpoint.id]) return DEMO_FIELDS[endpoint.id]
