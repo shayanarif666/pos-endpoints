@@ -1497,8 +1497,6 @@ export const DEMO_EPS = {
       created(REFUNDS.map(refundView), "Refunded Successfully"),
       { ...created([refundView(R4)], "Refunded Successfully"), label: "201 — refund 4 sent again (same local_id): the saved refund" },
       fail(400, "more than left", "Order 4 line 4: only 0 left to refund (1 sent)", { data: [], failed: [{ index: 0, message: "Order 4 line 4: only 0 left to refund (1 sent)", status: 400 }] }),
-      fail(400, "complete leaves a line", "Order 4: a complete refund must give back every remaining line (line 1 has 2 left)", { data: [], failed: [{ index: 0, message: "Order 4: a complete refund must give back every remaining line (line 1 has 2 left)", status: 400 }] }),
-      fail(400, "partial gives everything", "Order 1: this gives back everything left, send refund_type complete", { data: [], failed: [{ index: 0, message: "Order 1: this gives back everything left, send refund_type complete", status: 400 }] }),
     ],
   },
   // Every refund, partial and complete together, newest first.
