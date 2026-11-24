@@ -1462,8 +1462,6 @@ export const DEMO_EPS = {
     responses: [
       created(ORDERS.map((o) => orderView(o)), "Order Created"),
       { ...created([orderView(O1)], "Order Created"), label: "201 — order 1 sent again (same local_id): the saved order, no double sale" },
-      fail(400, "figures do not add up", "order_items[0].total 120 is not subtotal + tax (112.1)", { data: [], failed: [{ index: 0, message: "order_items[0].total 120 is not subtotal + tax (112.1)", status: 400 }] }),
-      fail(400, "surcharge off", "payments[0]: surcharge_active is false, so surcharge_amount must be 0", { data: [], failed: [{ index: 0, message: "payments[0]: surcharge_active is false, so surcharge_amount must be 0", status: 400 }] }),
       fail(404, "unknown bundle", "Bundle discount 99 not found", { data: [], failed: [{ index: 0, message: "Bundle discount 99 not found", status: 404 }] }),
       fail(403, "cashier discount", "A manager must perform this action", { data: [], failed: [{ index: 0, message: "A manager must perform this action", status: 403 }] }),
     ],
@@ -1499,11 +1497,8 @@ export const DEMO_EPS = {
       created(REFUNDS.map(refundView), "Refunded Successfully"),
       { ...created([refundView(R4)], "Refunded Successfully"), label: "201 — refund 4 sent again (same local_id): the saved refund" },
       fail(400, "more than left", "Order 4 line 4: only 0 left to refund (1 sent)", { data: [], failed: [{ index: 0, message: "Order 4 line 4: only 0 left to refund (1 sent)", status: 400 }] }),
-      fail(400, "not the share of the sale", "Order 2 line 1: gross_amount 200 is not the share of the sale for 1 (300)", { data: [], failed: [{ index: 0, message: "Order 2 line 1: gross_amount 200 is not the share of the sale for 1 (300)", status: 400 }] }),
       fail(400, "complete leaves a line", "Order 4: a complete refund must give back every remaining line (line 1 has 2 left)", { data: [], failed: [{ index: 0, message: "Order 4: a complete refund must give back every remaining line (line 1 has 2 left)", status: 400 }] }),
       fail(400, "partial gives everything", "Order 1: this gives back everything left, send refund_type complete", { data: [], failed: [{ index: 0, message: "Order 1: this gives back everything left, send refund_type complete", status: 400 }] }),
-      fail(400, "wrong total", "total_refunded_amount 380 is not what this refund pays back (370)", { data: [], failed: [{ index: 0, message: "total_refunded_amount 380 is not what this refund pays back (370)", status: 400 }] }),
-      fail(400, "surcharge total", "total_payment_surcharge_refunded 40 is not the surcharge of these payments (50.98)", { data: [], failed: [{ index: 0, message: "total_payment_surcharge_refunded 40 is not the surcharge of these payments (50.98)", status: 400 }] }),
     ],
   },
   // Every refund, partial and complete together, newest first.
