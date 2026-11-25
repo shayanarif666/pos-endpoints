@@ -390,6 +390,10 @@ const REFUND_BULK = {
   "refunds[].order_discount_amount": note("The share of the order discount that comes back, as the till worked it out. Saved as sent; missing = 0"),
   "refunds[].total_payment_surcharge_refunded": note("The surcharges that go back, all payment methods together. Saved as sent; missing = the payments' surcharge_amount added up"),
   "refunds[].total_refunded_amount": note("The whole refund, as the till worked it out. Saved as sent; missing = 0"),
+  "refunds[].payments": note("How the shopkeeper gave the money back: one row per method; a split refund has several rows (cash + card). Saved as sent. Left out = the whole total_refunded_amount on the method the sale was paid with"),
+  "refunds[].payments[].method": must("cash | card | jazzcash | easypaisa | credit (credit = comes off the customer's udhaar, nothing is paid out). A method once per refund"),
+  "refunds[].payments[].amount": note("What this method gave back. Saved as sent; missing = 0 (return_amount, the older name, still works)"),
+  "refunds[].payments[].surcharge_amount": note("Optional: the part of amount that is surcharge given back. One payment row left out = total_payment_surcharge_refunded"),
 }
 
 // POS orders (POST /orders/bulk): the till prices every order and the server saves the figures as sent (no figure is checked).
