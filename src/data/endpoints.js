@@ -5,6 +5,7 @@ import { DEMO_EPS, DEMO_NEW_EPS, DEMO_REMOVED_IDS } from "./demo.js"
 import { PATCH_DOCS, PATCH_REMOVED_IDS } from "./patchDocs.js"
 import { DISCOUNT_EPS } from "./discountDocs.js"
 import { STOCK_EPS } from "./stockDocs.js"
+import { CASH_EPS } from "./cashDocs.js"
 import { DELETE_EPS, DELETE_SECTIONS, KEPT_DELETE_IDS } from "./deleteDocs.js"
 import { LICENSE_EPS } from "./licenseDocs.js"
 
@@ -400,6 +401,10 @@ export const RESOURCE_ENUMS = {
   surcharges: {
     method: ["cash", "card", "jazzcash", "easypaisa", "cod", "bank_transfer", "raast", "sadapay", "nayapay", "upaisa", "digital_wallet", "cheque", "online", "other"],
     type: ["percentage", "fixed"],
+  },
+  cash: {
+    type: ["pay_in", "pay_out"],
+    party_type: ["supplier", "customer", "staff", "other"],
   },
   suppliers: {
     location_scope: ["all", "selected"],
@@ -864,6 +869,12 @@ export const tags = [
     enums: RESOURCE_ENUMS.taxes,
   },
   {
+    id: "cash",
+    name: "Cash Movements",
+    description: "Pay In / Pay Out: cash put into or taken out of a till's drawer by hand (POS and the dashboard's Cash Movements page).",
+    enums: RESOURCE_ENUMS.cash,
+  },
+  {
     id: "surcharges",
     name: "Payment Method Surcharges",
     description: "Settings › Payment Method Surcharges: what paying by a method adds to the bill.",
@@ -946,6 +957,7 @@ const POST_SECTIONS = [
   { id: "user-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-clock-in", "staff-clock-out"] },
   { id: "staff", name: "Staff", tag: "staff", ids: ["staff-bulk"] },
   { id: "batch-report", name: "Batch Report", tag: "shifts", ids: ["batch-open", "batch-close"] },
+  { id: "cash-movements", name: "Cash Movements", tag: "cash", ids: ["cash-bulk"] },
   { id: "locations", name: "Locations", tag: "locations", ids: ["location-create"] },
   { id: "categories", name: "Categories", tag: "categories", ids: ["cat-create", "cat-bulk"] },
   { id: "products", name: "Products", tag: "products", ids: ["prod-create", "prod-bulk", "prod-image-upload", "prod-variant-image-upload"] },
@@ -970,6 +982,7 @@ const PATCH_SECTIONS = [
   { id: "patch-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-patch"] },
   { id: "patch-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-session-bulk-patch"] },
   { id: "patch-batches", name: "Batches", tag: "shifts", ids: ["batch-bulk-patch"] },
+  { id: "patch-cash-movements", name: "Cash Movements", tag: "cash", ids: ["cash-bulk-patch"] },
   { id: "patch-customers", name: "Customers", tag: "customers", ids: ["customer-bulk-patch"] },
   { id: "patch-locations", name: "Locations", tag: "locations", ids: ["location-bulk-patch"] },
 ]
@@ -981,6 +994,7 @@ const GET_SECTIONS = [
   { id: "get-staff", name: "Staff", tag: "staff", ids: ["staff-list"] },
   { id: "get-user-sessions", name: "User Session History", tag: "shifts", ids: ["staff-session-list"] },
   { id: "get-batches", name: "Batch History", tag: "shifts", ids: ["batch-list"] },
+  { id: "get-cash-movements", name: "Cash Movements", tag: "cash", ids: ["cash-list", "cash-get"] },
   { id: "get-categories", name: "Categories", tag: "categories", ids: ["cat-list", "cat-lists", "cat-get"] },
   { id: "get-products", name: "Products", tag: "products", ids: ["prod-list", "prod-lists", "prod-get", "prod-weighted", "prod-stock"] },
   { id: "get-orders", name: "Orders", tag: "orders", ids: ["order-history", "order-lists", "order-get", "refund-list", "transaction-list", "transaction-lists", "transaction-get"] },
@@ -2575,6 +2589,7 @@ export const endpoints = [
   ...DEMO_NEW_EPS.map((spec) => ep(spec)),
   ...DISCOUNT_EPS.filter((spec) => !DEMO_REMOVED_IDS.includes(spec.id)).map((spec) => ep(spec)),
   ...STOCK_EPS.map((spec) => ep(spec)),
+  ...CASH_EPS.map((spec) => ep({ ...spec, ownResponses: true })),
   ...DELETE_EPS.map((spec) => ep({ ...spec, ownResponses: true })),
   ...LICENSE_EPS.map((spec) => ep(spec)),
 ]

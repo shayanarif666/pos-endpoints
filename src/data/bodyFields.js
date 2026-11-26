@@ -539,7 +539,32 @@ const ACTIVE_NOTE = (off) => note(`As on create: false = ${off}, true = active a
 const UPDATE_STAFF_ID = note("The staff member doing it (user number, e.g. 3), sent once; a row may carry its own. Leave out = the signed-in admin / manager")
 const UPDATE_LOCATION = note("The location number (e.g. 1), sent once. A manager / cashier: their own location")
 
+
+// Cash Movements (Pay In / Pay Out): cashDocs.js.
+const CASH_MOVEMENT = {
+  local_id: note("The till's own id for this movement. Sent again = the saved one comes back (no second one)"),
+  type: must("pay_in (cash put into the drawer) | pay_out (cash taken out). \"Pay In\" / \"in\" also work"),
+  amount: must("Above 0 (Rs)"),
+  reason: must("Why: free text, e.g. \"Milk bill #88\", \"Chai\", \"Change for the drawer\" (2000 characters at most)"),
+  party_type: note("Who the cash went to / came from: supplier | customer | staff (with party_id) | other (with party_name)"),
+  party_id: note("With party_type supplier / customer / staff: that supplier / customer / staff number (e.g. 1). The reply gives its name"),
+  party_name: note("Anyone not in the system (\"Chai wala\"); alone = party_type other"),
+  from_user: note("The staff number of who gave the cash. Null / left out = not a staff member"),
+  to_user: note("The staff number of who took the cash. A supplier paid by the cashier: from_user = the cashier, to_user left out"),
+  occurred_at: note("When it happened at the till (ISO date-time). Left out = now; in the past = an offline movement (it goes on the batch open then)"),
+  attachment_url: note("A receipt photo URL"),
+}
+
 export const BODY_FIELDS = {
+  "cash-bulk": {
+    ...TOP_STORE,
+    locationId: note("Once, before items[]: the location number (e.g. 1). A manager / cashier: their own (left out = the token's location); a store admin left out = the batch's or the default location"),
+    staffId: note("Once, before items[]: who enters it (staff number). An item's own staffId wins. Left out = the signed-in user"),
+    deviceId: note("Once, before items[]: the till (device number). An item's own deviceId wins"),
+    batchId: note("Optional (once or per item): the batch number it goes on. Left out = the open batch of the device / staff member"),
+    ...bulkOf(CASH_MOVEMENT),
+  },
+  "cash-bulk-patch": patchOf("movement", allOptional(CASH_MOVEMENT)),
   "customer-create": { name: R, phone: O, email: O, location_id: note("The location number"), debt_notes: O },
   "customer-bulk": { ...TOP_STORE, ...TOP_LOCATION, ...bulkOf({ name: R, phone: O, email: O, total_debt: note("Opening udhaar: everything the customer has ever owed (>= 0, default 0). Only remaining_debt sent = the same amount"), remaining_debt: note("What is still unpaid (>= 0, never more than total_debt). Only total_debt sent = the same amount. Default 0"), debt_notes: O }) },
   // Plans
@@ -935,7 +960,7 @@ const BULK_DELETE_FIELDS = {
 for (const id of [
   "products-bulk-delete", "categories-bulk-delete", "suppliers-bulk-delete", "locations-bulk-delete", "staff-bulk-delete",
   "staff-sessions-bulk-delete", "batches-bulk-delete", "stock-movements-bulk-delete", "stock-transfers-bulk-delete",
-  "taxes-bulk-delete", "surcharges-bulk-delete", "discounts-bulk-delete", "bulk-discounts-bulk-delete", "bundle-discounts-bulk-delete",
+  "cash-movements-bulk-delete", "taxes-bulk-delete", "surcharges-bulk-delete", "discounts-bulk-delete", "bulk-discounts-bulk-delete", "bundle-discounts-bulk-delete",
 ]) {
   BODY_FIELDS[id] = BULK_DELETE_FIELDS
 }

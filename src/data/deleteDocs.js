@@ -49,6 +49,19 @@ export const DELETE_EPS = [
     responses: [ok("Suppliers Deleted", [{ supplier_number: 2, name: "Mustafa Traders", phone: "03006666667", is_active: false, deleted_at: "2026-11-21T10:00:00.000Z" }]), fail(404, "Supplier not found")],
   },
   {
+    id: "cash-movements-bulk-delete",
+    tag: "cash",
+    method: "DELETE",
+    path: "/api/v1/cash-movements/bulk",
+    summary: "Bulk Delete Cash Movements",
+    description: `${BULK_DELETE_NOTE} Cash Movements → Delete. Soft delete: the Pay In / Pay Out leaves the lists and its amount comes off its batch's cash_in / cash_out (the expected cash, and a closed batch's variance, follow); its row stays (deleted_at set) for the audit. id = the movement number (e.g. 3) or UUID. Store admin, manager or cashier (a manager / cashier: their own location). Each data row: the movement with deleted_at.`,
+    body: body([3]),
+    responses: [
+      ok("Cash Movements Deleted", [{ id: 3, type: "pay_out", amount: 120, reason: "Chai", location: { id: 1, name: "Gulshan e Iqbal Block 13 D" }, batch: { id: 1, status: "open" }, party: { type: "other", id: null, name: "Chai wala" }, deleted_at: "2026-11-26T11:30:00.000Z" }]),
+      fail(404, "Cash movement not found"),
+    ],
+  },
+  {
     id: "locations-bulk-delete",
     tag: "locations",
     method: "DELETE",
@@ -187,6 +200,7 @@ export const DELETE_SECTIONS = [
   { id: "delete-staff", name: "Staff", tag: "staff", ids: ["staff-bulk-delete"] },
   { id: "delete-staff-sessions", name: "User Sessions", tag: "shifts", ids: ["staff-sessions-bulk-delete"] },
   { id: "delete-batches", name: "Batches", tag: "shifts", ids: ["batches-bulk-delete"] },
+  { id: "delete-cash-movements", name: "Cash Movements", tag: "cash", ids: ["cash-movements-bulk-delete"] },
   { id: "delete-taxes", name: "Taxes", tag: "taxes", ids: ["taxes-bulk-delete"] },
   { id: "delete-surcharges", name: "Payment Method Surcharges", tag: "surcharges", ids: ["surcharges-bulk-delete"] },
   { id: "delete-discounts", name: "Discounts", tag: "discounts", ids: ["discounts-bulk-delete", "bulk-discounts-bulk-delete", "bundle-discounts-bulk-delete"] },
